@@ -1,6 +1,6 @@
 class Tails.Model extends Backbone.Deferred.Model
-    _.extend @, App.Mixable
-    @concern App.Mixins.DynamicProperties
+    _.extend @, Tails.Mixable
+    @concern Tails.Mixins.DynamicProperties
 
     syncing: false
     dataType: 'json'
@@ -29,7 +29,7 @@ class Tails.Model extends Backbone.Deferred.Model
         return '/' + @constructor.name.pluralize().underscore()
 
     url: ( ) ->
-        base = @parent?.url?() or @parent?.url or App.url
+        base = @parent?.url?() or @parent?.url or Tails.url
         root = @urlRoot?() or @urlRoot
         id = if @id then "/#{@id}" else ''
         format = if @format? then '.' + (@format?() or @format) else ''

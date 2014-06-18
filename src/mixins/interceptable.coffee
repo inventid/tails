@@ -110,4 +110,4 @@ Tails.Mixins.Interceptable =
                             return ret
 
     extended: ( ) ->
-        @include App.Mixins.DynamicProperties
+        @include Tails.Mixins.DynamicProperties

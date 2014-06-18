@@ -4,14 +4,14 @@
 #= require core/mixable
 #= require mixins/relations
 
-describe "App.Mixins.Relations", ->
+describe "Tails.Mixins.Relations", ->
 
     describe ".ClassMethods", ->
 
         beforeEach ->
             class @Model extends Backbone.Model
-                _.extend(@, App.Mixable)
-                @extend(App.Mixins.Relations)
+                _.extend(@, Tails.Mixable)
+                @extend(Tails.Mixins.Relations)
 
             class @Event extends @Model
             class @Shop extends @Model
@@ -115,12 +115,12 @@ describe "App.Mixins.Relations", ->
 
     describe ".extended", ->
 
-        it "should extend App.Mixins.Collectable", ->
+        it "should extend Tails.Mixins.Collectable", ->
             class Model extends Backbone.Model
-                _.extend(@, App.Mixable)
+                _.extend(@, Tails.Mixable)
 
             spy = sinon.spy(Model, 'extend')
-            Model.extend(App.Mixins.Relations)
-            expect(spy).to.have.been.calledWith(App.Mixins.Collectable)
+            Model.extend(Tails.Mixins.Relations)
+            expect(spy).to.have.been.calledWith(Tails.Mixins.Collectable)
 
 

@@ -11,7 +11,7 @@ Tails.Mixins.Collectable =
     ClassMethods:
         all: ( ) ->
             unless @_all?.klass is @
-                @_all = new App.Collection null, model: @
+                @_all = new Tails.Collection null, model: @
                 @_all.klass = @
             return @_all
 
@@ -22,7 +22,7 @@ Tails.Mixins.Collectable =
             all().create.apply @, args
 
     extended: ( ) ->
-        @extend App.Mixins.Interceptable
+        @extend Tails.Mixins.Interceptable
 
         @after initialize: ->
             throw new Error("Duplicate #{@constructor.name} for id #{@id}.") if @constructor.all().get(@id)?

@@ -26,7 +26,7 @@ Tails.Mixins.Relations =
             @_relations[relation].push(klassFn)
 
     extended: ( ) ->
-        @extend  App.Mixins.Collectable
+        @extend  Tails.Mixins.Collectable
 
         @after initialize: ( ) ->
             @_blacklistedAttributes ||= []
@@ -107,7 +107,7 @@ Tails.Mixins.Relations =
                             @_blacklistedAttributes.push(propertyKey)
 
                             # Create the collection of relations
-                            collection = new App.Collection null, { model: klass, parent: @ }
+                            collection = new Tails.Collection null, { model: klass, parent: @ }
                             @set propertyKey, collection
 
                             # Find all models of klass that have already set us as their relation.

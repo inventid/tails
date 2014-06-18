@@ -4,7 +4,7 @@
 # bound.
 #
 class Tails.View extends Backbone.View
-    _.extend @, App.Mixable
+    _.extend @, Tails.Mixable
 
     initialize: ( options = {} ) ->
         @template?.bind(@)
