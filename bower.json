@@ -1,0 +1,24 @@
+{
+  "name": "tails",
+  "version": "0.0.1",
+  "authors": [
+    "Joost Verdoorn"
+  ],
+  "description": "Easy model management using Backbone",
+  "main": "dist/tails.js",
+  "keywords": [
+    "backbone",
+    "models"
+  ],
+  "dependencies": {
+    "backbone": "~1.1.2",
+    "rivets": "~0.6.8",
+    "q": "~1.0.1"
+  },
+  "license": "MIT",
+  "ignore": [
+    "node_modules",
+    "bower_components",
+    "spec"
+  ]
+}
