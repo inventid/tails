@@ -1,9 +1,3 @@
-#= require sinon
-#= require sinon-chai
-#= require vendor
-#= require core/mixable
-#= require mixins/collectable
-
 describe "Tails.Mixins.Collectable", ->
 
   beforeEach ->

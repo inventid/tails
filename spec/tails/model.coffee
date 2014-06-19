@@ -1,6 +1,3 @@
-#= require vendor
-#= require core/model
-
 describe "Tails.Model", ->
 
   describe "#constructor", ->

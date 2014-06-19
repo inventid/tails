@@ -1,9 +1,3 @@
-#= require sinon
-#= require sinon-chai
-#= require vendor
-#= require core/mixable
-#= require mixins/relations
-
 describe "Tails.Mixins.Relations", ->
 
   describe ".ClassMethods", ->

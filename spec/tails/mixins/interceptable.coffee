@@ -1,9 +1,3 @@
-#= require sinon
-#= require sinon-chai
-#= require vendor
-#= require core/mixable
-#= require mixins/interceptable
-
 describe "Tails.Mixins.Interceptable", ->
 
 
