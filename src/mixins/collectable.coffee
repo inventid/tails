@@ -8,22 +8,22 @@
 #
 Tails.Mixins.Collectable =
 
-    ClassMethods:
-        all: ( ) ->
-            unless @_all?.klass is @
-                @_all = new Tails.Collection null, model: @
-                @_all.klass = @
-            return @_all
+  ClassMethods:
+    all: ( ) ->
+      unless @_all?.klass is @
+        @_all = new Tails.Collection null, model: @
+        @_all.klass = @
+      return @_all
 
-        get: ( id ) ->
-            return @all().get(id) or new @(id: id)
+    get: ( id ) ->
+      return @all().get(id) or new @(id: id)
 
-        create: ( args... ) ->
-            all().create.apply @, args
+    create: ( args... ) ->
+      all().create.apply @, args
 
-    extended: ( ) ->
-        @extend Tails.Mixins.Interceptable
+  extended: ( ) ->
+    @extend Tails.Mixins.Interceptable
 
-        @after initialize: ->
-            throw new Error("Duplicate #{@constructor.name} for id #{@id}.") if @constructor.all().get(@id)?
-            @constructor.all().add(@)
+    @after initialize: ->
+      throw new Error("Duplicate #{@constructor.name} for id #{@id}.") if @constructor.all().get(@id)?
+      @constructor.all().add(@)
