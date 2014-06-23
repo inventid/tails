@@ -4,21 +4,21 @@
 # bound.
 #
 class Tails.View extends Backbone.View
-  _.extend @, Tails.Mixable
+    _.extend @, Tails.Mixable
 
-  initialize: ( options = {} ) ->
-    @template?.bind(@)
-      .then ( $el ) =>
-        @setElement($el)
-        @render()
-    super
+    initialize: ( options = {} ) ->
+        @template?.bind(@)
+            .then ( $el ) =>
+                @setElement($el)
+                @render()
+        super
 
-  render: ( ) ->
-    # Make sure events are set properly. When
-    # the view is removed and re-added to the
-    # DOM, we need to re-set the events.
-    @delegateEvents()
+    render: ( ) ->
+        # Make sure events are set properly. When
+        # the view is removed and re-added to the
+        # DOM, we need to re-set the events.
+        @delegateEvents()
 
-  setView: ( view ) ->
-    @view = view
-    @view.render()
+    setView: ( view ) ->
+        @view = view
+        @view.render()

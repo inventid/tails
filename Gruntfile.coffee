@@ -16,59 +16,66 @@ module.exports = ( grunt ) ->
         files:
           'dist/tails.js': [
             'src/tails.coffee'
-            'src/mixins/collectable.coffee'
-            'src/mixins/dynamic_properties.coffee'
+
             'src/mixins/interceptable.coffee'
+            'src/mixins/dynamic_properties.coffee'
+            'src/mixins/collectable.coffee'
             'src/mixins/relations.coffee'
+
             'src/mixable.coffee'
             'src/model.coffee'
             'src/collection.coffee'
-            'src/view.coffee'
             'src/template.coffee'
+            'src/view.coffee'
+
+            'src/export.coffee'
           ]
 
       spec:
         files: [
           expand: true
-          cwd: './spec'
+          cwd: 'spec'
           src: ['**/*.coffee']
-          dest: 'spec_dist'
+          dest: 'spec_compiled'
           ext: '.js'
         ]
 
     concat:
-      all:
+      deps:
+        src: [
+          'bower_components/underscore/underscore.js'
+          'bower_components/underscore.string/lib/underscore.string.js'
+          'bower_components/q/q.js'
+          'bower_components/jquery/jquery.js'
+          'bower_components/backbone/backbone.js'
+          'bower_components/backbone-deferred/backbone-deferred-q.js'
+          'bower_components/rivets/dist/rivets.js'
+          ]
+        dest: 'dist/tails-deps.js'
+
+      banner:
         options:
           banner: '<%= meta.banner %>'
         files:
           'dist/tails.js': 'dist/tails.js'
 
     uglify:
-      all:
+      dist:
         options:
           banner: '<%= meta.banner %>'
           report: 'gzip'
         files:
           'dist/tails.min.js': 'dist/tails.js'
 
-    # 'mocha-chai-sinon':
-    #     build:
-    #         src: [ 'spec_dist/**/*.js']
-    #         options:
-    #             ui: 'bdd'
-    #             reporter: 'spec'
-
-    #     coverage:
-    #         src: ['dist/tails.js', 'spec_dist/**/*.js']
-    #         options:
-    #             ui: 'bdd'
-    #             reporter: 'html-cov'
-    #             quiet: true
-    #             captureFile: 'coverage.html'
+    jasmine:
+      all:
+        src: ['dist/tails-deps.js', 'dist/tails.js']
+        options:
+          # specs: ['spec_compiled/mixins/interceptable.js']
+          specs: 'spec_compiled/**/*.js'
 
     clean:
-      spec: ['spec_dist']
-
+      spec: ['spec_compiled']
 
     watch:
       all:
@@ -76,13 +83,13 @@ module.exports = ( grunt ) ->
         tasks: ['build', 'spec']
 
   grunt.loadNpmTasks 'grunt-contrib-coffee'
+  grunt.loadNpmTasks 'grunt-requirejs'
   grunt.loadNpmTasks 'grunt-contrib-concat'
   grunt.loadNpmTasks 'grunt-contrib-uglify'
   grunt.loadNpmTasks 'grunt-contrib-clean'
-  # grunt.loadNpmTasks 'grunt-mocha-chai-sinon'
+  grunt.loadNpmTasks 'grunt-contrib-jasmine'
   grunt.loadNpmTasks 'grunt-contrib-watch'
 
-
   grunt.registerTask 'default', ['watch']
-  # grunt.registerTask 'spec',  ['coffee:dist', 'coffee:spec', 'mocha-chai-sinon', 'clean:spec']
-  grunt.registerTask 'build',   ['coffee', 'concat', 'uglify']
+  grunt.registerTask 'spec',  ['coffee:dist', 'coffee:spec', 'concat:deps', 'jasmine', 'clean:spec']
+  grunt.registerTask 'build',   ['coffee:dist', 'uglify:dist']

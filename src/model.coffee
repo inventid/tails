@@ -1,93 +1,97 @@
 class Tails.Model extends Backbone.Deferred.Model
-  _.extend @, Tails.Mixable
-  @concern Tails.Mixins.DynamicProperties
+    _.extend @, Tails.Mixable
+    @concern Tails.Mixins.DynamicProperties
 
-  syncing: false
-  dataType: 'json'
+    syncing: false
+    dataType: 'json'
 
-  initialize: ( attrs = {}, options = {} ) ->
-    @parent = options.parent or @parent
-    @synced = options.synced or false
+    # @attribute -> ['id', 'name', 'email', 'address']
+    # @belongsTo -> shop: App.Model.Shop
+    # @hasMany   -> products: App.Model.Product
 
-    # Create getters and setters for each attribute
-    # of the model, by listening to change events
-    # and calling the appropriate methods.
-    @on 'change', ( model ) =>
-      @synced = false
-      for key, prop of model.changed when not @hasOwnProperty(key.camelize(true))
-        do ( key ) =>
-          @getter key.camelize(true), ( ) => @get(key)
-          @setter key.camelize(true), ( value ) => @set(key, value)
+    initialize: ( attrs = {}, options = {} ) ->
+        @parent = options.parent or @parent
+        @synced = options.synced or false
 
-    # Store when the model has been synced. Future fetches
-    # will immediatly resolve.
-    @on 'sync', -> @synced = true
+        # Create getters and setters for each attribute
+        # of the model, by listening to change events
+        # and calling the appropriate methods.
+        @on 'change', ( model ) =>
+            @synced = false
+            for key, prop of model.changed when not @hasOwnProperty(key.camelize(true))
+                do ( key ) =>
+                    @getter key.camelize(true), ( ) => @get(key)
+                    @setter key.camelize(true), ( value ) => @set(key, value)
 
-    super
+        # Store when the model has been synced. Future fetches
+        # will immediatly resolve.
+        @on 'sync', -> @synced = true
 
-  urlRoot: ( ) ->
-    return '/' + @constructor.name.pluralize().underscore()
+        super
 
-  url: ( ) ->
-    base = @parent?.url?() or @parent?.url or Tails.url
-    root = @urlRoot?() or @urlRoot
-    id = if @id then "/#{@id}" else ''
-    format = if @format? then '.' + (@format?() or @format) else ''
+    urlRoot: ( ) ->
+        return '/' + @constructor.name.pluralize().underscore()
 
-    url = "#{base}#{root}#{id}#{format}"
-    return url
+    url: ( ) ->
+        base = @parent?.url?() or @parent?.url or Tails.url
+        root = @urlRoot?() or @urlRoot
+        id = if @id then "/#{@id}" else ''
+        format = if @format? then '.' + (@format?() or @format) else ''
 
-  # Fetch the model from the server. Overrides
-  # Backbone.Deferred.Model.prototype.fetch for two reasons:
-  # we want to be able to skip fetches when the model was already
-  # synced, and we want to specify the dataType.
-  fetch: ( options = {} ) ->
-    if @synced and not options.force
-      return @_fetchPromise
+        url = "#{base}#{root}#{id}#{format}"
+        return url
 
-    _.defaults options, dataType: @format
-    fetchPromise = super options
+    # Fetch the model from the server. Overrides
+    # Backbone.Deferred.Model.prototype.fetch for two reasons:
+    # we want to be able to skip fetches when the model was already
+    # synced, and we want to specify the dataType.
+    fetch: ( options = {} ) ->
+        if @synced and not options.force
+            return @_fetchPromise
 
-    @synced = false
-    @syncing = true
+        _.defaults options, dataType: @format
+        fetchPromise = super options
 
-    deferred = Q.defer()
+        @synced = false
+        @syncing = true
 
-    resolve = ( args... ) =>
-      @syncing = false
-      deferred.resolve.apply deferred, args
+        deferred = Q.defer()
 
-    fetchPromise.then ( args... ) =>
-      if @synced then resolve.apply @, args
-      else @once 'sync', -> resolve.apply @, args
-    fetchPromise.fail ( args... ) =>
-      deferred.reject.apply deferred, args
+        resolve = ( args... ) =>
+            @syncing = false
+            deferred.resolve.apply deferred, args
 
-    return @_fetchPromise = deferred.promise
+        fetchPromise.then ( args... ) =>
+            if @synced then resolve.apply @, args
+            else @once 'sync', -> resolve.apply @, args
+        fetchPromise.fail ( args... ) =>
+            deferred.reject.apply deferred, args
 
-  save: ( options = {} ) ->
-    if @synced and not options.force
-      return @_fetchPromise
+        return @_fetchPromise = deferred.promise
 
-    _.defaults options, dataType: @format
-    fetchPromise = super options
+    save: ( options = {} ) ->
+        if @synced and not options.force
+            return @_fetchPromise
 
-    @synced = false
-    @syncing = true
+        _.defaults options, dataType: @format
+        fetchPromise = super options
 
-    deferred = Q.defer()
+        @synced = false
+        @syncing = true
 
-    resolve = ( args... ) =>
-      @syncing = false
-      deferred.resolve.apply deferred, args
+        deferred = Q.defer()
 
-    fetchPromise.then ( args... ) =>
-      if @synced then resolve.apply @, args
-      else @once 'sync', -> resolve.apply @, args
-    fetchPromise.fail ( args... ) =>
-      deferred.reject.apply deferred, args
+        resolve = ( args... ) =>
+            @syncing = false
+            deferred.resolve.apply deferred, args
 
-    return @_fetchPromise = deferred.promise
+        fetchPromise.then ( args... ) =>
+            if @synced then resolve.apply @, args
+            else @once 'sync', -> resolve.apply @, args
+        fetchPromise.fail ( args... ) =>
+            deferred.reject.apply deferred, args
 
-  toJSON: ( ) ->
-    return _.omit @attributes, @_blacklistedAttributes
+        return @_fetchPromise = deferred.promise
+
+    toJSON: ( ) ->
+        return _.omit @attributes, @_blacklistedAttributes

@@ -6,7 +6,7 @@ Tails.Mixable =
       @_includedMixins.klass = @
 
     for mixin in mixins when mixin not in @_includedMixins
-      for key, value of _.extend({}, mixin.InstanceMethods, mixin.ObjectMethods)
+      for key, value of mixin.InstanceMethods
         @::[key] = value
 
       @_includedMixins.push mixin
@@ -20,7 +20,7 @@ Tails.Mixable =
       @_extendedMixins.klass = @
 
     for mixin in mixins when mixin not in @_extendedMixins
-      for key, value of _.extend({}, mixin.ClassMethods, mixin.ObjectMethods)
+      for key, value of mixin.ClassMethods
         @[key] = value
 
       @_extendedMixins.push mixin
@@ -29,6 +29,6 @@ Tails.Mixable =
     return @
 
   concern: ( mixins... ) ->
-    @extend.apply @, mixins
     @include.apply @, mixins
+    @extend.apply  @, mixins
     return @

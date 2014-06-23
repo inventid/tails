@@ -1,24 +1,31 @@
-#= require core/app
-
+# This mixin aids in adding getters and setters onto a class
+# Javascript can do this natively, but CoffeeScript lacks the
+# syntax for this.
+#
 Tails.Mixins.DynamicProperties =
 
-  ObjectMethods:
-    getter: ( getters, fn = null ) ->
-      @defineProperty('getter', getters, fn)
+  InstanceMethods:
+    getter: ( getters ) ->
+       @defineProperty getter: getters
 
-    setter: ( setters, fn = null ) ->
-      @defineProperty('setter', setters, fn)
+    setter: ( setters ) ->
+      @defineProperty setter: setters
 
-    defineProperty: ( type, attributes, fn = null ) ->
-      if typeof attributes is 'string'
-        throw new Error('Function expected but none was given.') unless typeof fn is 'function'
-        key = attributes
-        attributes = {}
-        attributes[key] = fn
+    defineProperty: ( params ) ->
+      for type, attributes of params when type in ['getter', 'setter']
+        for key, fn of attributes
+          do ( key, fn ) =>
+            map = Object.getOwnPropertyDescriptor(@, key) or configurable: true
+            if      type is 'getter' then map.get = ( )       => fn.call @
+            else if type is 'setter' then map.set = ( value ) => fn.call @, value
+            Object.defineProperty @, key, map
 
-      for key, fn of attributes
-        do ( key, fn ) =>
-          map = Object.getOwnPropertyDescriptor(@, key) or configurable: true
-          if    type is 'getter' then map.get = ( )     => fn.call @
-          else if type is 'setter' then map.set = ( value ) => fn.call @, value
-          Object.defineProperty @, key, map
+  ClassMethods:
+    getter: ( getters ) ->
+      @before initialize: ( ) -> @getter getters?() or getters
+
+    setter: ( setters ) ->
+      @before initialize: ( ) -> @setter setters?() or setters
+
+  extended: ( ) ->
+    @concern Tails.Mixins.Interceptable
