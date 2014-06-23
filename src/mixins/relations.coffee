@@ -11,7 +11,7 @@ Tails.Mixins.Relations =
       foreignKey = relations.foreignKey
       for foreignName, klass of _(relations).omit('foreignKey')
         do ( foreignKey, foreignName, klass ) =>
-          foreignKey ||= _.str.underscored(klass.name) + '_id'
+          foreignKey ||= inflection.foreign_key(klass.name)
 
           # Store the foreignId and relation we were defined with.
           # We will overwrite these.
@@ -50,7 +50,7 @@ Tails.Mixins.Relations =
       foreignKey = relations.foreignKey
       for foreignName, klass of _(relations).omit('foreignKey')
         do ( foreignKey, foreignName, klass ) =>
-          foreignKey ||= _.str.underscored(@constructor.name) + '_id'
+          foreignKey ||= inflection.foreign_key(@constructor.name)
 
           attrs = {}
           attrs[foreignKey] = @id
@@ -64,7 +64,7 @@ Tails.Mixins.Relations =
       foreignKey = relations.foreignKey
       for foreignName, klass of _(relations).omit('foreignKey')
         do ( foreignKey, foreignName, klass ) =>
-          foreignKey ||= _.str.underscored(@constructor.name) + '_id'
+          foreignKey ||= inflection.foreign_key(@constructor.name)
 
           # Create the collection of relations
           collection = new Tails.Collection null, { model: klass, parent: @ }

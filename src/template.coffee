@@ -2,21 +2,17 @@
 # objects to the template.
 #
 class Tails.Template extends Tails.Model
-    @concern Tails.Mixins.Collectable
+  @concern Tails.Mixins.Collectable
 
-    urlRoot: '/assets'
-    format:  'html'
+  urlRoot: 'assets'
+  format:  'html'
 
-    initialize: ( attrs = {}, options = {} ) ->
-        super
+  # Binds an object to the template using rivets.js.
+  bind: ( view ) ->
+    return @fetch(parse: true).then ( ) =>
+      $el = @get('$el').clone()
+      rivets.bind $el, view
+      return $el
 
-    # Binds an object - in most cases an instance of Tails.Model -
-    # to the template using rivets.js.
-    bind: ( view ) ->
-        return @fetch().then ( ) =>
-            $el = @$el.clone()
-            rivets.bind $el, view
-            return $el
-
-    parse: ( response, options ) ->
-        return $el: $(response)
+  parse: ( response, options ) ->
+    return $el: $(response)

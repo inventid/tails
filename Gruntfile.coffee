@@ -44,7 +44,7 @@ module.exports = ( grunt ) ->
       deps:
         src: [
           'bower_components/underscore/underscore.js'
-          'bower_components/underscore.string/lib/underscore.string.js'
+          'bower_components/inflection/lib/inflection.js'
           'bower_components/q/q.js'
           'bower_components/jquery/jquery.js'
           'bower_components/backbone/backbone.js'
@@ -71,7 +71,6 @@ module.exports = ( grunt ) ->
       all:
         src: ['dist/tails-deps.js', 'dist/tails.js']
         options:
-          # specs: ['spec_compiled/mixins/interceptable.js']
           specs: 'spec_compiled/**/*.js'
 
     clean:

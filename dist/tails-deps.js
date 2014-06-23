@@ -1275,679 +1275,654 @@
 
 }).call(this);
 
-//  Underscore.string
-//  (c) 2010 Esa-Matti Suuronen <esa-matti aet suuronen dot org>
-//  Underscore.string is freely distributable under the terms of the MIT license.
-//  Documentation: https://github.com/epeli/underscore.string
-//  Some code is borrowed from MooTools and Alexandru Marasteanu.
-//  Version '2.3.2'
+/*!
+ * inflection
+ * Copyright(c) 2011 Ben Lin <ben@dreamerslab.com>
+ * MIT Licensed
+ *
+ * @fileoverview
+ * A port of inflection-js to node.js module.
+ */
 
-!function(root, String){
-  'use strict';
+( function ( root ){
 
-  // Defining helper functions.
+  /**
+   * @description This is a list of nouns that use the same form for both singular and plural.
+   *              This list should remain entirely in lower case to correctly match Strings.
+   * @private
+   */
+  var uncountable_words = [
+    'equipment', 'information', 'rice', 'money', 'species',
+    'series', 'fish', 'sheep', 'moose', 'deer', 'news'
+  ];
 
-  var nativeTrim = String.prototype.trim;
-  var nativeTrimRight = String.prototype.trimRight;
-  var nativeTrimLeft = String.prototype.trimLeft;
+  /**
+   * @description These rules translate from the singular form of a noun to its plural form.
+   * @private
+   */
+  var plural_rules = [
 
-  var parseNumber = function(source) { return source * 1 || 0; };
+    // do not replace if its already a plural word
+    [ new RegExp( '(m)en$',      'gi' )],
+    [ new RegExp( '(pe)ople$',   'gi' )],
+    [ new RegExp( '(child)ren$', 'gi' )],
+    [ new RegExp( '([ti])a$',    'gi' )],
+    [ new RegExp( '((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)ses$','gi' )],
+    [ new RegExp( '(hive)s$',           'gi' )],
+    [ new RegExp( '(tive)s$',           'gi' )],
+    [ new RegExp( '(curve)s$',          'gi' )],
+    [ new RegExp( '([lr])ves$',         'gi' )],
+    [ new RegExp( '([^fo])ves$',        'gi' )],
+    [ new RegExp( '([^aeiouy]|qu)ies$', 'gi' )],
+    [ new RegExp( '(s)eries$',          'gi' )],
+    [ new RegExp( '(m)ovies$',          'gi' )],
+    [ new RegExp( '(x|ch|ss|sh)es$',    'gi' )],
+    [ new RegExp( '([m|l])ice$',        'gi' )],
+    [ new RegExp( '(bus)es$',           'gi' )],
+    [ new RegExp( '(o)es$',             'gi' )],
+    [ new RegExp( '(shoe)s$',           'gi' )],
+    [ new RegExp( '(cris|ax|test)es$',  'gi' )],
+    [ new RegExp( '(octop|vir)i$',      'gi' )],
+    [ new RegExp( '(alias|status)es$',  'gi' )],
+    [ new RegExp( '^(ox)en',            'gi' )],
+    [ new RegExp( '(vert|ind)ices$',    'gi' )],
+    [ new RegExp( '(matr)ices$',        'gi' )],
+    [ new RegExp( '(quiz)zes$',         'gi' )],
 
-  var strRepeat = function(str, qty){
-    if (qty < 1) return '';
-    var result = '';
-    while (qty > 0) {
-      if (qty & 1) result += str;
-      qty >>= 1, str += str;
+    // original rule
+    [ new RegExp( '(m)an$', 'gi' ),                 '$1en' ],
+    [ new RegExp( '(pe)rson$', 'gi' ),              '$1ople' ],
+    [ new RegExp( '(child)$', 'gi' ),               '$1ren' ],
+    [ new RegExp( '^(ox)$', 'gi' ),                 '$1en' ],
+    [ new RegExp( '(ax|test)is$', 'gi' ),           '$1es' ],
+    [ new RegExp( '(octop|vir)us$', 'gi' ),         '$1i' ],
+    [ new RegExp( '(alias|status)$', 'gi' ),        '$1es' ],
+    [ new RegExp( '(bu)s$', 'gi' ),                 '$1ses' ],
+    [ new RegExp( '(buffal|tomat|potat)o$', 'gi' ), '$1oes' ],
+    [ new RegExp( '([ti])um$', 'gi' ),              '$1a' ],
+    [ new RegExp( 'sis$', 'gi' ),                   'ses' ],
+    [ new RegExp( '(?:([^f])fe|([lr])f)$', 'gi' ),  '$1$2ves' ],
+    [ new RegExp( '(hive)$', 'gi' ),                '$1s' ],
+    [ new RegExp( '([^aeiouy]|qu)y$', 'gi' ),       '$1ies' ],
+    [ new RegExp( '(x|ch|ss|sh)$', 'gi' ),          '$1es' ],
+    [ new RegExp( '(matr|vert|ind)ix|ex$', 'gi' ),  '$1ices' ],
+    [ new RegExp( '([m|l])ouse$', 'gi' ),           '$1ice' ],
+    [ new RegExp( '(quiz)$', 'gi' ),                '$1zes' ],
+
+    [ new RegExp( 's$', 'gi' ), 's' ],
+    [ new RegExp( '$', 'gi' ),  's' ]
+  ];
+
+  /**
+   * @description These rules translate from the plural form of a noun to its singular form.
+   * @private
+   */
+  var singular_rules = [
+
+    // do not replace if its already a singular word
+    [ new RegExp( '(m)an$',                 'gi' )],
+    [ new RegExp( '(pe)rson$',              'gi' )],
+    [ new RegExp( '(child)$',               'gi' )],
+    [ new RegExp( '^(ox)$',                 'gi' )],
+    [ new RegExp( '(ax|test)is$',           'gi' )],
+    [ new RegExp( '(octop|vir)us$',         'gi' )],
+    [ new RegExp( '(alias|status)$',        'gi' )],
+    [ new RegExp( '(bu)s$',                 'gi' )],
+    [ new RegExp( '(buffal|tomat|potat)o$', 'gi' )],
+    [ new RegExp( '([ti])um$',              'gi' )],
+    [ new RegExp( 'sis$',                   'gi' )],
+    [ new RegExp( '(?:([^f])fe|([lr])f)$',  'gi' )],
+    [ new RegExp( '(hive)$',                'gi' )],
+    [ new RegExp( '([^aeiouy]|qu)y$',       'gi' )],
+    [ new RegExp( '(x|ch|ss|sh)$',          'gi' )],
+    [ new RegExp( '(matr|vert|ind)ix|ex$',  'gi' )],
+    [ new RegExp( '([m|l])ouse$',           'gi' )],
+    [ new RegExp( '(quiz)$',                'gi' )],
+
+    // original rule
+    [ new RegExp( '(m)en$', 'gi' ),                                                       '$1an' ],
+    [ new RegExp( '(pe)ople$', 'gi' ),                                                    '$1rson' ],
+    [ new RegExp( '(child)ren$', 'gi' ),                                                  '$1' ],
+    [ new RegExp( '([ti])a$', 'gi' ),                                                     '$1um' ],
+    [ new RegExp( '((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)ses$','gi' ), '$1$2sis' ],
+    [ new RegExp( '(hive)s$', 'gi' ),                                                     '$1' ],
+    [ new RegExp( '(tive)s$', 'gi' ),                                                     '$1' ],
+    [ new RegExp( '(curve)s$', 'gi' ),                                                    '$1' ],
+    [ new RegExp( '([lr])ves$', 'gi' ),                                                   '$1f' ],
+    [ new RegExp( '([^fo])ves$', 'gi' ),                                                  '$1fe' ],
+    [ new RegExp( '(m)ovies$', 'gi' ),                                                    '$1ovie' ],
+    [ new RegExp( '([^aeiouy]|qu)ies$', 'gi' ),                                           '$1y' ],
+    [ new RegExp( '(s)eries$', 'gi' ),                                                    '$1eries' ],
+    [ new RegExp( '(x|ch|ss|sh)es$', 'gi' ),                                              '$1' ],
+    [ new RegExp( '([m|l])ice$', 'gi' ),                                                  '$1ouse' ],
+    [ new RegExp( '(bus)es$', 'gi' ),                                                     '$1' ],
+    [ new RegExp( '(o)es$', 'gi' ),                                                       '$1' ],
+    [ new RegExp( '(shoe)s$', 'gi' ),                                                     '$1' ],
+    [ new RegExp( '(cris|ax|test)es$', 'gi' ),                                            '$1is' ],
+    [ new RegExp( '(octop|vir)i$', 'gi' ),                                                '$1us' ],
+    [ new RegExp( '(alias|status)es$', 'gi' ),                                            '$1' ],
+    [ new RegExp( '^(ox)en', 'gi' ),                                                      '$1' ],
+    [ new RegExp( '(vert|ind)ices$', 'gi' ),                                              '$1ex' ],
+    [ new RegExp( '(matr)ices$', 'gi' ),                                                  '$1ix' ],
+    [ new RegExp( '(quiz)zes$', 'gi' ),                                                   '$1' ],
+    [ new RegExp( 'ss$', 'gi' ),                                                          'ss' ],
+    [ new RegExp( 's$', 'gi' ),                                                           '' ]
+  ];
+
+  /**
+   * @description This is a list of words that should not be capitalized for title case.
+   * @private
+   */
+  var non_titlecased_words = [
+    'and', 'or', 'nor', 'a', 'an', 'the', 'so', 'but', 'to', 'of', 'at','by',
+    'from', 'into', 'on', 'onto', 'off', 'out', 'in', 'over', 'with', 'for'
+  ];
+
+  /**
+   * @description These are regular expressions used for converting between String formats.
+   * @private
+   */
+  var id_suffix         = new RegExp( '(_ids|_id)$', 'g' );
+  var underbar          = new RegExp( '_', 'g' );
+  var space_or_underbar = new RegExp( '[\ _]', 'g' );
+  var uppercase         = new RegExp( '([A-Z])', 'g' );
+  var underbar_prefix   = new RegExp( '^_' );
+
+  var inflector = {
+
+  /**
+   * A helper method that applies rules based replacement to a String.
+   * @private
+   * @function
+   * @param {String} str String to modify and return based on the passed rules.
+   * @param {Array: [RegExp, String]} rules Regexp to match paired with String to use for replacement
+   * @param {Array: [String]} skip Strings to skip if they match
+   * @param {String} override String to return as though this method succeeded (used to conform to APIs)
+   * @returns {String} Return passed String modified by passed rules.
+   * @example
+   *
+   *     this._apply_rules( 'cows', singular_rules ); // === 'cow'
+   */
+    _apply_rules : function( str, rules, skip, override ){
+      if( override ){
+        str = override;
+      }else{
+        var ignore = ( inflector.indexOf( skip, str.toLowerCase()) > -1 );
+
+        if( !ignore ){
+          var i = 0;
+          var j = rules.length;
+
+          for( ; i < j; i++ ){
+            if( str.match( rules[ i ][ 0 ])){
+              if( rules[ i ][ 1 ] !== undefined ){
+                str = str.replace( rules[ i ][ 0 ], rules[ i ][ 1 ]);
+              }
+              break;
+            }
+          }
+        }
+      }
+
+      return str;
+    },
+
+
+
+  /**
+   * This lets us detect if an Array contains a given element.
+   * @public
+   * @function
+   * @param {Array} arr The subject array.
+   * @param {Object} item Object to locate in the Array.
+   * @param {Number} fromIndex Starts checking from this position in the Array.(optional)
+   * @param {Function} compareFunc Function used to compare Array item vs passed item.(optional)
+   * @returns {Number} Return index position in the Array of the passed item.
+   * @example
+   *
+   *     var inflection = require( 'inflection' );
+   *
+   *     inflection.indexOf([ 'hi','there' ], 'guys' ); // === -1
+   *     inflection.indexOf([ 'hi','there' ], 'hi' ); // === 0
+   */
+    indexOf : function( arr, item, fromIndex, compareFunc ){
+      if( !fromIndex ){
+        fromIndex = -1;
+      }
+
+      var index = -1;
+      var i     = fromIndex;
+      var j     = arr.length;
+
+      for( ; i < j; i++ ){
+        if( arr[ i ]  === item || compareFunc && compareFunc( arr[ i ], item )){
+          index = i;
+          break;
+        }
+      }
+
+      return index;
+    },
+
+
+
+  /**
+   * This function adds pluralization support to every String object.
+   * @public
+   * @function
+   * @param {String} str The subject string.
+   * @param {String} plural Overrides normal output with said String.(optional)
+   * @returns {String} Singular English language nouns are returned in plural form.
+   * @example
+   *
+   *     var inflection = require( 'inflection' );
+   *
+   *     inflection.pluralize( 'person' ); // === 'people'
+   *     inflection.pluralize( 'octopus' ); // === 'octopi'
+   *     inflection.pluralize( 'Hat' ); // === 'Hats'
+   *     inflection.pluralize( 'person', 'guys' ); // === 'guys'
+   */
+    pluralize : function ( str, plural ){
+      return inflector._apply_rules( str, plural_rules, uncountable_words, plural );
+    },
+
+
+
+  /**
+   * This function adds singularization support to every String object.
+   * @public
+   * @function
+   * @param {String} str The subject string.
+   * @param {String} singular Overrides normal output with said String.(optional)
+   * @returns {String} Plural English language nouns are returned in singular form.
+   * @example
+   *
+   *     var inflection = require( 'inflection' );
+   *
+   *     inflection.singularize( 'people' ); // === 'person'
+   *     inflection.singularize( 'octopi' ); // === 'octopus'
+   *     inflection.singularize( 'Hats' ); // === 'Hat'
+   *     inflection.singularize( 'guys', 'person' ); // === 'person'
+   */
+    singularize : function ( str, singular ){
+      return inflector._apply_rules( str, singular_rules, uncountable_words, singular );
+    },
+
+
+
+  /**
+   * This function adds camelization support to every String object.
+   * @public
+   * @function
+   * @param {String} str The subject string.
+   * @param {Boolean} lowFirstLetter Default is to capitalize the first letter of the results.(optional)
+   *                                 Passing true will lowercase it.
+   * @returns {String} Lower case underscored words will be returned in camel case.
+   *                  additionally '/' is translated to '::'
+   * @example
+   *
+   *     var inflection = require( 'inflection' );
+   *
+   *     inflection.camelize( 'message_properties' ); // === 'MessageProperties'
+   *     inflection.camelize( 'message_properties', true ); // === 'messageProperties'
+   */
+    camelize : function ( str, lowFirstLetter ){
+      var str_path = str.split( '/' );
+      var i        = 0;
+      var j        = str_path.length;
+      var str_arr, init_x, k, l, first;
+
+      for( ; i < j; i++ ){
+        str_arr = str_path[ i ].split( '_' );
+        k       = 0;
+        l       = str_arr.length;
+
+        for( ; k < l; k++ ){
+          if( k !== 0 ){
+            str_arr[ k ] = str_arr[ k ].toLowerCase();
+          }
+
+          first = str_arr[ k ].charAt( 0 );
+          first = lowFirstLetter && i === 0 && k === 0
+            ? first.toLowerCase() : first.toUpperCase();
+          str_arr[ k ] = first + str_arr[ k ].substring( 1 );
+        }
+
+        str_path[ i ] = str_arr.join( '' );
+      }
+
+      return str_path.join( '::' );
+    },
+
+
+
+  /**
+   * This function adds underscore support to every String object.
+   * @public
+   * @function
+   * @param {String} str The subject string.
+   * @param {Boolean} allUpperCase Default is to lowercase and add underscore prefix.(optional)
+   *                  Passing true will return as entered.
+   * @returns {String} Camel cased words are returned as lower cased and underscored.
+   *                  additionally '::' is translated to '/'.
+   * @example
+   *
+   *     var inflection = require( 'inflection' );
+   *
+   *     inflection.underscore( 'MessageProperties' ); // === 'message_properties'
+   *     inflection.underscore( 'messageProperties' ); // === 'message_properties'
+   *     inflection.underscore( 'MP', true ); // === 'MP'
+   */
+    underscore : function ( str, allUpperCase ){
+      if( allUpperCase && str === str.toUpperCase()) return str;
+
+      var str_path = str.split( '::' );
+      var i        = 0;
+      var j        = str_path.length;
+
+      for( ; i < j; i++ ){
+        str_path[ i ] = str_path[ i ].replace( uppercase, '_$1' );
+        str_path[ i ] = str_path[ i ].replace( underbar_prefix, '' );
+      }
+
+      return str_path.join( '/' ).toLowerCase();
+    },
+
+
+
+  /**
+   * This function adds humanize support to every String object.
+   * @public
+   * @function
+   * @param {String} str The subject string.
+   * @param {Boolean} lowFirstLetter Default is to capitalize the first letter of the results.(optional)
+   *                                 Passing true will lowercase it.
+   * @returns {String} Lower case underscored words will be returned in humanized form.
+   * @example
+   *
+   *     var inflection = require( 'inflection' );
+   *
+   *     inflection.humanize( 'message_properties' ); // === 'Message properties'
+   *     inflection.humanize( 'message_properties', true ); // === 'message properties'
+   */
+    humanize : function( str, lowFirstLetter ){
+      str = str.toLowerCase();
+      str = str.replace( id_suffix, '' );
+      str = str.replace( underbar, ' ' );
+
+      if( !lowFirstLetter ){
+        str = inflector.capitalize( str );
+      }
+
+      return str;
+    },
+
+
+
+  /**
+   * This function adds capitalization support to every String object.
+   * @public
+   * @function
+   * @param {String} str The subject string.
+   * @returns {String} All characters will be lower case and the first will be upper.
+   * @example
+   *
+   *     var inflection = require( 'inflection' );
+   *
+   *     inflection.capitalize( 'message_properties' ); // === 'Message_properties'
+   *     inflection.capitalize( 'message properties', true ); // === 'Message properties'
+   */
+    capitalize : function ( str ){
+      str = str.toLowerCase();
+
+      return str.substring( 0, 1 ).toUpperCase() + str.substring( 1 );
+    },
+
+
+
+  /**
+   * This function adds dasherization support to every String object.
+   * @public
+   * @function
+   * @param {String} str The subject string.
+   * @returns {String} Replaces all spaces or underbars with dashes.
+   * @example
+   *
+   *     var inflection = require( 'inflection' );
+   *
+   *     inflection.dasherize( 'message_properties' ); // === 'message-properties'
+   *     inflection.dasherize( 'Message Properties' ); // === 'Message-Properties'
+   */
+    dasherize : function ( str ){
+      return str.replace( space_or_underbar, '-' );
+    },
+
+
+
+  /**
+   * This function adds titleize support to every String object.
+   * @public
+   * @function
+   * @param {String} str The subject string.
+   * @returns {String} Capitalizes words as you would for a book title.
+   * @example
+   *
+   *     var inflection = require( 'inflection' );
+   *
+   *     inflection.titleize( 'message_properties' ); // === 'Message Properties'
+   *     inflection.titleize( 'message properties to keep' ); // === 'Message Properties to Keep'
+   */
+    titleize : function ( str ){
+      str         = str.toLowerCase().replace( underbar, ' ' );
+      var str_arr = str.split( ' ' );
+      var i       = 0;
+      var j       = str_arr.length;
+      var d, k, l;
+
+      for( ; i < j; i++ ){
+        d = str_arr[ i ].split( '-' );
+        k = 0;
+        l = d.length;
+
+        for( ; k < l; k++){
+          if( inflector.indexOf( non_titlecased_words, d[ k ].toLowerCase()) < 0 ){
+            d[ k ] = inflector.capitalize( d[ k ]);
+          }
+        }
+
+        str_arr[ i ] = d.join( '-' );
+      }
+
+      str = str_arr.join( ' ' );
+      str = str.substring( 0, 1 ).toUpperCase() + str.substring( 1 );
+
+      return str;
+    },
+
+
+
+  /**
+   * This function adds demodulize support to every String object.
+   * @public
+   * @function
+   * @param {String} str The subject string.
+   * @returns {String} Removes module names leaving only class names.(Ruby style)
+   * @example
+   *
+   *     var inflection = require( 'inflection' );
+   *
+   *     inflection.demodulize( 'Message::Bus::Properties' ); // === 'Properties'
+   */
+    demodulize : function ( str ){
+      var str_arr = str.split( '::' );
+
+      return str_arr[ str_arr.length - 1 ];
+    },
+
+
+
+  /**
+   * This function adds tableize support to every String object.
+   * @public
+   * @function
+   * @param {String} str The subject string.
+   * @returns {String} Return camel cased words into their underscored plural form.
+   * @example
+   *
+   *     var inflection = require( 'inflection' );
+   *
+   *     inflection.tableize( 'MessageBusProperty' ); // === 'message_bus_properties'
+   */
+    tableize : function ( str ){
+      str = inflector.underscore( str );
+      str = inflector.pluralize( str );
+
+      return str;
+    },
+
+
+
+  /**
+   * This function adds classification support to every String object.
+   * @public
+   * @function
+   * @param {String} str The subject string.
+   * @returns {String} Underscored plural nouns become the camel cased singular form.
+   * @example
+   *
+   *     var inflection = require( 'inflection' );
+   *
+   *     inflection.classify( 'message_bus_properties' ); // === 'MessageBusProperty'
+   */
+    classify : function ( str ){
+      str = inflector.camelize( str );
+      str = inflector.singularize( str );
+
+      return str;
+    },
+
+
+
+  /**
+   * This function adds foreign key support to every String object.
+   * @public
+   * @function
+   * @param {String} str The subject string.
+   * @param {Boolean} dropIdUbar Default is to seperate id with an underbar at the end of the class name,
+                                 you can pass true to skip it.(optional)
+   * @returns {String} Underscored plural nouns become the camel cased singular form.
+   * @example
+   *
+   *     var inflection = require( 'inflection' );
+   *
+   *     inflection.foreign_key( 'MessageBusProperty' ); // === 'message_bus_property_id'
+   *     inflection.foreign_key( 'MessageBusProperty', true ); // === 'message_bus_propertyid'
+   */
+    foreign_key : function( str, dropIdUbar ){
+      str = inflector.demodulize( str );
+      str = inflector.underscore( str ) + (( dropIdUbar ) ? ( '' ) : ( '_' )) + 'id';
+
+      return str;
+    },
+
+
+
+  /**
+   * This function adds ordinalize support to every String object.
+   * @public
+   * @function
+   * @param {String} str The subject string.
+   * @returns {String} Return all found numbers their sequence like '22nd'.
+   * @example
+   *
+   *     var inflection = require( 'inflection' );
+   *
+   *     inflection.ordinalize( 'the 1 pitch' ); // === 'the 1st pitch'
+   */
+    ordinalize : function ( str ){
+      var str_arr = str.split( ' ' );
+      var i       = 0;
+      var j       = str_arr.length;
+
+      for( ; i < j; i++ ){
+        var k = parseInt( str_arr[ i ], 10 );
+
+        if( !isNaN( k )){
+          var ltd = str_arr[ i ].substring( str_arr[ i ].length - 2 );
+          var ld  = str_arr[ i ].substring( str_arr[ i ].length - 1 );
+          var suf = 'th';
+
+          if( ltd != '11' && ltd != '12' && ltd != '13' ){
+            if( ld === '1' ){
+              suf = 'st';
+            }else if( ld === '2' ){
+              suf = 'nd';
+            }else if( ld === '3' ){
+              suf = 'rd';
+            }
+          }
+
+          str_arr[ i ] += suf;
+        }
+      }
+
+      return str_arr.join( ' ' );
+    },
+
+  /**
+   * This function performs multiple inflection methods on a string
+   * @public
+   * @function
+   * @param {String} str The subject string.
+   * @param {Array} arr An array of inflection methods.
+   * @returns {String}
+   * @example
+   *
+   *     var inflection = require( 'inflection' );
+   *
+   *     inflection.transform( 'all job', [ 'pluralize', 'capitalize', 'dasherize' ]); // === 'All-jobs'
+   */
+    transform : function ( str, arr ){
+      var i = 0;
+      var j = arr.length;
+
+      for( ;i < j; i++ ){
+        var method = arr[ i ];
+
+        if( this.hasOwnProperty( method )){
+          str = this[ method ]( str );
+        }
+      }
+
+      return str;
     }
-    return result;
   };
 
-  var slice = [].slice;
+/**
+ * @public
+ */
+  inflector.version = '1.3.6';
 
-  var defaultToWhiteSpace = function(characters) {
-    if (characters == null)
-      return '\\s';
-    else if (characters.source)
-      return characters.source;
-    else
-      return '[' + _s.escapeRegExp(characters) + ']';
-  };
-
-  // Helper for toBoolean
-  function boolMatch(s, matchers) {
-    var i, matcher, down = s.toLowerCase();
-    matchers = [].concat(matchers);
-    for (i = 0; i < matchers.length; i += 1) {
-      matcher = matchers[i];
-      if (!matcher) continue;
-      if (matcher.test && matcher.test(s)) return true;
-      if (matcher.toLowerCase() === down) return true;
-    }
+  // browser support
+  // requirejs
+  if( typeof define !== 'undefined' ){
+    return define( function ( require, exports, module ){
+      module.exports = inflector;
+    });
   }
 
-  var escapeChars = {
-    lt: '<',
-    gt: '>',
-    quot: '"',
-    amp: '&',
-    apos: "'"
-  };
-
-  var reversedEscapeChars = {};
-  for(var key in escapeChars) reversedEscapeChars[escapeChars[key]] = key;
-  reversedEscapeChars["'"] = '#39';
-
-  // sprintf() for JavaScript 0.7-beta1
-  // http://www.diveintojavascript.com/projects/javascript-sprintf
-  //
-  // Copyright (c) Alexandru Marasteanu <alexaholic [at) gmail (dot] com>
-  // All rights reserved.
-
-  var sprintf = (function() {
-    function get_type(variable) {
-      return Object.prototype.toString.call(variable).slice(8, -1).toLowerCase();
-    }
-
-    var str_repeat = strRepeat;
-
-    var str_format = function() {
-      if (!str_format.cache.hasOwnProperty(arguments[0])) {
-        str_format.cache[arguments[0]] = str_format.parse(arguments[0]);
-      }
-      return str_format.format.call(null, str_format.cache[arguments[0]], arguments);
-    };
-
-    str_format.format = function(parse_tree, argv) {
-      var cursor = 1, tree_length = parse_tree.length, node_type = '', arg, output = [], i, k, match, pad, pad_character, pad_length;
-      for (i = 0; i < tree_length; i++) {
-        node_type = get_type(parse_tree[i]);
-        if (node_type === 'string') {
-          output.push(parse_tree[i]);
-        }
-        else if (node_type === 'array') {
-          match = parse_tree[i]; // convenience purposes only
-          if (match[2]) { // keyword argument
-            arg = argv[cursor];
-            for (k = 0; k < match[2].length; k++) {
-              if (!arg.hasOwnProperty(match[2][k])) {
-                throw new Error(sprintf('[_.sprintf] property "%s" does not exist', match[2][k]));
-              }
-              arg = arg[match[2][k]];
-            }
-          } else if (match[1]) { // positional argument (explicit)
-            arg = argv[match[1]];
-          }
-          else { // positional argument (implicit)
-            arg = argv[cursor++];
-          }
-
-          if (/[^s]/.test(match[8]) && (get_type(arg) != 'number')) {
-            throw new Error(sprintf('[_.sprintf] expecting number but found %s', get_type(arg)));
-          }
-          switch (match[8]) {
-            case 'b': arg = arg.toString(2); break;
-            case 'c': arg = String.fromCharCode(arg); break;
-            case 'd': arg = parseInt(arg, 10); break;
-            case 'e': arg = match[7] ? arg.toExponential(match[7]) : arg.toExponential(); break;
-            case 'f': arg = match[7] ? parseFloat(arg).toFixed(match[7]) : parseFloat(arg); break;
-            case 'o': arg = arg.toString(8); break;
-            case 's': arg = ((arg = String(arg)) && match[7] ? arg.substring(0, match[7]) : arg); break;
-            case 'u': arg = Math.abs(arg); break;
-            case 'x': arg = arg.toString(16); break;
-            case 'X': arg = arg.toString(16).toUpperCase(); break;
-          }
-          arg = (/[def]/.test(match[8]) && match[3] && arg >= 0 ? '+'+ arg : arg);
-          pad_character = match[4] ? match[4] == '0' ? '0' : match[4].charAt(1) : ' ';
-          pad_length = match[6] - String(arg).length;
-          pad = match[6] ? str_repeat(pad_character, pad_length) : '';
-          output.push(match[5] ? arg + pad : pad + arg);
-        }
-      }
-      return output.join('');
-    };
-
-    str_format.cache = {};
-
-    str_format.parse = function(fmt) {
-      var _fmt = fmt, match = [], parse_tree = [], arg_names = 0;
-      while (_fmt) {
-        if ((match = /^[^\x25]+/.exec(_fmt)) !== null) {
-          parse_tree.push(match[0]);
-        }
-        else if ((match = /^\x25{2}/.exec(_fmt)) !== null) {
-          parse_tree.push('%');
-        }
-        else if ((match = /^\x25(?:([1-9]\d*)\$|\(([^\)]+)\))?(\+)?(0|'[^$])?(-)?(\d+)?(?:\.(\d+))?([b-fosuxX])/.exec(_fmt)) !== null) {
-          if (match[2]) {
-            arg_names |= 1;
-            var field_list = [], replacement_field = match[2], field_match = [];
-            if ((field_match = /^([a-z_][a-z_\d]*)/i.exec(replacement_field)) !== null) {
-              field_list.push(field_match[1]);
-              while ((replacement_field = replacement_field.substring(field_match[0].length)) !== '') {
-                if ((field_match = /^\.([a-z_][a-z_\d]*)/i.exec(replacement_field)) !== null) {
-                  field_list.push(field_match[1]);
-                }
-                else if ((field_match = /^\[(\d+)\]/.exec(replacement_field)) !== null) {
-                  field_list.push(field_match[1]);
-                }
-                else {
-                  throw new Error('[_.sprintf] huh?');
-                }
-              }
-            }
-            else {
-              throw new Error('[_.sprintf] huh?');
-            }
-            match[2] = field_list;
-          }
-          else {
-            arg_names |= 2;
-          }
-          if (arg_names === 3) {
-            throw new Error('[_.sprintf] mixing positional and named placeholders is not (yet) supported');
-          }
-          parse_tree.push(match);
-        }
-        else {
-          throw new Error('[_.sprintf] huh?');
-        }
-        _fmt = _fmt.substring(match[0].length);
-      }
-      return parse_tree;
-    };
-
-    return str_format;
-  })();
-
-
-
-  // Defining underscore.string
-
-  var _s = {
-
-    VERSION: '2.3.0',
-
-    isBlank: function(str){
-      if (str == null) str = '';
-      return (/^\s*$/).test(str);
-    },
-
-    stripTags: function(str){
-      if (str == null) return '';
-      return String(str).replace(/<\/?[^>]+>/g, '');
-    },
-
-    capitalize : function(str){
-      str = str == null ? '' : String(str);
-      return str.charAt(0).toUpperCase() + str.slice(1);
-    },
-
-    chop: function(str, step){
-      if (str == null) return [];
-      str = String(str);
-      step = ~~step;
-      return step > 0 ? str.match(new RegExp('.{1,' + step + '}', 'g')) : [str];
-    },
-
-    clean: function(str){
-      return _s.strip(str).replace(/\s+/g, ' ');
-    },
-
-    count: function(str, substr){
-      if (str == null || substr == null) return 0;
-
-      str = String(str);
-      substr = String(substr);
-
-      var count = 0,
-        pos = 0,
-        length = substr.length;
-
-      while (true) {
-        pos = str.indexOf(substr, pos);
-        if (pos === -1) break;
-        count++;
-        pos += length;
-      }
-
-      return count;
-    },
-
-    chars: function(str) {
-      if (str == null) return [];
-      return String(str).split('');
-    },
-
-    swapCase: function(str) {
-      if (str == null) return '';
-      return String(str).replace(/\S/g, function(c){
-        return c === c.toUpperCase() ? c.toLowerCase() : c.toUpperCase();
-      });
-    },
-
-    escapeHTML: function(str) {
-      if (str == null) return '';
-      return String(str).replace(/[&<>"']/g, function(m){ return '&' + reversedEscapeChars[m] + ';'; });
-    },
-
-    unescapeHTML: function(str) {
-      if (str == null) return '';
-      return String(str).replace(/\&([^;]+);/g, function(entity, entityCode){
-        var match;
-
-        if (entityCode in escapeChars) {
-          return escapeChars[entityCode];
-        } else if (match = entityCode.match(/^#x([\da-fA-F]+)$/)) {
-          return String.fromCharCode(parseInt(match[1], 16));
-        } else if (match = entityCode.match(/^#(\d+)$/)) {
-          return String.fromCharCode(~~match[1]);
-        } else {
-          return entity;
-        }
-      });
-    },
-
-    escapeRegExp: function(str){
-      if (str == null) return '';
-      return String(str).replace(/([.*+?^=!:${}()|[\]\/\\])/g, '\\$1');
-    },
-
-    splice: function(str, i, howmany, substr){
-      var arr = _s.chars(str);
-      arr.splice(~~i, ~~howmany, substr);
-      return arr.join('');
-    },
-
-    insert: function(str, i, substr){
-      return _s.splice(str, i, 0, substr);
-    },
-
-    include: function(str, needle){
-      if (needle === '') return true;
-      if (str == null) return false;
-      return String(str).indexOf(needle) !== -1;
-    },
-
-    join: function() {
-      var args = slice.call(arguments),
-        separator = args.shift();
-
-      if (separator == null) separator = '';
-
-      return args.join(separator);
-    },
-
-    lines: function(str) {
-      if (str == null) return [];
-      return String(str).split("\n");
-    },
-
-    reverse: function(str){
-      return _s.chars(str).reverse().join('');
-    },
-
-    startsWith: function(str, starts){
-      if (starts === '') return true;
-      if (str == null || starts == null) return false;
-      str = String(str); starts = String(starts);
-      return str.length >= starts.length && str.slice(0, starts.length) === starts;
-    },
-
-    endsWith: function(str, ends){
-      if (ends === '') return true;
-      if (str == null || ends == null) return false;
-      str = String(str); ends = String(ends);
-      return str.length >= ends.length && str.slice(str.length - ends.length) === ends;
-    },
-
-    succ: function(str){
-      if (str == null) return '';
-      str = String(str);
-      return str.slice(0, -1) + String.fromCharCode(str.charCodeAt(str.length-1) + 1);
-    },
-
-    titleize: function(str){
-      if (str == null) return '';
-      str  = String(str).toLowerCase();
-      return str.replace(/(?:^|\s|-)\S/g, function(c){ return c.toUpperCase(); });
-    },
-
-    camelize: function(str){
-      return _s.trim(str).replace(/[-_\s]+(.)?/g, function(match, c){ return c ? c.toUpperCase() : ""; });
-    },
-
-    underscored: function(str){
-      return _s.trim(str).replace(/([a-z\d])([A-Z]+)/g, '$1_$2').replace(/[-\s]+/g, '_').toLowerCase();
-    },
-
-    dasherize: function(str){
-      return _s.trim(str).replace(/([A-Z])/g, '-$1').replace(/[-_\s]+/g, '-').toLowerCase();
-    },
-
-    classify: function(str){
-      return _s.titleize(String(str).replace(/[\W_]/g, ' ')).replace(/\s/g, '');
-    },
-
-    humanize: function(str){
-      return _s.capitalize(_s.underscored(str).replace(/_id$/,'').replace(/_/g, ' '));
-    },
-
-    trim: function(str, characters){
-      if (str == null) return '';
-      if (!characters && nativeTrim) return nativeTrim.call(str);
-      characters = defaultToWhiteSpace(characters);
-      return String(str).replace(new RegExp('\^' + characters + '+|' + characters + '+$', 'g'), '');
-    },
-
-    ltrim: function(str, characters){
-      if (str == null) return '';
-      if (!characters && nativeTrimLeft) return nativeTrimLeft.call(str);
-      characters = defaultToWhiteSpace(characters);
-      return String(str).replace(new RegExp('^' + characters + '+'), '');
-    },
-
-    rtrim: function(str, characters){
-      if (str == null) return '';
-      if (!characters && nativeTrimRight) return nativeTrimRight.call(str);
-      characters = defaultToWhiteSpace(characters);
-      return String(str).replace(new RegExp(characters + '+$'), '');
-    },
-
-    truncate: function(str, length, truncateStr){
-      if (str == null) return '';
-      str = String(str); truncateStr = truncateStr || '...';
-      length = ~~length;
-      return str.length > length ? str.slice(0, length) + truncateStr : str;
-    },
-
-    /**
-     * _s.prune: a more elegant version of truncate
-     * prune extra chars, never leaving a half-chopped word.
-     * @author github.com/rwz
-     */
-    prune: function(str, length, pruneStr){
-      if (str == null) return '';
-
-      str = String(str); length = ~~length;
-      pruneStr = pruneStr != null ? String(pruneStr) : '...';
-
-      if (str.length <= length) return str;
-
-      var tmpl = function(c){ return c.toUpperCase() !== c.toLowerCase() ? 'A' : ' '; },
-        template = str.slice(0, length+1).replace(/.(?=\W*\w*$)/g, tmpl); // 'Hello, world' -> 'HellAA AAAAA'
-
-      if (template.slice(template.length-2).match(/\w\w/))
-        template = template.replace(/\s*\S+$/, '');
-      else
-        template = _s.rtrim(template.slice(0, template.length-1));
-
-      return (template+pruneStr).length > str.length ? str : str.slice(0, template.length)+pruneStr;
-    },
-
-    words: function(str, delimiter) {
-      if (_s.isBlank(str)) return [];
-      return _s.trim(str, delimiter).split(delimiter || /\s+/);
-    },
-
-    pad: function(str, length, padStr, type) {
-      str = str == null ? '' : String(str);
-      length = ~~length;
-
-      var padlen  = 0;
-
-      if (!padStr)
-        padStr = ' ';
-      else if (padStr.length > 1)
-        padStr = padStr.charAt(0);
-
-      switch(type) {
-        case 'right':
-          padlen = length - str.length;
-          return str + strRepeat(padStr, padlen);
-        case 'both':
-          padlen = length - str.length;
-          return strRepeat(padStr, Math.ceil(padlen/2)) + str
-                  + strRepeat(padStr, Math.floor(padlen/2));
-        default: // 'left'
-          padlen = length - str.length;
-          return strRepeat(padStr, padlen) + str;
-        }
-    },
-
-    lpad: function(str, length, padStr) {
-      return _s.pad(str, length, padStr);
-    },
-
-    rpad: function(str, length, padStr) {
-      return _s.pad(str, length, padStr, 'right');
-    },
-
-    lrpad: function(str, length, padStr) {
-      return _s.pad(str, length, padStr, 'both');
-    },
-
-    sprintf: sprintf,
-
-    vsprintf: function(fmt, argv){
-      argv.unshift(fmt);
-      return sprintf.apply(null, argv);
-    },
-
-    toNumber: function(str, decimals) {
-      if (!str) return 0;
-      str = _s.trim(str);
-      if (!str.match(/^-?\d+(?:\.\d+)?$/)) return NaN;
-      return parseNumber(parseNumber(str).toFixed(~~decimals));
-    },
-
-    numberFormat : function(number, dec, dsep, tsep) {
-      if (isNaN(number) || number == null) return '';
-
-      number = number.toFixed(~~dec);
-      tsep = typeof tsep == 'string' ? tsep : ',';
-
-      var parts = number.split('.'), fnums = parts[0],
-        decimals = parts[1] ? (dsep || '.') + parts[1] : '';
-
-      return fnums.replace(/(\d)(?=(?:\d{3})+$)/g, '$1' + tsep) + decimals;
-    },
-
-    strRight: function(str, sep){
-      if (str == null) return '';
-      str = String(str); sep = sep != null ? String(sep) : sep;
-      var pos = !sep ? -1 : str.indexOf(sep);
-      return ~pos ? str.slice(pos+sep.length, str.length) : str;
-    },
-
-    strRightBack: function(str, sep){
-      if (str == null) return '';
-      str = String(str); sep = sep != null ? String(sep) : sep;
-      var pos = !sep ? -1 : str.lastIndexOf(sep);
-      return ~pos ? str.slice(pos+sep.length, str.length) : str;
-    },
-
-    strLeft: function(str, sep){
-      if (str == null) return '';
-      str = String(str); sep = sep != null ? String(sep) : sep;
-      var pos = !sep ? -1 : str.indexOf(sep);
-      return ~pos ? str.slice(0, pos) : str;
-    },
-
-    strLeftBack: function(str, sep){
-      if (str == null) return '';
-      str += ''; sep = sep != null ? ''+sep : sep;
-      var pos = str.lastIndexOf(sep);
-      return ~pos ? str.slice(0, pos) : str;
-    },
-
-    toSentence: function(array, separator, lastSeparator, serial) {
-      separator = separator || ', ';
-      lastSeparator = lastSeparator || ' and ';
-      var a = array.slice(), lastMember = a.pop();
-
-      if (array.length > 2 && serial) lastSeparator = _s.rtrim(separator) + lastSeparator;
-
-      return a.length ? a.join(separator) + lastSeparator + lastMember : lastMember;
-    },
-
-    toSentenceSerial: function() {
-      var args = slice.call(arguments);
-      args[3] = true;
-      return _s.toSentence.apply(_s, args);
-    },
-
-    slugify: function(str) {
-      if (str == null) return '';
-
-      var from  = "ąàáäâãåæăćęèéëêìíïîłńòóöôõøśșțùúüûñçżź",
-          to    = "aaaaaaaaaceeeeeiiiilnoooooosstuuuunczz",
-          regex = new RegExp(defaultToWhiteSpace(from), 'g');
-
-      str = String(str).toLowerCase().replace(regex, function(c){
-        var index = from.indexOf(c);
-        return to.charAt(index) || '-';
-      });
-
-      return _s.dasherize(str.replace(/[^\w\s-]/g, ''));
-    },
-
-    surround: function(str, wrapper) {
-      return [wrapper, str, wrapper].join('');
-    },
-
-    quote: function(str, quoteChar) {
-      return _s.surround(str, quoteChar || '"');
-    },
-
-    unquote: function(str, quoteChar) {
-      quoteChar = quoteChar || '"';
-      if (str[0] === quoteChar && str[str.length-1] === quoteChar)
-        return str.slice(1,str.length-1);
-      else return str;
-    },
-
-    exports: function() {
-      var result = {};
-
-      for (var prop in this) {
-        if (!this.hasOwnProperty(prop) || prop.match(/^(?:include|contains|reverse)$/)) continue;
-        result[prop] = this[prop];
-      }
-
-      return result;
-    },
-
-    repeat: function(str, qty, separator){
-      if (str == null) return '';
-
-      qty = ~~qty;
-
-      // using faster implementation if separator is not needed;
-      if (separator == null) return strRepeat(String(str), qty);
-
-      // this one is about 300x slower in Google Chrome
-      for (var repeat = []; qty > 0; repeat[--qty] = str) {}
-      return repeat.join(separator);
-    },
-
-    naturalCmp: function(str1, str2){
-      if (str1 == str2) return 0;
-      if (!str1) return -1;
-      if (!str2) return 1;
-
-      var cmpRegex = /(\.\d+)|(\d+)|(\D+)/g,
-        tokens1 = String(str1).toLowerCase().match(cmpRegex),
-        tokens2 = String(str2).toLowerCase().match(cmpRegex),
-        count = Math.min(tokens1.length, tokens2.length);
-
-      for(var i = 0; i < count; i++) {
-        var a = tokens1[i], b = tokens2[i];
-
-        if (a !== b){
-          var num1 = parseInt(a, 10);
-          if (!isNaN(num1)){
-            var num2 = parseInt(b, 10);
-            if (!isNaN(num2) && num1 - num2)
-              return num1 - num2;
-          }
-          return a < b ? -1 : 1;
-        }
-      }
-
-      if (tokens1.length === tokens2.length)
-        return tokens1.length - tokens2.length;
-
-      return str1 < str2 ? -1 : 1;
-    },
-
-    levenshtein: function(str1, str2) {
-      if (str1 == null && str2 == null) return 0;
-      if (str1 == null) return String(str2).length;
-      if (str2 == null) return String(str1).length;
-
-      str1 = String(str1); str2 = String(str2);
-
-      var current = [], prev, value;
-
-      for (var i = 0; i <= str2.length; i++)
-        for (var j = 0; j <= str1.length; j++) {
-          if (i && j)
-            if (str1.charAt(j - 1) === str2.charAt(i - 1))
-              value = prev;
-            else
-              value = Math.min(current[j], current[j - 1], prev) + 1;
-          else
-            value = i + j;
-
-          prev = current[j];
-          current[j] = value;
-        }
-
-      return current.pop();
-    },
-
-    toBoolean: function(str, trueValues, falseValues) {
-      if (typeof str === "number") str = "" + str;
-      if (typeof str !== "string") return !!str;
-      str = _s.trim(str);
-      if (boolMatch(str, trueValues || ["true", "1"])) return true;
-      if (boolMatch(str, falseValues || ["false", "0"])) return false;
-    }
-  };
-
-  // Aliases
-
-  _s.strip    = _s.trim;
-  _s.lstrip   = _s.ltrim;
-  _s.rstrip   = _s.rtrim;
-  _s.center   = _s.lrpad;
-  _s.rjust    = _s.lpad;
-  _s.ljust    = _s.rpad;
-  _s.contains = _s.include;
-  _s.q        = _s.quote;
-  _s.toBool   = _s.toBoolean;
-
-  // Exporting
-
-  // CommonJS module is defined
-  if (typeof exports !== 'undefined') {
-    if (typeof module !== 'undefined' && module.exports)
-      module.exports = _s;
-
-    exports._s = _s;
+  // browser support
+  // normal usage
+  if( typeof exports === 'undefined' ){
+    root.inflection = inflector;
+    return;
   }
 
-  // Register as a named module with AMD.
-  if (typeof define === 'function' && define.amd)
-    define('underscore.string', [], function(){ return _s; });
-
-
-  // Integrate with Underscore.js if defined
-  // or create our own underscore object.
-  root._ = root._ || {};
-  root._.string = root._.str = _s;
-}(this, String);
+/**
+ * Exports module.
+ */
+  module.exports = inflector;
+})( this );
 
 // vim:ts=4:sts=4:sw=4:
 /*!

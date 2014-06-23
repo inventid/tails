@@ -4,4 +4,5 @@ Tails =
   Models: {}
   Views:  {}
 
-  config: {}
+  config:
+    url: 'http://localhost'
