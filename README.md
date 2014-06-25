@@ -33,6 +33,8 @@ basket.get('fruits').contains(fruit) # false
 fruit = new Models.Fruit(basket: basket)
 fruit.get('basket_id') is 5 # true
 ```
+As you might have noticed in the example above, we pass functions to the `belongsTo` and `hasMany` class methods. This is because classes that have a relation to each other create a circular dependency. Tails evaluates the function after both the models are loaded (in fact, just before initialize is called on your model), which ensures that it can always find the dependencies. If you are sure this is not gonna be an issue for you, you can also choose not to wrap your arguments into a function, as such: `@hasMany: fruits: Models.Fruit`
+
 
 Tails follows the Rails mantra of *convention over configuration*. That means that it will automatically use *model_name*_id as the foreign key of a model. But don't worry if you have your application set up differently! Tails allows you to specify a custom foreign key:
 
