@@ -1,3 +1,5 @@
+![inventid logo](https://s3-eu-west-1.amazonaws.com/static-inventid-nl/content/img/logo.png)
+
 # Tails
 
 ## What is it?
@@ -52,7 +54,7 @@ person.get('pets').contains(dog) # true
 
 ### Mixins
 
-Tails also provides a few mixins that may be of use. Be sure to extends Tails.Mixable, and then you're free to use them as you see fit!
+Tails also provides a few mixins that may be of use. Be sure to extend Tails.Mixable, and then you're free to use them as you see fit!
 ```CoffeeScript
 class SomeClass extends Tails.Mixable
 ```
@@ -96,5 +98,21 @@ class SomeClass extends Tails.Mixable
   @setter -> myProperty: ( value ) -> @_myProperty = value if value > 3
 ```
 
+### How to suggest improvements?
 
-![inventid logo](https://s3-eu-west-1.amazonaws.com/static-inventid-nl/content/img/logo@2x.png)
+We are still actively developing Tails for our internal use, but we would already love to hear your feedback. In case you have some great ideas, you may just [open an issue](https://github.com/inventid/tails/issues/new). Be sure to check beforehand whether the same issue does not already exist.
+
+### How can I contribute?
+
+We feel contributions from the community are extremely worthwhile. If you use Tails in production and make some modification, please share it back to the community. You can simply [fork the repository](/inventid/tails/fork), commit your changes to your code and create a pull request back to this repository.
+
+If there are any issues related to your changes, be sure to reference to those. Additionally we use the `develop` branch, so create a pull request to that branch and not to `master`.
+
+### Collaborators
+
+We would like to thank the developers which contributed to Tails, both big and small.
+
+- [joostverdoorn](https://github.com/joostverdoorn) (Lead developer of Tails @ [inventid](http://www.inventid.nl))
+- [rogierslag](https://github.com/rogierslag) (Developer @ [inventid](http://www.inventid.nl))
+
+
