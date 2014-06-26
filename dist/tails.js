@@ -310,6 +310,9 @@
                   return klass.get(_this.get(foreignKey));
                 },
                 set: function(model) {
+                  if (model == null) {
+                    return _this.unset(foreignKey);
+                  }
                   if (klass.get(model.id) == null) {
                     klass.create(model);
                   }

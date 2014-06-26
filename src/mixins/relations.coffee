@@ -26,6 +26,7 @@ Tails.Mixins.Relations =
           Object.defineProperty @attributes, foreignName,
             get: ( ) => klass.get(@get foreignKey)
             set: ( model ) =>
+              return @unset foreignKey unless model?
               unless klass.get(model.id)?
                 klass.create(model)
               @set foreignKey, model.id
