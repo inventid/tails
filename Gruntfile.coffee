@@ -36,7 +36,7 @@ module.exports = ( grunt ) ->
           expand: true
           cwd: 'spec'
           src: ['**/*.coffee']
-          dest: 'spec_compiled'
+          dest: '.grunt/tails/spec_compiled'
           ext: '.js'
         ]
 
@@ -59,7 +59,7 @@ module.exports = ( grunt ) ->
       all:
         src: ['dist/tails.js']
         options:
-          specs: 'spec_compiled/**/*.js'
+          specs: '.grunt/tails/spec_compiled/**/*.js'
           vendor: [
             'bower_components/underscore/underscore.js'
             'bower_components/inflection/lib/inflection.js'
