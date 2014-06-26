@@ -41,18 +41,6 @@ module.exports = ( grunt ) ->
         ]
 
     concat:
-      deps:
-        src: [
-          'bower_components/underscore/underscore.js'
-          'bower_components/inflection/lib/inflection.js'
-          'bower_components/q/q.js'
-          'bower_components/jquery/jquery.js'
-          'bower_components/backbone/backbone.js'
-          'bower_components/backbone-deferred/backbone-deferred-q.js'
-          'bower_components/rivets/dist/rivets.js'
-          ]
-        dest: 'dist/tails-deps.js'
-
       banner:
         options:
           banner: '<%= meta.banner %>'
@@ -69,9 +57,19 @@ module.exports = ( grunt ) ->
 
     jasmine:
       all:
-        src: ['dist/tails-deps.js', 'dist/tails.js']
+        src: ['dist/tails.js']
         options:
           specs: 'spec_compiled/**/*.js'
+          vendor: [
+            'bower_components/underscore/underscore.js'
+            'bower_components/inflection/lib/inflection.js'
+            'bower_components/q/q.js'
+            'bower_components/jquery/jquery.js'
+            'bower_components/backbone/backbone.js'
+            'bower_components/backbone-deferred/backbone-deferred-q.js'
+            'bower_components/rivets/dist/rivets.js'
+            'bower_components/jasmine-ajax/lib/mock-ajax.js'
+          ]
 
     clean:
       spec: ['spec_compiled']
@@ -90,5 +88,5 @@ module.exports = ( grunt ) ->
   grunt.loadNpmTasks 'grunt-contrib-watch'
 
   grunt.registerTask 'default', ['watch']
-  grunt.registerTask 'spec',  ['coffee:dist', 'coffee:spec', 'concat:deps', 'jasmine', 'clean:spec']
+  grunt.registerTask 'spec',  ['coffee:dist', 'coffee:spec', 'jasmine', 'clean:spec']
   grunt.registerTask 'build',   ['coffee:dist', 'uglify:dist']
