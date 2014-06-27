@@ -2,6 +2,11 @@
 
 # Tails
 
+|Branch|Build status|
+|----|----|
+|Master branch|![master branch](https://travis-ci.org/inventid/tails.svg?branch=master)|
+|Develop branch|![develop branch](https://travis-ci.org/inventid/tails.svg?branch=develop)|
+
 ## What is it?
 
 **Caution**: Tails is still under heavy development and it's API may still change here and there.
