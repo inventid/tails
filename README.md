@@ -4,8 +4,8 @@
 
 |Branch|Build status|
 |----|----|
-|Master branch|![master branch](https://travis-ci.org/inventid/tails.svg?branch=master)|
-|Develop branch|![develop branch](https://travis-ci.org/inventid/tails.svg?branch=develop)|
+|Master branch|[![Build Status master branch](https://travis-ci.org/inventid/tails.svg?branch=master)](https://travis-ci.org/inventid/tails)|
+|Develop branch|[![Build Status develop branch](https://travis-ci.org/inventid/tails.svg?branch=develop)](https://travis-ci.org/inventid/tails)|
 
 ## What is it?
 
