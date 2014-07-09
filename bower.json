@@ -1,6 +1,6 @@
 {
   "name": "tails",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "authors": [
     "Joost Verdoorn"
   ],
@@ -17,7 +17,8 @@
     "jquery": "~2.0.3",
     "backbone": "~1.1.2",
     "backbone-deferred": "~0.4.0",
-    "rivets": "~0.6.8"
+    "rivets": "~0.6.8",
+    "jasmine-ajax": "v2.0.0.rc3"
   },
   "license": "MIT",
   "ignore": [

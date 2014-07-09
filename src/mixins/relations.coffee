@@ -24,8 +24,9 @@ Tails.Mixins.Relations =
           # by foreignName. These will return the model with
           # our foreignKey, or set our foreignKey respectively.
           Object.defineProperty @attributes, foreignName,
-            get: ( ) => klass.get(@get foreignKey)
+            get: ( ) => klass.get(@get foreignKey) or new klass({id: @get foreignKey})
             set: ( model ) =>
+              return @unset foreignKey unless model?
               unless klass.get(model.id)?
                 klass.create(model)
               @set foreignKey, model.id
@@ -55,7 +56,7 @@ Tails.Mixins.Relations =
           attrs = {}
           attrs[foreignKey] = @id
           Object.defineProperty @attributes, foreignName,
-            get: ( ) => klass.all().findWhere(attrs) or new klass(attrs)
+            get: ( ) => klass.findWhere(attrs) or new klass(attrs)
             set: ( model ) =>
               @attributes(foreignName)[foreignKey] = undefined
               model[foreignKey] = @id
@@ -71,13 +72,13 @@ Tails.Mixins.Relations =
           @set foreignName, collection
 
           # Find all models of klass that have already set us as their relation.
-          collection.add(klass.all().find ( model ) => model.get(foreignKey) is @id)
+          collection.add(klass.find ( model ) => model.get(foreignKey) is @id)
 
           # Listen to the all() collection of the related class for changes in
           # foreign keys. If they're not in our collection and they set their
           # foreign key to us, add them. If they are in our collection and
           # set their foreign key to something else, remove them.
-          klass.all().on "change:#{foreignKey}", ( model, id ) =>
+          klass.on "change:#{foreignKey}", ( model, id ) =>
             if id isnt @id and collection.contains model
               collection.remove model
 
@@ -89,11 +90,11 @@ Tails.Mixins.Relations =
           # When the model is added to the all() collection, the change events
           # on the foreign key may have already been triggered. So we check each
           # added model if it has us as its foreign key.
-          klass.all().on "add", ( model ) =>
+          klass.on "add", ( model ) =>
             if model.get(foreignKey) is @id and not collection.contains model
               collection.add model
 
-          klass.all().on "remove", ( model ) =>
+          klass.on "remove", ( model ) =>
             if model.get(foreignKey) is @id and collection.contains model
               collection.remove model
 
@@ -116,6 +117,6 @@ Tails.Mixins.Relations =
     hasMany: ( relations ) ->
       @before initialize: ( ) -> @hasMany relations?() or relations
 
-  extended: ( ) ->
-    @concern Tails.Mixins.Collectable
-    @concern Tails.Mixins.Interceptable
+    extended: ( ) ->
+      @concern Tails.Mixins.Collectable
+      @concern Tails.Mixins.Interceptable

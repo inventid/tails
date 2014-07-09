@@ -27,5 +27,5 @@ Tails.Mixins.DynamicProperties =
     setter: ( setters ) ->
       @before initialize: ( ) -> @setter setters?() or setters
 
-  extended: ( ) ->
-    @concern Tails.Mixins.Interceptable
+    extended: ( ) ->
+      @concern Tails.Mixins.Interceptable

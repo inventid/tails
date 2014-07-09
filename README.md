@@ -1,3 +1,5 @@
+![inventid logo](https://s3-eu-west-1.amazonaws.com/static-inventid-nl/content/img/logo.png)
+
 # Tails
 
 ## What is it?
@@ -22,17 +24,19 @@ class Models.Basket extends Tails.Model
 # Initializing the relation using foreign key
 fruit = new Models.Fruits({basket_id: 5})
 basket = new Models.Basket({id: 5})
-fruit.get('basket') is basket # true
+fruit.get('basket') is basket            # true
 
 # Tails always keeps track of the relations 
-basket.get('fruits').contains(fruit) # true
-fruit.set('basket', null)
-basket.get('fruits').contains(fruit) # false
+basket.get('fruits').contains(fruit)     # true
+fruit.unset('basket')
+basket.get('fruits').contains(fruit)     # false
 
 # Initializing relation by explicitly setting it
 fruit = new Models.Fruit(basket: basket)
-fruit.get('basket_id') is 5 # true
+fruit.get('basket_id') is 5              # true
 ```
+As you might have noticed in the example above, we pass functions to the `belongsTo` and `hasMany` class methods. This is because classes that have a relation to each other create a circular dependency. Tails evaluates the function after both the models are loaded (in fact, just before `initialize` is called on your model), which ensures that it can always find the dependencies. If you are sure this is not gonna be an issue for you, you can also choose not to wrap your arguments into a function, as such: `@hasMany: fruits: Models.Fruit`
+
 
 Tails follows the Rails mantra of *convention over configuration*. That means that it will automatically use *model_name*_id as the foreign key of a model. But don't worry if you have your application set up differently! Tails allows you to specify a custom foreign key:
 
@@ -46,13 +50,13 @@ class Models.Person extends Tails.Model
 person = new Models.Person({id: 1})
 dog = new Models.Dog({owner: person})
 
-dog.get('owner') is person # true
-person.get('pets').contains(dog) # true
+dog.get('owner') is person              # true
+person.get('pets').contains(dog)        # true
 ```
 
 ### Mixins
 
-Tails also provides a few mixins that may be of use. Be sure to extends Tails.Mixable, and then you're free to use them as you see fit!
+Tails also provides a few mixins that may be of use. Be sure to extend Tails.Mixable, and then you're free to use them as you see fit!
 ```CoffeeScript
 class SomeClass extends Tails.Mixable
 ```
@@ -86,6 +90,12 @@ class MyRouter extends Backbone.Router
   ensureSignedIn: ( ) ->
   ensureAdmin: ( ) ->
 ```
+Here too Tails allows you to pass functions instead of plain objects, which allows us to use actual pointers to methods instead of strings because were sure these methods are loaded when the functions are evaluated: 
+```CoffeeScript
+@before -> these: [@friends, @account], do: @ensureSignedIn
+@before -> admin: @ensureAdmin
+```
+However, in this particular case it's a bit hairy because of the way how Backbone handles its routes, and it wouldn't work. Backbone extracts these methods and stores them seperatly, keeping us from properly setting our interceptors. See [#7](https://github.com/inventid/tails/issues/7).
 
 #### Tails.Mixins.DynamicProperties
 The DynamicProperties mixin makes it easy to put getters and setters on your class. This is mainly useful for CoffeeScript where the `get` and `set` JavaScript syntax is not available.
@@ -96,5 +106,21 @@ class SomeClass extends Tails.Mixable
   @setter -> myProperty: ( value ) -> @_myProperty = value if value > 3
 ```
 
+### How to suggest improvements?
 
-![inventid logo](https://s3-eu-west-1.amazonaws.com/static-inventid-nl/content/img/logo@2x.png)
+We are still actively developing Tails for our internal use, but we would already love to hear your feedback. In case you have some great ideas, you may just [open an issue](https://github.com/inventid/tails/issues/new). Be sure to check beforehand whether the same issue does not already exist.
+
+### How can I contribute?
+
+We feel contributions from the community are extremely worthwhile. If you use Tails in production and make some modification, please share it back to the community. You can simply [fork the repository](/inventid/tails/fork), commit your changes to your code and create a pull request back to this repository.
+
+If there are any issues related to your changes, be sure to reference to those. Additionally we use the `develop` branch, so create a pull request to that branch and not to `master`.
+
+### Collaborators
+
+We would like to thank the developers which contributed to Tails, both big and small.
+
+- [joostverdoorn](https://github.com/joostverdoorn) (Lead developer of Tails @ [inventid](http://www.inventid.nl))
+- [rogierslag](https://github.com/rogierslag) (Developer @ [inventid](http://www.inventid.nl))
+
+
