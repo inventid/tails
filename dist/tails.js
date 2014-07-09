@@ -363,6 +363,12 @@
       return url;
     };
 
+    Collection.prototype.get = function(id) {
+      return Collection.__super__.get.call(this, id || new this.model({
+        id: id
+      }));
+    };
+
     Collection.prototype.fetch = function(options) {
       if (options == null) {
         options = {};
