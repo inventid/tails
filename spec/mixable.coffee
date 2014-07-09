@@ -9,31 +9,30 @@ describe "Tails.Mixable", ->
     @mixin =
       InstanceMethods:
         instanceFn: jasmine.createSpy()
+        included: jasmine.createSpy()
 
       ClassMethods:
         classFn: jasmine.createSpy()
-
-      extended: jasmine.createSpy()
-      included: jasmine.createSpy()
+        extended: jasmine.createSpy()
 
     @anotherMixin =
-      InstanceMethods:
-        instanceFn: jasmine.createSpy()
-
-      ClassMethods:
-        classFn: jasmine.createSpy()
-
-      extended: jasmine.createSpy()
+      fn: jasmine.createSpy()
       included: jasmine.createSpy()
+      extended: jasmine.createSpy()
 
   describe ".include", ->
 
     it "should call the included method of the mixin", ->
       @Target.include(@mixin, @anotherMixin)
-      expect(@mixin.included).toHaveBeenCalled()
+      expect(@mixin.InstanceMethods.included).toHaveBeenCalled()
       expect(@anotherMixin.included).toHaveBeenCalled()
 
-    it "should add all properties of mixin.InstanceMethods", ->
+    it "should add all properties of mixin when no InstanceMethods are present", ->
+      @Target.include(@anotherMixin)
+      expect(@target.fn).toBeDefined()
+      expect(@target.fn).toEqual(@anotherMixin.fn)
+
+    it "should add all properties of mixin.InstanceMethods when InstanceMethods are present", ->
       @Target.include(@mixin)
       expect(@target.instanceFn).toBeDefined()
       expect(@target.instanceFn).toEqual(@mixin.InstanceMethods.instanceFn)
@@ -43,12 +42,12 @@ describe "Tails.Mixable", ->
       Object.defineProperty(@Target::, 'instanceFn', set: targetSpy)
 
       @Target.include(@mixin)
-      expect(@mixin.included).toHaveBeenCalled()
+      expect(@mixin.InstanceMethods.included).toHaveBeenCalled()
       expect(targetSpy).toHaveBeenCalled()
       expect(targetSpy).toHaveBeenCalledWith(@mixin.InstanceMethods.instanceFn)
 
       @Target.include(@mixin)
-      expect(@mixin.included).toHaveBeenCalled()
+      expect(@mixin.InstanceMethods.included).toHaveBeenCalled()
       expect(targetSpy).toHaveBeenCalled()
 
       class AnotherTarget extends @Target
@@ -58,17 +57,22 @@ describe "Tails.Mixable", ->
       anotherTarget = new AnotherTarget()
       anotherTargetSpy = jasmine.createSpy()
 
-      expect(@mixin.included).toHaveBeenCalled()
+      expect(@mixin.InstanceMethods.included).toHaveBeenCalled()
       expect(anotherTargetSpy).not.toHaveBeenCalled()
 
   describe ".extend", ->
 
     it "should call the extended method of the mixin", ->
       @Target.extend(@mixin, @anotherMixin)
-      expect(@mixin.extended).toHaveBeenCalled()
+      expect(@mixin.ClassMethods.extended).toHaveBeenCalled()
       expect(@anotherMixin.extended).toHaveBeenCalled()
 
-    it "should add all properties of mixin.ClassMethods", ->
+    it "should add all properties of mixin when no ClassMethods are present", ->
+      @Target.extend(@anotherMixin)
+      expect(@Target.fn).toBeDefined()
+      expect(@Target.fn).toEqual(@anotherMixin.fn)
+
+    it "should add all properties of mixin.ClassMethods when ClassMethods are present", ->
       @Target.extend(@mixin)
       expect(@Target.classFn).toBeDefined()
       expect(@Target.classFn).toEqual(@mixin.ClassMethods.classFn)
@@ -78,12 +82,12 @@ describe "Tails.Mixable", ->
       Object.defineProperty(@Target, 'classFn', set: targetSpy)
 
       @Target.extend(@mixin)
-      expect(@mixin.extended).toHaveBeenCalled()
+      expect(@mixin.ClassMethods.extended).toHaveBeenCalled()
       expect(targetSpy).toHaveBeenCalled()
       expect(targetSpy).toHaveBeenCalledWith(@mixin.ClassMethods.classFn)
 
       @Target.extend(@mixin)
-      expect(@mixin.extended).toHaveBeenCalled()
+      expect(@mixin.ClassMethods.extended).toHaveBeenCalled()
       expect(targetSpy).toHaveBeenCalled()
 
       class AnotherTarget extends @Target
@@ -91,7 +95,7 @@ describe "Tails.Mixable", ->
       Object.defineProperty(AnotherTarget, 'classFn', set: anotherTargetSpy)
 
       AnotherTarget.extend(@mixin)
-      expect(@mixin.extended).toHaveBeenCalled()
+      expect(@mixin.ClassMethods.extended).toHaveBeenCalled()
       expect(anotherTargetSpy).not.toHaveBeenCalled()
 
   describe ".concern", ->
@@ -103,8 +107,8 @@ describe "Tails.Mixable", ->
       @Target.concern(@mixin)
 
       expect(includeSpy).toHaveBeenCalled()
-      expect(includeSpy).toHaveBeenCalledWith(@mixin)
+      expect(includeSpy).toHaveBeenCalledWith(@mixin.InstanceMethods)
 
       expect(extendSpy).toHaveBeenCalled()
-      expect(extendSpy).toHaveBeenCalledWith(@mixin)
+      expect(extendSpy).toHaveBeenCalledWith(@mixin.ClassMethods)
 

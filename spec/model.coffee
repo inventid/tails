@@ -1,6 +1,32 @@
 describe "Tails.Model", ->
 
   it "should be tested"
+  # :only_when_synced = [sort, highlight, update]
+
+  # it "should do something", ->
+  #   model = new Tails.Model()
+
+  #   model.then ( model ) -> if model.get('color') is 'blue'
+
+
+
+
+
+  #   model.synced ( ) ->
+  #   @synced ( ) ->
+
+  #   if color is 'blue'
+
+  #   array1 + array2
+
+
+
+  #   # bla
+
+    # Q.when color, ( c ) ->  if c is 'bue'
+
+
+    # promise.then ( ) ->
 
   # describe "#constructor", ->
 

@@ -16,15 +16,15 @@ module.exports = ( grunt ) ->
         files:
           'dist/tails.js': [
             'src/tails.coffee'
-
             'src/mixins/interceptable.coffee'
+            'src/mixable.coffee'
+
             'src/mixins/dynamic_properties.coffee'
+            'src/collection.coffee'
             'src/mixins/collectable.coffee'
             'src/mixins/relations.coffee'
 
-            'src/mixable.coffee'
             'src/model.coffee'
-            'src/collection.coffee'
             'src/template.coffee'
             'src/view.coffee'
 
