@@ -7,6 +7,7 @@ Tails.factory = ( exports ) ->
   exports.View       = Tails.View
   exports.Template   = Tails.Template
   exports.Mixins     = Tails.Mixins
+  exports.Utils      = Tails.Utils
 
   exports.Models     = Tails.Models
   exports.Views      = Tails.Views

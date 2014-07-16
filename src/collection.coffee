@@ -19,9 +19,6 @@ class Tails.Collection extends Backbone.Deferred.Collection
     url = "#{base}/#{root}#{format}"
     return url
 
-  get: ( id ) ->
-    return super id or new @model id: id
-
   fetch: ( options = {} ) ->
     super _.defaults options, dataType: @format
 
