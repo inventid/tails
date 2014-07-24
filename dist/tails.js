@@ -3,9 +3,7 @@
     __slice = [].slice,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
     __hasProp = {}.hasOwnProperty,
-    __defProp = {}.__proto__.constructor.defineProperty,
-    __getProp = {}.__proto__.constructor.getOwnPropertyDescriptor,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) __defProp(child, key, __getProp(parent, key)); } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   Tails = {
     Mixins: {},
@@ -214,7 +212,7 @@
         if (mixin.InstanceMethods != null) {
           mixin = mixin.InstanceMethods;
         }
-        if (__indexOf.call(this._includedMixins, mixin) >= 0) {
+        if (__indexOf.call(this._includedMixins, mixin) >= 0 || (mixin.ClassMethods != null)) {
           continue;
         }
         for (key in mixin) {
@@ -242,7 +240,7 @@
         if (mixin.ClassMethods != null) {
           mixin = mixin.ClassMethods;
         }
-        if (__indexOf.call(this._extendedMixins, mixin) >= 0) {
+        if (__indexOf.call(this._extendedMixins, mixin) >= 0 || (mixin.ClassMethods != null)) {
           continue;
         }
         for (key in mixin) {
@@ -258,6 +256,32 @@
       }
       return this;
     },
+    "with": function(mixin, funcs) {
+      var _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7;
+      if (((_ref = this._instanceInteractions) != null ? _ref.klass : void 0) !== this) {
+        this._instanceInteractions = _(this._instanceInteractions).clone() || [];
+        this._instanceInteractions.klass = this;
+      }
+      if (((_ref1 = this._classInteractions) != null ? _ref1.klass : void 0) !== this) {
+        this._classInteractions = _(this._classInteractions).clone() || [];
+        this._classInteractions.klass = this;
+      }
+      if ((_ref2 = mixin.InstanceMethods, __indexOf.call(this._includedMixins, _ref2) >= 0) && (_ref3 = mixin.InstanceMethods, __indexOf.call(this._instanceInteractions, _ref3) < 0)) {
+        this._instanceInteractions.push(mixin.InstanceMethods);
+        if (mixin.Interactions != null) {
+          this.include((_ref4 = mixin.Interactions) != null ? _ref4.apply(this) : void 0);
+        }
+        return funcs;
+      }
+      if ((_ref5 = mixin.ClassMethods, __indexOf.call(this._extendedMixins, _ref5) >= 0) && (_ref6 = mixin.ClassMethods, __indexOf.call(this._classInteractions, _ref6) < 0)) {
+        this._classInteractions.push(mixin.ClassMethods);
+        if (mixin.Interactions != null) {
+          this.extend((_ref7 = mixin.Interactions) != null ? _ref7.apply(this) : void 0);
+        }
+        return funcs;
+      }
+      return {};
+    },
     concern: function() {
       var mixin, mixins, _i, _len;
       mixins = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
@@ -268,6 +292,9 @@
         }
         if (mixin.ClassMethods != null) {
           this.extend(mixin.ClassMethods);
+        }
+        if (mixin.Interactions != null) {
+          this.concern(mixin.Interactions.apply(this));
         }
       }
       return this;
@@ -411,23 +438,6 @@
 
   Tails.Mixins.Collectable = {
     InstanceMethods: {
-      store: function() {
-        var json, key, urlRoot, _ref;
-        json = JSON.stringify(this);
-        urlRoot = (_ref = typeof this.urlRoot === "function" ? this.urlRoot() : void 0) != null ? _ref : this.urlRoot;
-        if ((urlRoot != null) && (this.id != null)) {
-          key = "" + urlRoot + "/" + this.id;
-          return localStorage.setItem(key, json);
-        }
-      },
-      retrieve: function() {
-        var json, key, _ref;
-        key = ((_ref = typeof this.urlRoot === "function" ? this.urlRoot() : void 0) != null ? _ref : this.urlRoot) + ("/" + this.id);
-        json = localStorage.getItem(key);
-        if (json != null) {
-          return _.defaults(this.attributes, JSON.parse(json));
-        }
-      },
       included: function() {
         this.concern(Tails.Mixins.Interceptable);
         return this.after({
@@ -435,10 +445,7 @@
             if ((this.id != null) && (this.constructor.collection().get(this.id) != null)) {
               throw new Error("Duplicate " + this.constructor.name + " for id " + this.id + ".");
             }
-            this.constructor.add(this);
-            this.on("sync", this.store);
-            this.retrieve();
-            return this.store();
+            return this.constructor.add(this);
           }
         });
       }
@@ -451,36 +458,8 @@
             model: this
           });
           this._collection.klass = this;
-          this._collection.on('add remove', (function(_this) {
-            return function(model) {
-              if (model.id != null) {
-                return _this.store();
-              }
-            };
-          })(this));
         }
         return this._collection;
-      },
-      store: function() {
-        var json, key, _ref;
-        json = JSON.stringify(this.pluck("id"));
-        key = (_ref = typeof this.urlRoot === "function" ? this.urlRoot() : void 0) != null ? _ref : this.urlRoot;
-        return localStorage.setItem(key, json);
-      },
-      retrieve: function() {
-        var id, json, key, _i, _len, _ref, _ref1, _results;
-        key = (_ref = typeof this.urlRoot === "function" ? this.urlRoot() : void 0) != null ? _ref : this.urlRoot;
-        json = localStorage.getItem(key);
-        console.log(key, json);
-        if (json != null) {
-          _ref1 = JSON.parse(json);
-          _results = [];
-          for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-            id = _ref1[_i];
-            _results.push(this.get(id));
-          }
-          return _results;
-        }
       },
       get: function(id) {
         return this.collection().get(id) || new this({
@@ -488,22 +467,22 @@
         });
       },
       extended: function() {
-        var key, methods, _fn, _i, _len;
-        methods = ['forEach', 'each', 'map', 'collect', 'reduce', 'foldl', 'inject', 'reduceRight', 'foldr', 'find', 'detect', 'filter', 'select', 'reject', 'every', 'all', 'some', 'any', 'include', 'contains', 'invoke', 'max', 'min', 'toArray', 'size', 'first', 'head', 'take', 'initial', 'rest', 'tail', 'drop', 'last', 'without', 'difference', 'indexOf', 'shuffle', 'lastIndexOf', 'isEmpty', 'chain', 'sample', 'add', 'remove', 'set', 'at', 'push', 'pop', 'unshift', 'shift', 'slice', 'sort', 'pluck', 'where', 'findWhere', 'clone', 'create', 'fetch', 'reset', 'urlRoot', 'urlRootRoot', 'on', 'off', 'once', 'trigger', 'listenTo', 'stopListening', 'listenOnce'];
-        _fn = (function(_this) {
-          return function(key) {
-            return _this[key] = function() {
-              var args;
-              args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-              return this.collection()[key].apply(this.collection(), args);
-            };
-          };
-        })(this);
+        var key, methods, _i, _len, _results;
+        methods = ['forEach', 'each', 'map', 'collect', 'reduce', 'foldl', 'inject', 'reduceRight', 'foldr', 'find', 'detect', 'filter', 'select', 'reject', 'every', 'all', 'some', 'any', 'contains', 'invoke', 'max', 'min', 'toArray', 'size', 'first', 'head', 'take', 'initial', 'rest', 'tail', 'drop', 'last', 'without', 'difference', 'indexOf', 'shuffle', 'lastIndexOf', 'isEmpty', 'chain', 'sample', 'add', 'remove', 'set', 'at', 'push', 'pop', 'unshift', 'shift', 'slice', 'sort', 'pluck', 'where', 'findWhere', 'clone', 'create', 'fetch', 'reset', 'urlRoot', 'urlRootRoot', 'on', 'off', 'once', 'trigger', 'listenTo', 'stopListening', 'listenOnce'];
+        _results = [];
         for (_i = 0, _len = methods.length; _i < _len; _i++) {
           key = methods[_i];
-          _fn(key);
+          _results.push((function(_this) {
+            return function(key) {
+              return _this[key] = function() {
+                var args;
+                args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+                return this.collection()[key].apply(this.collection(), args);
+              };
+            };
+          })(this)(key));
         }
-        return this.on("sync", this.store);
+        return _results;
       }
     }
   };
@@ -674,6 +653,149 @@
         this.concern(Tails.Mixins.Collectable);
         return this.concern(Tails.Mixins.Interceptable);
       }
+    }
+  };
+
+  Tails.Mixins.History = {
+    InstanceMethods: {
+      diff: function() {
+        var diff, func, key, prevAttrs, value, _ref;
+        diff = {};
+        prevAttrs = this.constructor.retrieve(this.id) || {};
+        _ref = this.attributes;
+        for (key in _ref) {
+          value = _ref[key];
+          if (prevAttrs[key] !== this.get(key)) {
+            if (prevAttrs[key] != null) {
+              diff[key] = {
+                "update": {
+                  "old": prevAttrs[key],
+                  "new": this.get(key)
+                }
+              };
+            } else {
+              diff[key] = {
+                "create": {
+                  "value": this.get(key)
+                }
+              };
+            }
+          }
+        }
+        for (key in prevAttrs) {
+          value = prevAttrs[key];
+          if (!this.has(key)) {
+            diff[key] = {
+              "delete": {
+                "value": value
+              }
+            };
+          }
+        }
+        func = function() {
+          var change, type, values;
+          for (key in diff) {
+            change = diff[key];
+            for (type in change) {
+              values = change[type];
+              switch (type) {
+                case "create":
+                  this.set(key, values["value"]);
+                  break;
+                case "update":
+                  this.set(key, values["new"]);
+                  break;
+                case "delete":
+                  this.unset(key);
+              }
+            }
+          }
+          return this;
+        };
+        return func;
+      },
+      storage: function() {
+        return this.constructor.storage();
+      },
+      indexRoot: function() {
+        return this.constructor.indexRoot();
+      },
+      store: function() {
+        return this.constructor.store(this);
+      },
+      retrieve: function() {
+        return _.defaults(this.attributes, this.constructor.retrieve(this.id));
+      },
+      included: function() {
+        this.concern(Tails.Mixins.Interceptable);
+        return this.after({
+          initialize: function() {
+            this.on("sync", this.store);
+            this.retrieve();
+            return this.store();
+          }
+        });
+      }
+    },
+    ClassMethods: {
+      storage: function() {
+        return localStorage;
+      },
+      indexRoot: function() {
+        return "test";
+        return inflection.transform(this.name, ['underscore', 'pluralize']);
+      },
+      store: function(instance) {
+        var indexRoot, json, key, _ref;
+        if (instance == null) {
+          return;
+        }
+        indexRoot = (_ref = typeof this.indexRoot === "function" ? this.indexRoot() : void 0) != null ? _ref : this.indexRoot;
+        key = "" + indexRoot + "/" + instance.id;
+        json = JSON.stringify(instance);
+        return this.storage().setItem(key, json);
+      },
+      retrieve: function(id) {
+        var ids, indexRoot, json, key, _i, _len, _ref;
+        indexRoot = (_ref = typeof this.indexRoot === "function" ? this.indexRoot() : void 0) != null ? _ref : this.indexRoot;
+        if (id != null) {
+          key = "" + indexRoot + "/" + id;
+          json = localStorage.getItem(key);
+          if (json != null) {
+            return JSON.parse(json);
+          }
+        } else {
+          json = this.storage().getItem(indexRoot);
+          ids = JSON.parse(json);
+          if (json != null) {
+            for (_i = 0, _len = ids.length; _i < _len; _i++) {
+              id = ids[_i];
+              this.retrieve(id);
+            }
+          }
+          return ids;
+        }
+      }
+    },
+    Interactions: function() {
+      return {
+        ClassMethods: this["with"](Tails.Mixins.Collectable, {
+          indexRoot: function() {
+            var _ref;
+            return (_ref = typeof this.urlRoot === "function" ? this.urlRoot() : void 0) != null ? _ref : this.urlRoot;
+          },
+          extended: function() {
+            return this.after({
+              store: function() {
+                var json, key, _ref;
+                key = (_ref = typeof this.indexRoot === "function" ? this.indexRoot() : void 0) != null ? _ref : this.indexRoot;
+                json = JSON.stringify(this.constructor.pluck("id"));
+                return this.constructor.storage().setItem(key, json);
+              }
+            });
+          }
+        })
+      };
     }
   };
 
