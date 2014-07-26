@@ -4,27 +4,24 @@ describe "Tails.Mixins.History", ->
     localStorage.clear()
     class @Model extends Backbone.Model
       _.extend @, Tails.Mixable
-      @concern Tails.Mixins.Collectable
-      @concern Tails.Mixins.History
-
-    class @OtherModel extends Backbone.Model
-      _.extend @, Tails.Mixable
+      @concern Tails.Mixins.Storage
       @concern Tails.Mixins.History
 
   describe "creation", ->
     it "should store itself in local storage", ->
       class Fruit extends @Model
 
-      apple = Fruit.get 1
-      apple.set "test", "1"
-      apple.set "test2", "2"
-      apple.set "test3", "3"
-      apple.set "test4", "4"
+      apple = new Fruit id : 1
+      apple.set prop: "val"
 
-      apple.trigger "sync"
-      expect(Fruit.retrieve(apple.get "id")).toEqual(apple.attributes)
+      changes = apple.diff()
+      apple.unset "prop"
 
-      Fruit.get 2
-      Fruit.get 3
+      pear = new Fruit id : 2
 
-      console.log Fruit.retrieve()
+      console.log JSON.stringify apple
+      console.log JSON.stringify changes.apply(pear)
+      changes.apply()
+      console.log JSON.stringify apple
+
+      console.log JSON.stringify localStorage

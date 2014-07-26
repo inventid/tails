@@ -455,7 +455,7 @@
         var _ref;
         if (((_ref = this._collection) != null ? _ref.klass : void 0) !== this) {
           this._collection = new Tails.Collection(null, {
-            model: this
+            instance: this
           });
           this._collection.klass = this;
         }
@@ -484,6 +484,21 @@
         }
         return _results;
       }
+    },
+    Interactions: function() {
+      return {
+        ClassMethods: this["with"](Tails.Mixins.Storage, {
+          extended: function() {
+            return this.collection().on('add remove', (function(_this) {
+              return function(instance) {
+                if (instance.id != null) {
+                  return _this.store();
+                }
+              };
+            })(this));
+          }
+        })
+      };
     }
   };
 
@@ -656,75 +671,19 @@
     }
   };
 
-  Tails.Mixins.History = {
+  Tails.Mixins.Storage = {
     InstanceMethods: {
-      diff: function() {
-        var diff, func, key, prevAttrs, value, _ref;
-        diff = {};
-        prevAttrs = this.constructor.retrieve(this.id) || {};
-        _ref = this.attributes;
-        for (key in _ref) {
-          value = _ref[key];
-          if (prevAttrs[key] !== this.get(key)) {
-            if (prevAttrs[key] != null) {
-              diff[key] = {
-                "update": {
-                  "old": prevAttrs[key],
-                  "new": this.get(key)
-                }
-              };
-            } else {
-              diff[key] = {
-                "create": {
-                  "value": this.get(key)
-                }
-              };
-            }
-          }
-        }
-        for (key in prevAttrs) {
-          value = prevAttrs[key];
-          if (!this.has(key)) {
-            diff[key] = {
-              "delete": {
-                "value": value
-              }
-            };
-          }
-        }
-        func = function() {
-          var change, type, values;
-          for (key in diff) {
-            change = diff[key];
-            for (type in change) {
-              values = change[type];
-              switch (type) {
-                case "create":
-                  this.set(key, values["value"]);
-                  break;
-                case "update":
-                  this.set(key, values["new"]);
-                  break;
-                case "delete":
-                  this.unset(key);
-              }
-            }
-          }
-          return this;
-        };
-        return func;
-      },
       storage: function() {
         return this.constructor.storage();
       },
       indexRoot: function() {
         return this.constructor.indexRoot();
       },
-      store: function() {
-        return this.constructor.store(this);
+      store: function(data) {
+        return this.constructor.store(this, data);
       },
-      retrieve: function() {
-        return _.defaults(this.attributes, this.constructor.retrieve(this.id));
+      retrieve: function(hash) {
+        return _.defaults(this.attributes, this.constructor.retrieve(this.id, hash));
       },
       included: function() {
         this.concern(Tails.Mixins.Interceptable);
@@ -742,30 +701,41 @@
         return localStorage;
       },
       indexRoot: function() {
-        return "test";
         return inflection.transform(this.name, ['underscore', 'pluralize']);
       },
-      store: function(instance) {
+      store: function(instance, data) {
         var indexRoot, json, key, _ref;
-        if (instance == null) {
+        if (!((instance != null) && (instance.id != null))) {
           return;
         }
         indexRoot = (_ref = typeof this.indexRoot === "function" ? this.indexRoot() : void 0) != null ? _ref : this.indexRoot;
         key = "" + indexRoot + "/" + instance.id;
-        json = JSON.stringify(instance);
-        return this.storage().setItem(key, json);
+        if (data != null) {
+          key += "/" + Tails.Utils.Hash(JSON.stringify(data));
+          json = JSON.stringify({
+            "instance": instance,
+            "data": data
+          });
+        } else {
+          json = JSON.stringify(instance);
+        }
+        this.storage().setItem(key, json);
+        return key;
       },
-      retrieve: function(id) {
+      retrieve: function(id, hash) {
         var ids, indexRoot, json, key, _i, _len, _ref;
         indexRoot = (_ref = typeof this.indexRoot === "function" ? this.indexRoot() : void 0) != null ? _ref : this.indexRoot;
         if (id != null) {
           key = "" + indexRoot + "/" + id;
+          if (hash != null) {
+            key += "/" + hash;
+          }
           json = localStorage.getItem(key);
           if (json != null) {
             return JSON.parse(json);
           }
         } else {
-          json = this.storage().getItem(indexRoot);
+          json = this.storage().getItem(Tails.Utils.Hash(indexRoot));
           ids = JSON.parse(json);
           if (json != null) {
             for (_i = 0, _len = ids.length; _i < _len; _i++) {
@@ -796,6 +766,121 @@
           }
         })
       };
+    }
+  };
+
+  Tails.Mixins.History = {
+    Interactions: function() {
+      return {
+        InstanceMethods: this["with"](Tails.Mixins.Storage, {
+          diff: function() {
+            var diff, key, prevAttrs, value, _ref;
+            diff = {};
+            diff.apply = (function(_this) {
+              return function(context) {
+                var change, key, type, values;
+                if (context == null) {
+                  context = _this;
+                }
+                for (key in diff) {
+                  change = diff[key];
+                  for (type in change) {
+                    values = change[type];
+                    switch (type) {
+                      case "create":
+                        context.set(key, values["value"]);
+                        break;
+                      case "update":
+                        context.set(key, values["new"]);
+                        break;
+                      case "delete":
+                        context.unset(key);
+                    }
+                  }
+                }
+                return context;
+              };
+            })(this);
+            prevAttrs = this.constructor.retrieve(this.id) || {};
+            _ref = this.attributes;
+            for (key in _ref) {
+              value = _ref[key];
+              if (prevAttrs[key] !== this.get(key)) {
+                if (prevAttrs[key] != null) {
+                  diff[key] = {
+                    "update": {
+                      "old": prevAttrs[key],
+                      "new": this.get(key)
+                    }
+                  };
+                } else {
+                  diff[key] = {
+                    "create": {
+                      "value": this.get(key)
+                    }
+                  };
+                }
+              }
+            }
+            for (key in prevAttrs) {
+              value = prevAttrs[key];
+              if (!this.has(key)) {
+                diff[key] = {
+                  "delete": {
+                    "value": value
+                  }
+                };
+              }
+            }
+            return diff;
+          },
+          commit: function() {
+            var key;
+            key = this.store(this.diff());
+            console.log(key);
+            return key;
+          },
+          included: function() {
+            return this.after({
+              initialize: function() {
+                return this.on("change", this.commit);
+              }
+            });
+          }
+        })
+      };
+    }
+  };
+
+  Tails.Mixins.Debug = {
+    ClassMethods: {
+      extended: function() {
+        this.concern(Tails.Mixins.Interceptable);
+        return this.after({
+          initialize: function() {
+            return this.log("New " + this.constructor.name, JSON.stringify(this));
+          }
+        });
+      }
+    },
+    InstanceMethods: {
+      log: function() {
+        var strings;
+        strings = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+        return console.log(new Date(), strings);
+      },
+      included: function() {
+        this.concern(Tails.Mixins.Interceptable);
+        return this.after({
+          initialize: function() {
+            return this.on("change", (function(_this) {
+              return function() {
+                return _this.log("Change of attribute in " + _this.constructor.name, JSON.stringify(_this));
+              };
+            })(this));
+          }
+        });
+      }
     }
   };
 

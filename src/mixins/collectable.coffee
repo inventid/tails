@@ -1,6 +1,6 @@
-# Creates a collection in which every member of the mixable model
-# is stored. Individual models can be retreived via the get class
-# method, which also create the model when it's not yet present.
+# Creates a collection in which every member of the mixable instance
+# is stored. Individual instances can be retreived via the get class
+# method, which also create the instance when it's not yet present.
 #
 Tails.Mixins.Collectable =
 
@@ -16,7 +16,7 @@ Tails.Mixins.Collectable =
   ClassMethods:
     collection: ( ) ->
       unless @_collection?.klass is @
-        @_collection = new Tails.Collection null, model: @
+        @_collection = new Tails.Collection null, instance: @
         @_collection.klass = @
       return @_collection
 
@@ -42,8 +42,9 @@ Tails.Mixins.Collectable =
             @collection()[key].apply @collection(), args
 
 
-  # Interactions: () ->
-  #   ClassMethods:
-  #     @with Tails.Mixins.History,
-  #       extended: () ->
-  #         # @collection().on 'add remove', ( model ) => @store() if model.id?
+  Interactions: () ->
+    ClassMethods:
+      @with Tails.Mixins.Storage,
+        extended: () ->
+          @collection().on 'add remove', ( instance ) =>
+            @store() if instance.id?
