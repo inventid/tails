@@ -16,6 +16,7 @@ module.exports = ( grunt ) ->
         files:
           'dist/tails.js': [
             'src/tails.coffee'
+            'src/utils/hash.coffee'
             'src/mixins/interceptable.coffee'
             'src/mixable.coffee'
 

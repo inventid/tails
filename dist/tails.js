@@ -3,15 +3,32 @@
     __slice = [].slice,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
     __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+    __defProp = {}.__proto__.constructor.defineProperty,
+    __getProp = {}.__proto__.constructor.getOwnPropertyDescriptor,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) __defProp(child, key, __getProp(parent, key)); } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   Tails = {
     Mixins: {},
+    Utils: {},
     Models: {},
     Views: {},
     config: {
       url: 'http://localhost'
     }
+  };
+
+  Tails.Utils.Hash = function(string) {
+    var char, hash, i, _i, _ref;
+    hash = 0;
+    if (string.length === 0) {
+      return hash;
+    }
+    for (i = _i = 0, _ref = string.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
+      char = string.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    return hash;
   };
 
   Tails.Mixins.Interceptable = {
@@ -393,6 +410,39 @@
   })(Backbone.Deferred.Collection);
 
   Tails.Mixins.Collectable = {
+    InstanceMethods: {
+      store: function() {
+        var json, key, urlRoot, _ref;
+        json = JSON.stringify(this);
+        urlRoot = (_ref = typeof this.urlRoot === "function" ? this.urlRoot() : void 0) != null ? _ref : this.urlRoot;
+        if ((urlRoot != null) && (this.id != null)) {
+          key = "" + urlRoot + "/" + this.id;
+          return localStorage.setItem(key, json);
+        }
+      },
+      retrieve: function() {
+        var json, key, _ref;
+        key = ((_ref = typeof this.urlRoot === "function" ? this.urlRoot() : void 0) != null ? _ref : this.urlRoot) + ("/" + this.id);
+        json = localStorage.getItem(key);
+        if (json != null) {
+          return _.defaults(this.attributes, JSON.parse(json));
+        }
+      },
+      included: function() {
+        this.concern(Tails.Mixins.Interceptable);
+        return this.after({
+          initialize: function() {
+            if ((this.id != null) && (this.constructor.collection().get(this.id) != null)) {
+              throw new Error("Duplicate " + this.constructor.name + " for id " + this.id + ".");
+            }
+            this.constructor.add(this);
+            this.on("sync", this.store);
+            this.retrieve();
+            return this.store();
+          }
+        });
+      }
+    },
     ClassMethods: {
       collection: function() {
         var _ref;
@@ -401,13 +451,45 @@
             model: this
           });
           this._collection.klass = this;
+          this._collection.on('add remove', (function(_this) {
+            return function(model) {
+              if (model.id != null) {
+                return _this.store();
+              }
+            };
+          })(this));
         }
         return this._collection;
       },
+      store: function() {
+        var json, key, _ref;
+        json = JSON.stringify(this.pluck("id"));
+        key = (_ref = typeof this.urlRoot === "function" ? this.urlRoot() : void 0) != null ? _ref : this.urlRoot;
+        return localStorage.setItem(key, json);
+      },
+      retrieve: function() {
+        var id, json, key, _i, _len, _ref, _ref1, _results;
+        key = (_ref = typeof this.urlRoot === "function" ? this.urlRoot() : void 0) != null ? _ref : this.urlRoot;
+        json = localStorage.getItem(key);
+        console.log(key, json);
+        if (json != null) {
+          _ref1 = JSON.parse(json);
+          _results = [];
+          for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+            id = _ref1[_i];
+            _results.push(this.get(id));
+          }
+          return _results;
+        }
+      },
+      get: function(id) {
+        return this.collection().get(id) || new this({
+          id: id
+        });
+      },
       extended: function() {
         var key, methods, _fn, _i, _len;
-        this.concern(Tails.Mixins.Interceptable);
-        methods = ['forEach', 'each', 'map', 'collect', 'reduce', 'foldl', 'inject', 'reduceRight', 'foldr', 'find', 'detect', 'filter', 'select', 'reject', 'every', 'all', 'some', 'any', 'include', 'contains', 'invoke', 'max', 'min', 'toArray', 'size', 'first', 'head', 'take', 'initial', 'rest', 'tail', 'drop', 'last', 'without', 'difference', 'indexOf', 'shuffle', 'lastIndexOf', 'isEmpty', 'chain', 'sample', 'add', 'remove', 'set', 'get', 'at', 'push', 'pop', 'unshift', 'shift', 'slice', 'sort', 'pluck', 'where', 'findWhere', 'clone', 'create', 'fetch', 'on', 'off', 'once', 'trigger', 'listenTo', 'stopListening', 'listenOnce'];
+        methods = ['forEach', 'each', 'map', 'collect', 'reduce', 'foldl', 'inject', 'reduceRight', 'foldr', 'find', 'detect', 'filter', 'select', 'reject', 'every', 'all', 'some', 'any', 'include', 'contains', 'invoke', 'max', 'min', 'toArray', 'size', 'first', 'head', 'take', 'initial', 'rest', 'tail', 'drop', 'last', 'without', 'difference', 'indexOf', 'shuffle', 'lastIndexOf', 'isEmpty', 'chain', 'sample', 'add', 'remove', 'set', 'at', 'push', 'pop', 'unshift', 'shift', 'slice', 'sort', 'pluck', 'where', 'findWhere', 'clone', 'create', 'fetch', 'reset', 'urlRoot', 'urlRootRoot', 'on', 'off', 'once', 'trigger', 'listenTo', 'stopListening', 'listenOnce'];
         _fn = (function(_this) {
           return function(key) {
             return _this[key] = function() {
@@ -421,14 +503,7 @@
           key = methods[_i];
           _fn(key);
         }
-        return this.after({
-          initialize: function() {
-            if ((this.id != null) && (this.constructor.get(this.id) != null)) {
-              throw new Error("Duplicate " + this.constructor.name + " for id " + this.id + ".");
-            }
-            return this.constructor.add(this);
-          }
-        });
+        return this.on("sync", this.store);
       }
     }
   };
@@ -745,6 +820,7 @@
     exports.View = Tails.View;
     exports.Template = Tails.Template;
     exports.Mixins = Tails.Mixins;
+    exports.Utils = Tails.Utils;
     exports.Models = Tails.Models;
     exports.Views = Tails.Views;
     exports.config = Tails.config;

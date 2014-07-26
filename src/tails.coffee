@@ -1,5 +1,6 @@
 Tails =
   Mixins: {}
+  Utils: {}
 
   Models: {}
   Views:  {}
