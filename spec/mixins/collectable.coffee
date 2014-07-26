@@ -38,3 +38,6 @@ describe "Tails.Mixins.Collectable", ->
 
 
 
+
+
+

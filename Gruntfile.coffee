@@ -24,6 +24,9 @@ module.exports = ( grunt ) ->
             'src/collection.coffee'
             'src/mixins/collectable.coffee'
             'src/mixins/relations.coffee'
+            'src/mixins/storage.coffee'
+            'src/mixins/history.coffee'
+            'src/mixins/debug.coffee'
 
             'src/model.coffee'
             'src/template.coffee'
