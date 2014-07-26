@@ -19,9 +19,8 @@ describe "Tails.Mixins.History", ->
 
       pear = new Fruit id : 2
 
-      console.log JSON.stringify apple
-      console.log JSON.stringify changes.apply(pear)
+      changes.apply(pear)
+      expect(apple.get "prop").not.toBe("val")
+      expect(pear.get "prop").toBe("val")
       changes.apply()
-      console.log JSON.stringify apple
-
-      console.log JSON.stringify localStorage
+      expect(apple.get "prop").toBe("val")

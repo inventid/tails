@@ -41,7 +41,6 @@ Tails.Mixins.History =
 
         commit: () ->
           key = @store @diff()
-          console.log key
           return key
 
 

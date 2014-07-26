@@ -837,7 +837,6 @@
           commit: function() {
             var key;
             key = this.store(this.diff());
-            console.log(key);
             return key;
           },
           included: function() {
