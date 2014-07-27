@@ -1,6 +1,32 @@
 Tails.Mixable =
 
-  MixableKeywords : ['included', 'extended', 'constructor']
+  MixableKeywords : ['included', 'extended', 'constructor', 'Interactions', 'InstanceMethods', 'ClassMethods']
+
+  _include : ( mixin ) ->
+    if mixin.InstanceMethods?
+      funcs = mixin.InstanceMethods
+    else if mixin.ClassMethods? # Long style mixin, with no InstanceMethods for us to include
+      return
+    else # Short style mixin
+      funcs = mixin
+
+    for key, value of funcs when key not in Tails.Mixable.MixableKeywords
+      @::[key] = value if value? # Only keys with defined values
+
+    funcs.included?.apply @
+
+  _extend : ( mixin ) ->
+    if mixin.ClassMethods?
+      funcs = mixin.ClassMethods
+    else if mixin.InstanceMethods? # Long style mixin, with no ClassMethods for us to extend
+      return
+    else # Short style mixin
+      funcs = mixin
+
+    for key, value of funcs when key not in Tails.Mixable.MixableKeywords
+      @[key] = value  if value? # Only keys with defined values
+
+    funcs.extended?.apply @
 
   include: ( mixins... ) ->
     unless @_includedMixins?.klass is @
@@ -8,13 +34,24 @@ Tails.Mixable =
       @_includedMixins.klass = @
 
     for mixin in mixins
-      mixin = mixin.InstanceMethods if mixin.InstanceMethods?
-      continue if mixin in @_includedMixins or mixin.ClassMethods?
-      for key, value of mixin when key not in Tails.Mixable.MixableKeywords
-        @::[key] = value
+      continue if mixin in @_includedMixins
+      @_includedMixins.push mixin if mixin?
 
-      @_includedMixins.push mixin
-      mixin.included?.apply @
+      @_include(mixin)
+
+      # Apply our interactions with other mixins, if any
+      if mixin.Interactions?
+        interactions = mixin.Interactions.apply(@)
+
+        # Using _include in stead of include allows the interactions to be overridden dynamically
+        @_include interactions if interactions?
+
+    # Apply any interactions of already included mixins
+    for mixin in @_includedMixins
+      if mixin.Interactions?
+        interactions = mixin.Interactions.apply(@)
+        if interactions?
+          @_include interactions 
 
     return @
 
@@ -24,43 +61,53 @@ Tails.Mixable =
       @_extendedMixins.klass = @
 
     for mixin in mixins
-      mixin = mixin.ClassMethods if mixin.ClassMethods?
-      continue if mixin in @_extendedMixins or mixin.ClassMethods?
-      for key, value of mixin when key not in Tails.Mixable.MixableKeywords
-        @[key] = value
+      continue if mixin in @_extendedMixins
+      @_extendedMixins.push mixin if mixin?
+      
+      @_extend(mixin)
 
-      @_extendedMixins.push mixin
-      mixin.extended?.apply @
+      # Apply our interactions with other mixins, if any
+      if mixin.Interactions?
+        interactions = mixin.Interactions.apply(@)
+
+        # Using _extend in stead of extend allows the interactions to be overridden dynamically
+        @_extend interactions if interactions?
+
+    # Apply any interactions of already extended mixins
+    for mixin in @_extendedMixins
+      if mixin.Interactions?
+        interactions = mixin.Interactions.apply(@)
+        if interactions?
+          @_extend interactions 
 
     return @
 
-  with: (mixin, funcs) ->
-    unless @_instanceInteractions?.klass is @
-      @_instanceInteractions = _(@_instanceInteractions).clone() or []
-      @_instanceInteractions.klass = @
+  # extend: ( mixins... ) ->
+  #   unless @_extendedMixins?.klass is @
+  #     @_extendedMixins = _(@_extendedMixins).clone() or []
+  #     @_extendedMixins.klass = @
 
-    unless @_classInteractions?.klass is @
-      @_classInteractions = _(@_classInteractions).clone() or []
-      @_classInteractions.klass = @
+  #   for mixin in mixins
+  #     mixin = mixin.ClassMethods if mixin.ClassMethods?
+  #     continue if mixin in @_extendedMixins or mixin.ClassMethods?
+  #     for key, value of mixin when key not in Tails.Mixable.MixableKeywords
+  #       @[key] = value
 
-    if mixin.InstanceMethods in @_includedMixins and mixin.InstanceMethods not in @_instanceInteractions
-      @_instanceInteractions.push mixin.InstanceMethods
-      @include mixin.Interactions?.apply @ if mixin.Interactions?
-      return funcs
+  #     @_extendedMixins.push mixin if mixin?
+  #     mixin.extended?.apply @
 
-    if mixin.ClassMethods in @_extendedMixins and mixin.ClassMethods not in @_classInteractions
-      @_classInteractions.push mixin.ClassMethods
-      @extend mixin.Interactions?.apply @ if mixin.Interactions?
-      return funcs
+  #   return @
 
-
-    return {}
+  with: (mixin, funcs = {}) ->
+    if mixin in @_includedMixins or mixin in @_extendedMixins
+      return funcs 
+    else
+      return null
 
 
   concern: ( mixins... ) ->
     for mixin in mixins
-      @include mixin.InstanceMethods if mixin.InstanceMethods?
-      @extend mixin.ClassMethods if mixin.ClassMethods?
-      @concern mixin.Interactions.apply @ if mixin.Interactions?
+      @include mixin
+      @extend mixin
     return @
 
