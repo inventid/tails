@@ -344,6 +344,28 @@
           setter: setters
         });
       },
+      lazy: function(attributes) {
+        var fn, key, _results;
+        _results = [];
+        for (key in attributes) {
+          fn = attributes[key];
+          _results.push((function(_this) {
+            return function(key, fn) {
+              var getter, setter;
+              (getter = {})[key] = function() {
+                return this[key] = fn();
+              };
+              (setter = {})[key] = function(value) {
+                delete this[key];
+                return this[key] = value;
+              };
+              _this.getter(getter);
+              return _this.setter(setter);
+            };
+          })(this)(key, fn));
+        }
+        return _results;
+      },
       defineProperty: function(params) {
         var attributes, fn, key, type, _results;
         _results = [];
@@ -393,6 +415,13 @@
         return this.before({
           initialize: function() {
             return this.setter((typeof setters === "function" ? setters() : void 0) || setters);
+          }
+        });
+      },
+      lazy: function(attributes) {
+        return this.before({
+          initialize: function() {
+            return this.lazy((typeof attributes === "function" ? attributes() : void 0) || attributes);
           }
         });
       },

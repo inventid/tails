@@ -11,6 +11,15 @@ Tails.Mixins.DynamicAttributes =
     setter: ( setters ) ->
       @defineProperty setter: setters
 
+    lazy: ( attributes ) ->
+      for key, fn of attributes
+        do ( key, fn ) =>
+          (getter = {})[key] = ( )       -> return @[key] = fn()
+          (setter = {})[key] = ( value ) -> delete @[key]; @[key] = value
+
+          @getter getter
+          @setter setter
+
     defineProperty: ( params ) ->
       for type, attributes of params when type in ['getter', 'setter']
         for key, fn of attributes
@@ -26,6 +35,9 @@ Tails.Mixins.DynamicAttributes =
 
     setter: ( setters ) ->
       @before initialize: ( ) -> @setter setters?() or setters
+
+    lazy: ( attributes ) ->
+      @before initialize: ( ) -> @lazy attributes?() or attributes
 
     extended: ( ) ->
       @concern Tails.Mixins.Interceptable

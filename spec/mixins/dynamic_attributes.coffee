@@ -119,3 +119,15 @@ describe "Tails.Mixins.DynamicAttributes", ->
 
       expect(fn1).toHaveBeenCalled()
       expect(fn2).toHaveBeenCalled()
+
+  describe ".lazy", ->
+    it "should lazily initialize an attribute", ->
+      fn = jasmine.createSpy()
+      class AnotherModel extends @Model
+        @lazy prop: fn
+
+      instance = new AnotherModel()
+      instance.prop
+      expect(fn).toHaveBeenCalled()
+      instance.prop
+      # expect(fn).
