@@ -261,6 +261,3 @@ describe "Tails.Mixins.Relations", ->
       fruit = new Fruit({id: 1, container_id: 1})
 
       expect(basket.get('fruits').contains(fruit)).toBe(true)
-
-
-

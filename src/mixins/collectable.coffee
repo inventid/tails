@@ -23,6 +23,44 @@ Tails.Mixins.Collectable =
     get: ( id ) ->
       @collection().get(id) or new @ id: id
 
+    scope: ( name, options ) ->
+      options = name unless typeof name is 'string'
+
+      collection = new Tails.Collection @collection().where(options.where), { model: @, parent: @ }
+
+      for attr, value of options.where
+        @collection().on "change:#{attr}", ( model, v ) =>
+          if v isnt value and collection.contains model
+            collection.remove model
+
+          else if v is value and not collection.contains model
+            collection.add model
+
+        # When the model is added to the all() collection, the change events
+        # on the foreign key may have already been triggered. So we check each
+        # added model if it has us as its foreign key.
+        @collection().on "add", ( model ) =>
+          if model.get(attr) is value and not collection.contains model
+            collection.add model
+
+        @collection().on "remove", ( model ) =>
+          if model.get(attr) is value and collection.contains model
+            collection.remove model
+
+        # Watch our own collection for changes.
+        collection.on "add", ( model ) =>
+          unless model.get(attr) is value
+            model.set(attr, value)
+
+        collection.on "remove", ( model ) =>
+          if model.get(attr) is value
+            model.set(attr, undefined)
+
+      @[name] = collection if name?
+      return collection
+
+
+
     extended: ( ) ->
       methods = [
         'forEach', 'each', 'map', 'collect', 'reduce', 'foldl',
