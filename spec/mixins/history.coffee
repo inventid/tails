@@ -4,14 +4,17 @@ describe "Tails.Mixins.History", ->
     localStorage.clear()
     class @Model extends Backbone.Model
       _.extend @, Tails.Mixable
+      @concern Tails.Mixins.Collectable
       @concern Tails.Mixins.Storage
       @concern Tails.Mixins.History
+      # @concern Tails.Mixins.Debug
 
   describe "creation", ->
     it "should store itself in local storage", ->
       class Fruit extends @Model
 
       apple = new Fruit id : 1
+      # apple.LOG_LEVELS.INFO = on
       apple.set prop: "val"
 
       changes = apple.diff()

@@ -51,7 +51,7 @@ Tails.Mixins.Storage =
       if id?
         key = "#{indexRoot}/#{id}"
         key += "/#{hash}" if hash?
-        json = localStorage.getItem key
+        json = @storage().getItem key
         JSON.parse json if json?
       else
         json = @storage().getItem Tails.Utils.Hash indexRoot
@@ -60,6 +60,13 @@ Tails.Mixins.Storage =
         return ids
 
   Interactions: () ->
+    InstanceMethods: @with Tails.Mixins.Debug,
+      included : () =>
+        @after initialize: () ->
+          console.log JSON.stringify @name
+          @after store: () ->
+            @log "Stored instances", @constructor.pluck("id")
+
     ClassMethods:
       @with Tails.Mixins.Collectable,
         indexRoot: ( ) ->

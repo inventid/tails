@@ -43,9 +43,6 @@ Tails.Mixins.History =
           key = @store @diff()
           return key
 
-
         included: ( ) ->
           @after initialize: () ->
             @on "change", @commit
-
-
