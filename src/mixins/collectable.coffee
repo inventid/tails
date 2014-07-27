@@ -16,7 +16,7 @@ Tails.Mixins.Collectable =
   ClassMethods:
     collection: ( ) ->
       unless @_collection?.klass is @
-        @_collection = new Tails.Collection null, instance: @
+        @_collection = new Tails.Collection null, model: @
         @_collection.klass = @
       return @_collection
 
@@ -32,7 +32,7 @@ Tails.Mixins.Collectable =
         'tail', 'drop', 'last', 'without', 'difference', 'indexOf', 'shuffle',
         'lastIndexOf', 'isEmpty', 'chain', 'sample', 'add', 'remove','set',
         'at', 'push', 'pop', 'unshift', 'shift', 'slice', 'sort', 'pluck', 'where',
-        'findWhere', 'clone', 'create', 'fetch', 'reset', 'urlRoot', 'urlRootRoot',
+        'findWhere', 'clone', 'create', 'fetch', 'reset', 'urlRoot',
         'on', 'off', 'once', 'trigger', 'listenTo', 'stopListening', 'listenOnce'
       ]
 
