@@ -7,11 +7,13 @@ class Tails.View extends Backbone.View
     _.extend @, Tails.Mixable
 
     initialize: ( options = {} ) ->
-        @template?.bind(@)
+        @template = Tails.Template.get(@template) if @template.constructor is String
+
+        @template.bind(@)
             .then ( $el ) =>
                 @setElement($el)
                 @render()
-        super
+        super options
 
     render: ( ) ->
         # Make sure events are set properly. When
