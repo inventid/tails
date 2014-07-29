@@ -29,6 +29,13 @@ Tails.Mixins.Storage =
     storage: ( ) ->
         return localStorage
 
+    toJSON: ( obj ) ->
+      if obj.has?("$el")
+        obj.get("$el").toJSON = () ->
+          @clone().wrap('<div/>').parent().html()
+
+      JSON.stringify obj
+
     indexRoot: ( ) ->
       return inflection.transform(@name, ['underscore', 'pluralize'])
 
@@ -37,12 +44,12 @@ Tails.Mixins.Storage =
       indexRoot = @indexRoot?() ? @indexRoot
       key = "#{indexRoot}/#{instance.id}"
       if data?
-        key += "/"+Tails.Utils.Hash JSON.stringify data
-        json = JSON.stringify
+        key += "/"+Tails.Utils.Hash @toJSON data
+        json = @toJSON
           "instance" : instance
           "data" : data
       else
-        json = JSON.stringify instance
+        json = @toJSON instance
       @storage().setItem key, json
       return key
 
@@ -63,7 +70,7 @@ Tails.Mixins.Storage =
     InstanceMethods: @with Tails.Mixins.Debug,
       included : () =>
         @after initialize: () ->
-          console.log JSON.stringify @name
+          console.log @toJSON @name
           @after store: () ->
             @log "Stored instances", @constructor.pluck("id")
 
@@ -74,5 +81,5 @@ Tails.Mixins.Storage =
         extended: () ->
           @after store: () ->
             key = @indexRoot?() ? @indexRoot
-            json = JSON.stringify @constructor.pluck("id")
+            json = @toJSON @constructor.pluck("id")
             @constructor.storage().setItem key, json
