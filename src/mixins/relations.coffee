@@ -23,7 +23,6 @@ Tails.Mixins.Relations =
           # Create setters and getters for the property specified
           # by foreignName. These will return the model with
           # our foreignKey, or set our foreignKey respectively.
-
           @getter foreignName, ( ) => klass.get(@get foreignKey) or new klass({id: @get foreignKey})
           @setter foreignName, ( model ) =>
               return @unset foreignKey unless model?
@@ -67,7 +66,7 @@ Tails.Mixins.Relations =
         do ( foreignKey, foreignName, klass ) =>
           foreignKey ||= inflection.foreign_key(@constructor.name)
           (selector = {})[foreignKey] = @id
-          @set foreignName, klass.scope where: selector
+          @lazy foreignName, -> klass.scope where: selector
 
   ClassMethods:
     belongsTo: ( relations ) ->

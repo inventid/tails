@@ -760,9 +760,11 @@
               var selector;
               foreignKey || (foreignKey = inflection.foreign_key(_this.constructor.name));
               (selector = {})[foreignKey] = _this.id;
-              return _this.set(foreignName, klass.scope({
-                where: selector
-              }));
+              return _this.lazy(foreignName, function() {
+                return klass.scope({
+                  where: selector
+                });
+              });
             };
           })(this)(foreignKey, foreignName, klass));
         }
