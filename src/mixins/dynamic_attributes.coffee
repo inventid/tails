@@ -2,7 +2,7 @@
 # Javascript can do this natively, but CoffeeScript lacks the
 # syntax for this.
 #
-Tails.Mixins.DynamicProperties =
+Tails.Mixins.DynamicAttributes =
 
   InstanceMethods:
     getter: ( getters ) ->
@@ -15,10 +15,10 @@ Tails.Mixins.DynamicProperties =
       for type, attributes of params when type in ['getter', 'setter']
         for key, fn of attributes
           do ( key, fn ) =>
-            map = Object.getOwnPropertyDescriptor(@, key) or configurable: true
+            map = Object.getOwnPropertyDescriptor(@attributes, key) or configurable: true
             if      type is 'getter' then map.get = ( )       => fn.call @
             else if type is 'setter' then map.set = ( value ) => fn.call @, value
-            Object.defineProperty @, key, map
+            Object.defineProperty @attributes, key, map
 
   ClassMethods:
     getter: ( getters ) ->

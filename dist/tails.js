@@ -332,7 +332,7 @@
     }
   };
 
-  Tails.Mixins.DynamicProperties = {
+  Tails.Mixins.DynamicAttributes = {
     InstanceMethods: {
       getter: function(getters) {
         return this.defineProperty({
@@ -358,7 +358,7 @@
                 _results1.push((function(_this) {
                   return function(key, fn) {
                     var map;
-                    map = Object.getOwnPropertyDescriptor(_this, key) || {
+                    map = Object.getOwnPropertyDescriptor(_this.attributes, key) || {
                       configurable: true
                     };
                     if (type === 'getter') {
@@ -370,7 +370,7 @@
                         return fn.call(_this, value);
                       };
                     }
-                    return Object.defineProperty(_this, key, map);
+                    return Object.defineProperty(_this.attributes, key, map);
                   };
                 })(this)(key, fn));
               }
