@@ -1,10 +1,10 @@
-describe "Tails.Mixins.DynamicProperties", ->
+describe "Tails.Mixins.DynamicAttributes", ->
 
   beforeEach ->
 
     class @Model extends Backbone.Model
       _.extend @, Tails.Mixable
-      @concern Tails.Mixins.DynamicProperties
+      @concern Tails.Mixins.DynamicAttributes
 
   describe ".getter", ->
 
@@ -16,8 +16,8 @@ describe "Tails.Mixins.DynamicProperties", ->
         @getter -> prop1: fn1, prop2: fn2
 
       instance = new AnotherModel()
-      instance.prop1
-      instance.prop2
+      instance.get 'prop1'
+      instance.get 'prop2'
       expect(fn1).toHaveBeenCalled()
       expect(fn2).toHaveBeenCalled()
 
@@ -29,8 +29,8 @@ describe "Tails.Mixins.DynamicProperties", ->
         @getter prop1: fn1, prop2: fn2
 
       instance = new AnotherModel()
-      instance.prop1
-      instance.prop2
+      instance.get 'prop1'
+      instance.get 'prop2'
       expect(fn1).toHaveBeenCalled()
       expect(fn2).toHaveBeenCalled()
 
@@ -43,7 +43,7 @@ describe "Tails.Mixins.DynamicProperties", ->
         @getter prop1: fn2
 
       instance = new AnotherModel()
-      instance.prop1
+      instance.get 'prop1'
 
       expect(fn1).not.toHaveBeenCalled()
       expect(fn2).toHaveBeenCalled()
@@ -57,8 +57,8 @@ describe "Tails.Mixins.DynamicProperties", ->
         @setter -> prop1: fn2
 
       instance = new AnotherModel()
-      instance.prop1
-      instance.prop1 = 3
+      instance.get 'prop1'
+      instance.set prop1: 3
 
       expect(fn1).toHaveBeenCalled()
       expect(fn2).toHaveBeenCalled()
@@ -73,8 +73,8 @@ describe "Tails.Mixins.DynamicProperties", ->
         @setter -> prop1: fn1, prop2: fn2
 
       instance = new AnotherModel()
-      instance.prop1 = 1
-      instance.prop2 = 2
+      instance.set prop1: 1
+      instance.set prop2: 2
       expect(fn1).toHaveBeenCalled()
       expect(fn2).toHaveBeenCalled()
 
@@ -86,8 +86,8 @@ describe "Tails.Mixins.DynamicProperties", ->
         @setter prop1: fn1, prop2: fn2
 
       instance = new AnotherModel()
-      instance.prop1 = 3
-      instance.prop2 = 4
+      instance.set prop1: 3
+      instance.set prop2: 4
       expect(fn1).toHaveBeenCalled()
       expect(fn2).toHaveBeenCalled()
 
@@ -100,7 +100,7 @@ describe "Tails.Mixins.DynamicProperties", ->
         @setter prop1: fn2
 
       instance = new AnotherModel()
-      instance.prop1 = 5
+      instance.set prop1: 5
 
       expect(fn1).not.toHaveBeenCalled()
       expect(fn2).toHaveBeenCalled()
@@ -114,8 +114,24 @@ describe "Tails.Mixins.DynamicProperties", ->
         @getter -> prop1: fn2
 
       instance = new AnotherModel()
-      instance.prop1 = 6
-      instance.prop1
+      instance.set prop1: 6
+      instance.get 'prop1'
 
       expect(fn1).toHaveBeenCalled()
       expect(fn2).toHaveBeenCalled()
+
+  describe ".lazy", ->
+    it "should lazily initialize an attribute and call the initializer once", ->
+      fn = jasmine.createSpy()
+      class AnotherModel extends @Model
+        @lazy prop: fn
+
+      instance = new AnotherModel()
+
+      expect(fn).not.toHaveBeenCalled()
+
+      instance.get 'prop'
+      expect(fn.calls.count()).toEqual(1)
+
+      instance.get 'prop'
+      expect(fn.calls.count()).toEqual(1)

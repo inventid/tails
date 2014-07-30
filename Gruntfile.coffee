@@ -20,7 +20,7 @@ module.exports = ( grunt ) ->
             'src/mixins/interceptable.coffee'
             'src/mixable.coffee'
 
-            'src/mixins/dynamic_properties.coffee'
+            'src/mixins/dynamic_attributes.coffee'
             'src/collection.coffee'
             'src/mixins/collectable.coffee'
             'src/mixins/relations.coffee'

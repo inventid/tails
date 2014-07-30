@@ -332,19 +332,64 @@
     }
   };
 
-  Tails.Mixins.DynamicProperties = {
+  Tails.Mixins.DynamicAttributes = {
     InstanceMethods: {
-      getter: function(getters) {
-        return this.defineProperty({
+      getter: function(getters, fn) {
+        var name;
+        if (fn == null) {
+          fn = null;
+        }
+        if (typeof getters === 'string' && (fn != null)) {
+          name = getters;
+          (getters = {})[name] = fn;
+        }
+        return this.defineAttribute({
           getter: getters
         });
       },
-      setter: function(setters) {
-        return this.defineProperty({
+      setter: function(setters, fn) {
+        var name;
+        if (fn == null) {
+          fn = null;
+        }
+        if (typeof setters === 'string' && (fn != null)) {
+          name = setters;
+          (setters = {})[name] = fn;
+        }
+        return this.defineAttribute({
           setter: setters
         });
       },
-      defineProperty: function(params) {
+      lazy: function(attributes, fn) {
+        var key, name, _results;
+        if (fn == null) {
+          fn = null;
+        }
+        if (typeof attributes === 'string' && (fn != null)) {
+          name = attributes;
+          (attributes = {})[name] = fn;
+        }
+        _results = [];
+        for (key in attributes) {
+          fn = attributes[key];
+          _results.push((function(_this) {
+            return function(key, fn) {
+              var getter, setter;
+              (getter = {})[key] = function() {
+                return this.attributes[key] = fn();
+              };
+              (setter = {})[key] = function(value) {
+                delete this.attributes[key];
+                return this.attributes[key] = value;
+              };
+              _this.getter(getter);
+              return _this.setter(setter);
+            };
+          })(this)(key, fn));
+        }
+        return _results;
+      },
+      defineAttribute: function(params) {
         var attributes, fn, key, type, _results;
         _results = [];
         for (type in params) {
@@ -358,7 +403,7 @@
                 _results1.push((function(_this) {
                   return function(key, fn) {
                     var map;
-                    map = Object.getOwnPropertyDescriptor(_this, key) || {
+                    map = Object.getOwnPropertyDescriptor(_this.attributes, key) || {
                       configurable: true
                     };
                     if (type === 'getter') {
@@ -370,7 +415,7 @@
                         return fn.call(_this, value);
                       };
                     }
-                    return Object.defineProperty(_this, key, map);
+                    return Object.defineProperty(_this.attributes, key, map);
                   };
                 })(this)(key, fn));
               }
@@ -382,17 +427,48 @@
       }
     },
     ClassMethods: {
-      getter: function(getters) {
+      getter: function(getters, fn) {
+        var name;
+        if (fn == null) {
+          fn = null;
+        }
+        if (typeof getters === 'string' && (fn != null)) {
+          name = getters;
+          (getters = {})[name] = fn;
+        }
         return this.before({
           initialize: function() {
             return this.getter((typeof getters === "function" ? getters() : void 0) || getters);
           }
         });
       },
-      setter: function(setters) {
+      setter: function(setters, fn) {
+        var name;
+        if (fn == null) {
+          fn = null;
+        }
+        if (typeof setters === 'string' && (fn != null)) {
+          name = setters;
+          (setters = {})[name] = fn;
+        }
         return this.before({
           initialize: function() {
             return this.setter((typeof setters === "function" ? setters() : void 0) || setters);
+          }
+        });
+      },
+      lazy: function(attributes, fn) {
+        var name;
+        if (fn == null) {
+          fn = null;
+        }
+        if (typeof attributes === 'string' && (fn != null)) {
+          name = attributes;
+          (attributes = {})[name] = fn;
+        }
+        return this.before({
+          initialize: function() {
+            return this.lazy((typeof attributes === "function" ? attributes() : void 0) || attributes);
           }
         });
       },
@@ -609,21 +685,19 @@
               _this.unset(foreignName, {
                 silent: true
               });
-              Object.defineProperty(_this.attributes, foreignName, {
-                get: function() {
-                  return klass.get(_this.get(foreignKey)) || new klass({
-                    id: _this.get(foreignKey)
-                  });
-                },
-                set: function(model) {
-                  if (model == null) {
-                    return _this.unset(foreignKey);
-                  }
-                  if (klass.get(model.id) == null) {
-                    klass.create(model);
-                  }
-                  return _this.set(foreignKey, model.id);
+              _this.getter(foreignName, function() {
+                return klass.get(_this.get(foreignKey)) || new klass({
+                  id: _this.get(foreignKey)
+                });
+              });
+              _this.setter(foreignName, function(model) {
+                if (model == null) {
+                  return _this.unset(foreignKey);
                 }
+                if (klass.get(model.id) == null) {
+                  klass.create(model);
+                }
+                return _this.set(foreignKey, model.id);
               });
               _this.on("change:" + foreignKey, function(we, id) {
                 var model, previousModel;
@@ -662,14 +736,12 @@
               foreignKey || (foreignKey = inflection.foreign_key(_this.constructor.name));
               attrs = {};
               attrs[foreignKey] = _this.id;
-              return Object.defineProperty(_this.attributes, foreignName, {
-                get: function() {
-                  return klass.findWhere(attrs) || new klass(attrs);
-                },
-                set: function(model) {
-                  _this.attributes(foreignName)[foreignKey] = void 0;
-                  return model[foreignKey] = _this.id;
-                }
+              _this.getter(foreignName, function() {
+                return klass.findWhere(attrs) || new klass(attrs);
+              });
+              return _this.setter(foreignName, function(model) {
+                _this.attributes(foreignName)[foreignKey] = void 0;
+                return model[foreignKey] = _this.id;
               });
             };
           })(this)(foreignKey, foreignName, klass));
@@ -688,9 +760,11 @@
               var selector;
               foreignKey || (foreignKey = inflection.foreign_key(_this.constructor.name));
               (selector = {})[foreignKey] = _this.id;
-              return _this.set(foreignName, klass.scope({
-                where: selector
-              }));
+              return _this.lazy(foreignName, function() {
+                return klass.scope({
+                  where: selector
+                });
+              });
             };
           })(this)(foreignKey, foreignName, klass));
         }
@@ -720,6 +794,7 @@
         });
       },
       extended: function() {
+        this.concern(Tails.Mixins.DynamicAttributes);
         this.concern(Tails.Mixins.Collectable);
         return this.concern(Tails.Mixins.Interceptable);
       }
