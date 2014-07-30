@@ -2,10 +2,10 @@
 
 # Tails
 
-|Branch|Build status|
-|----|----|
-|Master branch|[![Build Status master branch](https://travis-ci.org/inventid/tails.svg?branch=master)](https://travis-ci.org/inventid/tails)|
-|Develop branch|[![Build Status develop branch](https://travis-ci.org/inventid/tails.svg?branch=develop)](https://travis-ci.org/inventid/tails)|
+|Branch|Build status|Coverage|
+|----|----|---|
+|Master branch|[![Build Status master branch](https://travis-ci.org/inventid/tails.svg?branch=master)](https://travis-ci.org/inventid/tails)|[![Coverage Status](https://img.shields.io/coveralls/inventid/tails.svg?branch=master)](https://coveralls.io/r/inventid/tails?branch=master)
+|Develop branch|[![Build Status develop branch](https://travis-ci.org/inventid/tails.svg?branch=develop)](https://travis-ci.org/inventid/tails)|[![Coverage Status](https://img.shields.io/coveralls/inventid/tails.svg?branch=develop)](https://coveralls.io/r/inventid/tails?branch=develop)|
 
 ## What is it?
 

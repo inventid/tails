@@ -74,6 +74,19 @@ module.exports = ( grunt ) ->
             'bower_components/rivets/dist/rivets.js'
             'bower_components/jasmine-ajax/lib/mock-ajax.js'
           ]
+          template: require('grunt-template-jasmine-istanbul')
+          templateOptions:
+            coverage: 'bin/coverage/coverage.json'
+            report:
+              type: 'lcovonly'
+              options:
+                dir: '.grunt/tails/coverage/lcov'
+            thresholds:
+              lines: 60
+              statements: 60
+              branches: 60
+              functions: 60
+
 
     clean:
       spec: ['spec_compiled']
