@@ -59,8 +59,6 @@ Tails.Mixins.Collectable =
       @[name] = collection if name?
       return collection
 
-
-
     extended: ( ) ->
       methods = [
         'forEach', 'each', 'map', 'collect', 'reduce', 'foldl',
