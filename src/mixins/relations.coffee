@@ -66,46 +66,8 @@ Tails.Mixins.Relations =
       for foreignName, klass of _(relations).omit('foreignKey')
         do ( foreignKey, foreignName, klass ) =>
           foreignKey ||= inflection.foreign_key(@constructor.name)
-
-          # Create the collection of relations
-          collection = new Tails.Collection null, { model: klass, parent: @ }
-          @set foreignName, collection
-
-          # Find all models of klass that have already set us as their relation.
-          collection.add(klass.find ( model ) => model.get(foreignKey) is @id)
-
-          # Listen to the all() collection of the related class for changes in
-          # foreign keys. If they're not in our collection and they set their
-          # foreign key to us, add them. If they are in our collection and
-          # set their foreign key to something else, remove them.
-          klass.on "change:#{foreignKey}", ( model, id ) =>
-            if id isnt @id and collection.contains model
-              collection.remove model
-
-            # We have to check if the collection is currently syncing. This
-            # is necessary because else
-            else if id is @id and not collection.contains model
-              collection.add model
-
-          # When the model is added to the all() collection, the change events
-          # on the foreign key may have already been triggered. So we check each
-          # added model if it has us as its foreign key.
-          klass.on "add", ( model ) =>
-            if model.get(foreignKey) is @id and not collection.contains model
-              collection.add model
-
-          klass.on "remove", ( model ) =>
-            if model.get(foreignKey) is @id and collection.contains model
-              collection.remove model
-
-          # Watch our own collection for changes.
-          collection.on "add", ( model ) =>
-            unless model.get(foreignKey) is @id
-              model.set(foreignKey, @id)
-
-          collection.on "remove", ( model ) =>
-            if model.get(foreignKey) is @id
-              model.set(foreignKey, undefined)
+          (selector = {})[foreignKey] = @id
+          @set foreignName, klass.scope where: selector
 
   ClassMethods:
     belongsTo: ( relations ) ->

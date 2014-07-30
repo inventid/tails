@@ -3,7 +3,9 @@
     __slice = [].slice,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
     __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+    __defProp = {}.__proto__.constructor.defineProperty,
+    __getProp = {}.__proto__.constructor.getOwnPropertyDescriptor,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) __defProp(child, key, __getProp(parent, key)); } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   Tails = {
     Mixins: {},
@@ -495,6 +497,61 @@
           id: id
         });
       },
+      scope: function(name, options) {
+        var attr, collection, value, _ref;
+        if (typeof name !== 'string') {
+          options = name;
+        }
+        collection = new Tails.Collection(this.collection().where(options.where), {
+          model: this,
+          parent: this
+        });
+        _ref = options.where;
+        for (attr in _ref) {
+          value = _ref[attr];
+          this.collection().on("change:" + attr, (function(_this) {
+            return function(model, v) {
+              if (v !== value && collection.contains(model)) {
+                return collection.remove(model);
+              } else if (v === value && !collection.contains(model)) {
+                return collection.add(model);
+              }
+            };
+          })(this));
+          this.collection().on("add", (function(_this) {
+            return function(model) {
+              if (model.get(attr) === value && !collection.contains(model)) {
+                return collection.add(model);
+              }
+            };
+          })(this));
+          this.collection().on("remove", (function(_this) {
+            return function(model) {
+              if (model.get(attr) === value && collection.contains(model)) {
+                return collection.remove(model);
+              }
+            };
+          })(this));
+          collection.on("add", (function(_this) {
+            return function(model) {
+              if (model.get(attr) !== value) {
+                return model.set(attr, value);
+              }
+            };
+          })(this));
+          collection.on("remove", (function(_this) {
+            return function(model) {
+              if (model.get(attr) === value) {
+                return model.set(attr, void 0);
+              }
+            };
+          })(this));
+        }
+        if (name != null) {
+          this[name] = collection;
+        }
+        return collection;
+      },
       extended: function() {
         var key, methods, _i, _len, _results;
         methods = ['forEach', 'each', 'map', 'collect', 'reduce', 'foldl', 'inject', 'reduceRight', 'foldr', 'find', 'detect', 'filter', 'select', 'reject', 'every', 'all', 'some', 'any', 'contains', 'invoke', 'max', 'min', 'toArray', 'size', 'first', 'head', 'take', 'initial', 'rest', 'tail', 'drop', 'last', 'without', 'difference', 'indexOf', 'shuffle', 'lastIndexOf', 'isEmpty', 'chain', 'sample', 'add', 'remove', 'set', 'at', 'push', 'pop', 'unshift', 'shift', 'slice', 'sort', 'pluck', 'where', 'findWhere', 'clone', 'create', 'fetch', 'reset', 'urlRoot', 'on', 'off', 'once', 'trigger', 'listenTo', 'stopListening', 'listenOnce'];
@@ -628,43 +685,12 @@
           klass = _ref[foreignName];
           _results.push((function(_this) {
             return function(foreignKey, foreignName, klass) {
-              var collection;
+              var selector;
               foreignKey || (foreignKey = inflection.foreign_key(_this.constructor.name));
-              collection = new Tails.Collection(null, {
-                model: klass,
-                parent: _this
-              });
-              _this.set(foreignName, collection);
-              collection.add(klass.find(function(model) {
-                return model.get(foreignKey) === _this.id;
+              (selector = {})[foreignKey] = _this.id;
+              return _this.set(foreignName, klass.scope({
+                where: selector
               }));
-              klass.on("change:" + foreignKey, function(model, id) {
-                if (id !== _this.id && collection.contains(model)) {
-                  return collection.remove(model);
-                } else if (id === _this.id && !collection.contains(model)) {
-                  return collection.add(model);
-                }
-              });
-              klass.on("add", function(model) {
-                if (model.get(foreignKey) === _this.id && !collection.contains(model)) {
-                  return collection.add(model);
-                }
-              });
-              klass.on("remove", function(model) {
-                if (model.get(foreignKey) === _this.id && collection.contains(model)) {
-                  return collection.remove(model);
-                }
-              });
-              collection.on("add", function(model) {
-                if (model.get(foreignKey) !== _this.id) {
-                  return model.set(foreignKey, _this.id);
-                }
-              });
-              return collection.on("remove", function(model) {
-                if (model.get(foreignKey) === _this.id) {
-                  return model.set(foreignKey, void 0);
-                }
-              });
             };
           })(this)(foreignKey, foreignName, klass));
         }
@@ -729,6 +755,14 @@
       storage: function() {
         return localStorage;
       },
+      toJSON: function(obj) {
+        if (typeof obj.has === "function" ? obj.has("$el") : void 0) {
+          obj.get("$el").toJSON = function() {
+            return this.clone().wrap('<div/>').parent().html();
+          };
+        }
+        return JSON.stringify(obj);
+      },
       indexRoot: function() {
         return inflection.transform(this.name, ['underscore', 'pluralize']);
       },
@@ -740,13 +774,13 @@
         indexRoot = (_ref = typeof this.indexRoot === "function" ? this.indexRoot() : void 0) != null ? _ref : this.indexRoot;
         key = "" + indexRoot + "/" + instance.id;
         if (data != null) {
-          key += "/" + Tails.Utils.Hash(JSON.stringify(data));
-          json = JSON.stringify({
+          key += "/" + Tails.Utils.Hash(this.toJSON(data));
+          json = this.toJSON({
             "instance": instance,
             "data": data
           });
         } else {
-          json = JSON.stringify(instance);
+          json = this.toJSON(instance);
         }
         this.storage().setItem(key, json);
         return key;
@@ -783,7 +817,7 @@
             return function() {
               return _this.after({
                 initialize: function() {
-                  console.log(JSON.stringify(this.name));
+                  console.log(this.toJSON(this.name));
                   return this.after({
                     store: function() {
                       return this.log("Stored instances", this.constructor.pluck("id"));
@@ -804,7 +838,7 @@
               store: function() {
                 var json, key, _ref;
                 key = (_ref = typeof this.indexRoot === "function" ? this.indexRoot() : void 0) != null ? _ref : this.indexRoot;
-                json = JSON.stringify(this.constructor.pluck("id"));
+                json = this.toJSON(this.constructor.pluck("id"));
                 return this.constructor.storage().setItem(key, json);
               }
             });
@@ -1080,7 +1114,7 @@
       }).then((function(_this) {
         return function() {
           var $el;
-          $el = _this.get('$el').clone();
+          $el = $(_this.get('$el')).clone();
           rivets.bind($el, view);
           return $el;
         };
@@ -1107,19 +1141,19 @@
     _.extend(View, Tails.Mixable);
 
     View.prototype.initialize = function(options) {
-      var _ref;
       if (options == null) {
         options = {};
       }
-      if ((_ref = this.template) != null) {
-        _ref.bind(this).then((function(_this) {
-          return function($el) {
-            _this.setElement($el);
-            return _this.render();
-          };
-        })(this));
+      if (this.template.constructor === String) {
+        this.template = Tails.Template.get(this.template);
       }
-      return View.__super__.initialize.apply(this, arguments);
+      this.template.bind(this).then((function(_this) {
+        return function($el) {
+          _this.setElement($el);
+          return _this.render();
+        };
+      })(this));
+      return View.__super__.initialize.call(this, options);
     };
 
     View.prototype.render = function() {

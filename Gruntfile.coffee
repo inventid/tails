@@ -105,5 +105,5 @@ module.exports = ( grunt ) ->
   grunt.loadNpmTasks 'grunt-contrib-watch'
 
   grunt.registerTask 'default', ['watch']
-  grunt.registerTask 'spec',  ['coffee:dist', 'coffee:spec', 'jasmine', 'clean:spec']
+  grunt.registerTask 'spec',  ['clean:spec', 'coffee:dist', 'coffee:spec', 'jasmine', 'clean:spec']
   grunt.registerTask 'build',   ['coffee:dist', 'uglify:dist']
