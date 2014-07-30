@@ -23,9 +23,9 @@ Tails.Mixins.Relations =
           # Create setters and getters for the property specified
           # by foreignName. These will return the model with
           # our foreignKey, or set our foreignKey respectively.
-          Object.defineProperty @attributes, foreignName,
-            get: ( ) => klass.get(@get foreignKey) or new klass({id: @get foreignKey})
-            set: ( model ) =>
+
+          @getter foreignName, ( ) => klass.get(@get foreignKey) or new klass({id: @get foreignKey})
+          @setter foreignName, ( model ) =>
               return @unset foreignKey unless model?
               unless klass.get(model.id)?
                 klass.create(model)
@@ -55,9 +55,9 @@ Tails.Mixins.Relations =
 
           attrs = {}
           attrs[foreignKey] = @id
-          Object.defineProperty @attributes, foreignName,
-            get: ( ) => klass.findWhere(attrs) or new klass(attrs)
-            set: ( model ) =>
+
+          @getter foreignName, ( ) => klass.findWhere(attrs) or new klass(attrs)
+          @setter foreignName, ( model ) =>
               @attributes(foreignName)[foreignKey] = undefined
               model[foreignKey] = @id
 
@@ -80,5 +80,6 @@ Tails.Mixins.Relations =
       @before initialize: ( ) -> @hasMany relations?() or relations
 
     extended: ( ) ->
+      @concern Tails.Mixins.DynamicAttributes
       @concern Tails.Mixins.Collectable
       @concern Tails.Mixins.Interceptable

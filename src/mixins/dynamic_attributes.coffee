@@ -5,22 +5,35 @@
 Tails.Mixins.DynamicAttributes =
 
   InstanceMethods:
-    getter: ( getters ) ->
-       @defineProperty getter: getters
+    getter: ( getters, fn = null ) ->
+      if typeof getters is 'string' and fn?
+        name = getters
+        (getters = {})[name] = fn
+      @defineAttribute getter: getters
 
-    setter: ( setters ) ->
-      @defineProperty setter: setters
+    setter: ( setters, fn = null ) ->
+      if typeof setters is 'string' and fn?
+        name = setters
+        (setters = {})[name] = fn
+      @defineAttribute setter: setters
 
-    lazy: ( attributes ) ->
+    lazy: ( attributes, fn = null ) ->
+      if typeof attributes is 'string' and fn?
+        name = attributes
+        (attributes = {})[name] = fn
       for key, fn of attributes
         do ( key, fn ) =>
-          (getter = {})[key] = ( )       -> return @[key] = fn()
-          (setter = {})[key] = ( value ) -> delete @[key]; @[key] = value
+          (getter = {})[key] = ( )       ->
+            return @attributes[key] = fn()
+
+          (setter = {})[key] = ( value ) ->
+            delete @attributes[key]
+            @attributes[key] = value
 
           @getter getter
           @setter setter
 
-    defineProperty: ( params ) ->
+    defineAttribute: ( params ) ->
       for type, attributes of params when type in ['getter', 'setter']
         for key, fn of attributes
           do ( key, fn ) =>
@@ -30,13 +43,22 @@ Tails.Mixins.DynamicAttributes =
             Object.defineProperty @attributes, key, map
 
   ClassMethods:
-    getter: ( getters ) ->
+    getter: ( getters, fn = null ) ->
+      if typeof getters is 'string' and fn?
+        name = getters
+        (getters = {})[name] = fn
       @before initialize: ( ) -> @getter getters?() or getters
 
-    setter: ( setters ) ->
+    setter: ( setters, fn = null ) ->
+      if typeof setters is 'string' and fn?
+        name = setters
+        (setters = {})[name] = fn
       @before initialize: ( ) -> @setter setters?() or setters
 
-    lazy: ( attributes ) ->
+    lazy: ( attributes, fn = null ) ->
+      if typeof attributes is 'string' and fn?
+        name = attributes
+        (attributes = {})[name] = fn
       @before initialize: ( ) -> @lazy attributes?() or attributes
 
     extended: ( ) ->

@@ -334,18 +334,41 @@
 
   Tails.Mixins.DynamicAttributes = {
     InstanceMethods: {
-      getter: function(getters) {
-        return this.defineProperty({
+      getter: function(getters, fn) {
+        var name;
+        if (fn == null) {
+          fn = null;
+        }
+        if (typeof getters === 'string' && (fn != null)) {
+          name = getters;
+          (getters = {})[name] = fn;
+        }
+        return this.defineAttribute({
           getter: getters
         });
       },
-      setter: function(setters) {
-        return this.defineProperty({
+      setter: function(setters, fn) {
+        var name;
+        if (fn == null) {
+          fn = null;
+        }
+        if (typeof setters === 'string' && (fn != null)) {
+          name = setters;
+          (setters = {})[name] = fn;
+        }
+        return this.defineAttribute({
           setter: setters
         });
       },
-      lazy: function(attributes) {
-        var fn, key, _results;
+      lazy: function(attributes, fn) {
+        var key, name, _results;
+        if (fn == null) {
+          fn = null;
+        }
+        if (typeof attributes === 'string' && (fn != null)) {
+          name = attributes;
+          (attributes = {})[name] = fn;
+        }
         _results = [];
         for (key in attributes) {
           fn = attributes[key];
@@ -353,11 +376,11 @@
             return function(key, fn) {
               var getter, setter;
               (getter = {})[key] = function() {
-                return this[key] = fn();
+                return this.attributes[key] = fn();
               };
               (setter = {})[key] = function(value) {
-                delete this[key];
-                return this[key] = value;
+                delete this.attributes[key];
+                return this.attributes[key] = value;
               };
               _this.getter(getter);
               return _this.setter(setter);
@@ -366,7 +389,7 @@
         }
         return _results;
       },
-      defineProperty: function(params) {
+      defineAttribute: function(params) {
         var attributes, fn, key, type, _results;
         _results = [];
         for (type in params) {
@@ -404,21 +427,45 @@
       }
     },
     ClassMethods: {
-      getter: function(getters) {
+      getter: function(getters, fn) {
+        var name;
+        if (fn == null) {
+          fn = null;
+        }
+        if (typeof getters === 'string' && (fn != null)) {
+          name = getters;
+          (getters = {})[name] = fn;
+        }
         return this.before({
           initialize: function() {
             return this.getter((typeof getters === "function" ? getters() : void 0) || getters);
           }
         });
       },
-      setter: function(setters) {
+      setter: function(setters, fn) {
+        var name;
+        if (fn == null) {
+          fn = null;
+        }
+        if (typeof setters === 'string' && (fn != null)) {
+          name = setters;
+          (setters = {})[name] = fn;
+        }
         return this.before({
           initialize: function() {
             return this.setter((typeof setters === "function" ? setters() : void 0) || setters);
           }
         });
       },
-      lazy: function(attributes) {
+      lazy: function(attributes, fn) {
+        var name;
+        if (fn == null) {
+          fn = null;
+        }
+        if (typeof attributes === 'string' && (fn != null)) {
+          name = attributes;
+          (attributes = {})[name] = fn;
+        }
         return this.before({
           initialize: function() {
             return this.lazy((typeof attributes === "function" ? attributes() : void 0) || attributes);
@@ -638,21 +685,19 @@
               _this.unset(foreignName, {
                 silent: true
               });
-              Object.defineProperty(_this.attributes, foreignName, {
-                get: function() {
-                  return klass.get(_this.get(foreignKey)) || new klass({
-                    id: _this.get(foreignKey)
-                  });
-                },
-                set: function(model) {
-                  if (model == null) {
-                    return _this.unset(foreignKey);
-                  }
-                  if (klass.get(model.id) == null) {
-                    klass.create(model);
-                  }
-                  return _this.set(foreignKey, model.id);
+              _this.getter(foreignName, function() {
+                return klass.get(_this.get(foreignKey)) || new klass({
+                  id: _this.get(foreignKey)
+                });
+              });
+              _this.setter(foreignName, function(model) {
+                if (model == null) {
+                  return _this.unset(foreignKey);
                 }
+                if (klass.get(model.id) == null) {
+                  klass.create(model);
+                }
+                return _this.set(foreignKey, model.id);
               });
               _this.on("change:" + foreignKey, function(we, id) {
                 var model, previousModel;
@@ -691,14 +736,12 @@
               foreignKey || (foreignKey = inflection.foreign_key(_this.constructor.name));
               attrs = {};
               attrs[foreignKey] = _this.id;
-              return Object.defineProperty(_this.attributes, foreignName, {
-                get: function() {
-                  return klass.findWhere(attrs) || new klass(attrs);
-                },
-                set: function(model) {
-                  _this.attributes(foreignName)[foreignKey] = void 0;
-                  return model[foreignKey] = _this.id;
-                }
+              _this.getter(foreignName, function() {
+                return klass.findWhere(attrs) || new klass(attrs);
+              });
+              return _this.setter(foreignName, function(model) {
+                _this.attributes(foreignName)[foreignKey] = void 0;
+                return model[foreignKey] = _this.id;
               });
             };
           })(this)(foreignKey, foreignName, klass));
@@ -749,6 +792,7 @@
         });
       },
       extended: function() {
+        this.concern(Tails.Mixins.DynamicAttributes);
         this.concern(Tails.Mixins.Collectable);
         return this.concern(Tails.Mixins.Interceptable);
       }
