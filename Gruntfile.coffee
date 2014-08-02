@@ -13,8 +13,9 @@ module.exports = ( grunt ) ->
       dist:
         options:
           join: true
+          sourceMap: true
         files:
-          'dist/tails.js': [
+          'dist/tails-only.js': [
             'src/tails.coffee'
             'src/utils/hash.coffee'
             'src/mixins/interceptable.coffee'
@@ -44,12 +45,24 @@ module.exports = ( grunt ) ->
           ext: '.js'
         ]
 
+
     concat:
-      banner:
+      bundle:
         options:
           banner: '<%= meta.banner %>'
+          sourceMap: true
         files:
-          'dist/tails.js': 'dist/tails.js'
+          'dist/tails-bundle.js': [
+            'bower_components/underscore/underscore.js'
+            'bower_components/inflection/lib/inflection.js'
+            'bower_components/q/q.js'
+            'bower_components/jquery/jquery.js'
+            'bower_components/backbone/backbone.js'
+            'bower_components/backbone-deferred/backbone-deferred-q.js'
+            'bower_components/rivets/dist/rivets.js'
+            'bower_components/jasmine-ajax/lib/mock-ajax.js'
+            'dist/tails-only.js'
+          ]
 
     uglify:
       dist:
@@ -57,11 +70,17 @@ module.exports = ( grunt ) ->
           banner: '<%= meta.banner %>'
           report: 'gzip'
         files:
-          'dist/tails.min.js': 'dist/tails.js'
+          'dist/tails-only.min.js': 'dist/tails-only.js'
+      bundle:
+        options:
+          banner: '<%= meta.banner %>'
+          report: 'gzip'
+        files:
+          'dist/tails-bundle.min.js': 'dist/tails-bundle.js'
 
     jasmine:
-      all:
-        src: ['dist/tails.js']
+      dist:
+        src: ['dist/tails-only.js']
         options:
           specs: '.grunt/tails/spec_compiled/**/*.js'
           vendor: [
@@ -86,9 +105,36 @@ module.exports = ( grunt ) ->
               statements: 60
               branches: 60
               functions: 60
+      html:
+        src: ['dist/tails-only.js']
+        options:
+          specs: '.grunt/tails/spec_compiled/**/*.js'
+          vendor: [
+            'bower_components/underscore/underscore.js'
+            'bower_components/inflection/lib/inflection.js'
+            'bower_components/q/q.js'
+            'bower_components/jquery/jquery.js'
+            'bower_components/backbone/backbone.js'
+            'bower_components/backbone-deferred/backbone-deferred-q.js'
+            'bower_components/rivets/dist/rivets.js'
+            'bower_components/jasmine-ajax/lib/mock-ajax.js'
+          ]
+          template: require('grunt-template-jasmine-istanbul')
+          templateOptions:
+            coverage: 'bin/coverage/coverage.json'
+            report:
+              type: 'html'
+              options:
+                dir: '.grunt/tails/coverage/html'
+            thresholds:
+              lines: 60
+              statements: 60
+              branches: 60
+              functions: 60
 
 
     clean:
+      dist: ['dist']
       spec: ['spec_compiled']
 
     watch:
@@ -105,5 +151,6 @@ module.exports = ( grunt ) ->
   grunt.loadNpmTasks 'grunt-contrib-watch'
 
   grunt.registerTask 'default', ['watch']
-  grunt.registerTask 'spec',  ['clean:spec', 'coffee:dist', 'coffee:spec', 'jasmine', 'clean:spec']
+  grunt.registerTask 'spec',  ['clean:spec', 'coffee:dist', 'coffee:spec', 'jasmine:dist', 'clean:spec']
   grunt.registerTask 'build',   ['coffee:dist', 'uglify:dist']
+  grunt.registerTask 'bundle',   ['coffee:dist', 'concat:bundle', 'uglify:bundle']
