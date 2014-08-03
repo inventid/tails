@@ -60,7 +60,6 @@ module.exports = ( grunt ) ->
             'bower_components/backbone/backbone.js'
             'bower_components/backbone-deferred/backbone-deferred-q.js'
             'bower_components/rivets/dist/rivets.js'
-            'bower_components/jasmine-ajax/lib/mock-ajax.js'
             'dist/tails-only.js'
           ]
 
