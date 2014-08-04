@@ -126,6 +126,7 @@ If there are any issues related to your changes, be sure to reference to those. 
 We would like to thank the developers which contributed to Tails, both big and small.
 
 - [joostverdoorn](https://github.com/joostverdoorn) (Lead developer of Tails @ [inventid](http://www.inventid.nl))
+- [steffansluis](https://github.com/steffansluis) (Developer @ [FeedbackFruits](https://secure.feedbackfruits.com))
 - [rogierslag](https://github.com/rogierslag) (Developer @ [inventid](http://www.inventid.nl))
 
 
