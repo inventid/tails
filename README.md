@@ -1,4 +1,4 @@
-![inventid logo](https://s3-eu-west-1.amazonaws.com/static-inventid-nl/content/img/logo.png)
+[![inventid logo](https://s3-eu-west-1.amazonaws.com/static-inventid-nl/content/img/logo.png)](http://opensource.inventid.nl)
 
 # Tails
 
