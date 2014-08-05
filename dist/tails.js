@@ -1,5 +1,5 @@
 (function() {
-  var Tails,
+  var Relation, Tails,
     __slice = [].slice,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
     __hasProp = {}.hasOwnProperty,
@@ -666,140 +666,185 @@
 
   Tails.Mixins.Relations = {
     InstanceMethods: {
-      belongsTo: function(relations) {
-        var foreignKey, foreignName, klass, _ref, _results;
-        foreignKey = relations.foreignKey;
-        _ref = _(relations).omit('foreignKey');
-        _results = [];
-        for (foreignName in _ref) {
-          klass = _ref[foreignName];
-          _results.push((function(_this) {
-            return function(foreignKey, foreignName, klass) {
-              var foreignId, foreignModel;
-              foreignKey || (foreignKey = inflection.foreign_key(klass.name));
-              foreignId = _this.get(foreignKey);
-              foreignModel = _this.get(foreignName);
-              _this.unset(foreignKey, {
-                silent: true
-              });
-              _this.unset(foreignName, {
-                silent: true
-              });
-              _this.getter(foreignName, function() {
-                return klass.get(_this.get(foreignKey)) || new klass({
-                  id: _this.get(foreignKey)
-                });
-              });
-              _this.setter(foreignName, function(model) {
-                if (model == null) {
-                  return _this.unset(foreignKey);
-                }
-                if (klass.get(model.id) == null) {
-                  klass.create(model);
-                }
-                return _this.set(foreignKey, model.id);
-              });
-              _this.on("change:" + foreignKey, function(we, id) {
-                var model, previousModel;
-                model = _this.get(foreignName);
-                previousModel = klass.get(_this.previous(foreignKey));
-                if ((model != null) && model !== previousModel) {
-                  if (previousModel) {
-                    _this.stopListening(previousModel);
-                  }
-                  _this.trigger("change:" + foreignName, _this, model);
-                  return _this.listenTo(model, "change:id", function(model, id) {
-                    return _this.set(foreignKey, id);
-                  });
-                }
-              });
-              if (foreignModel != null) {
-                return _this.set(foreignName, foreignModel);
-              } else if (foreignId != null) {
-                return _this.set(foreignKey, foreignId);
+      belongsTo: function(target, options) {
+        var attribute, foreignId, foreignKey, foreignModel;
+        if (options == null) {
+          options = {};
+        }
+        attribute = options.attribute || inflection.camelize(target.name, true);
+        foreignKey = options.foreignKey || inflection.foreign_key(target.name);
+        foreignId = this.get(foreignKey);
+        foreignModel = this.get(attribute);
+        this.unset(foreignKey, {
+          silent: true
+        });
+        this.unset(attribute, {
+          silent: true
+        });
+        this.getter(attribute, (function(_this) {
+          return function() {
+            return target.get(_this.get(foreignKey)) || new target({
+              id: _this.get(foreignKey)
+            });
+          };
+        })(this));
+        this.setter(attribute, (function(_this) {
+          return function(model) {
+            if (model == null) {
+              return _this.unset(foreignKey);
+            }
+            if (target.get(model.id) == null) {
+              target.create(model);
+            }
+            return _this.set(foreignKey, model.id);
+          };
+        })(this));
+        this.on("change:" + foreignKey, (function(_this) {
+          return function(we, id) {
+            var model, previousModel;
+            model = _this.get(attribute);
+            previousModel = target.get(_this.previous(foreignKey));
+            if ((model != null) && model !== previousModel) {
+              if (previousModel) {
+                _this.stopListening(previousModel);
               }
-            };
-          })(this)(foreignKey, foreignName, klass));
+              _this.trigger("change:" + attribute, _this, model);
+              return _this.listenTo(model, "change:id", function(model, id) {
+                return _this.set(foreignKey, id);
+              });
+            }
+          };
+        })(this));
+        if (foreignModel != null) {
+          return this.set(attribute, foreignModel);
+        } else if (foreignId != null) {
+          return this.set(foreignKey, foreignId);
         }
-        return _results;
       },
-      hasOne: function(relations) {
-        var foreignKey, foreignName, klass, _ref, _results;
-        foreignKey = relations.foreignKey;
-        _ref = _(relations).omit('foreignKey');
-        _results = [];
-        for (foreignName in _ref) {
-          klass = _ref[foreignName];
-          _results.push((function(_this) {
-            return function(foreignKey, foreignName, klass) {
-              var attrs;
-              foreignKey || (foreignKey = inflection.foreign_key(_this.constructor.name));
-              attrs = {};
-              attrs[foreignKey] = _this.id;
-              _this.getter(foreignName, function() {
-                return klass.findWhere(attrs) || new klass(attrs);
-              });
-              return _this.setter(foreignName, function(model) {
-                _this.attributes(foreignName)[foreignKey] = void 0;
-                return model[foreignKey] = _this.id;
-              });
-            };
-          })(this)(foreignKey, foreignName, klass));
+      hasOne: function(target, options) {
+        var attribute, attrs, foreignKey;
+        if (options == null) {
+          options = {};
         }
-        return _results;
+        attribute = options.attribute || inflection.camelize(target.name, true);
+        foreignKey = options.foreignKey || inflection.foreign_key(this.constructor.name);
+        attrs = {};
+        attrs[foreignKey] = this.id;
+        this.getter(attribute, (function(_this) {
+          return function() {
+            return target.findWhere(attrs) || new target(attrs);
+          };
+        })(this));
+        return this.setter(attribute, (function(_this) {
+          return function(model) {
+            _this.attributes(attribute)[foreignKey] = void 0;
+            return model[foreignKey] = _this.id;
+          };
+        })(this));
       },
-      hasMany: function(relations) {
-        var foreignKey, foreignName, klass, _ref, _results;
-        foreignKey = relations.foreignKey;
-        _ref = _(relations).omit('foreignKey');
-        _results = [];
-        for (foreignName in _ref) {
-          klass = _ref[foreignName];
-          _results.push((function(_this) {
-            return function(foreignKey, foreignName, klass) {
-              var selector;
-              foreignKey || (foreignKey = inflection.foreign_key(_this.constructor.name));
-              (selector = {})[foreignKey] = _this.id;
-              return _this.lazy(foreignName, function() {
-                return klass.scope({
-                  where: selector
-                });
-              });
-            };
-          })(this)(foreignKey, foreignName, klass));
+      hasMany: function(target, options) {
+        var attribute, foreignKey, selector;
+        if (options == null) {
+          options = {};
         }
-        return _results;
+        attribute = options.attribute || inflection.camelize(target.name);
+        foreignKey = options.foreignKey || inflection.foreign_key(this.constructor.name);
+        (selector = {})[foreignKey] = this.id;
+        return this.lazy(attribute, function() {
+          return target.scope({
+            where: selector
+          });
+        });
+      },
+      addRelation: function(target, type, options) {
+        if (options == null) {
+          options = {};
+        }
+        switch (type) {
+          case 'belongsTo':
+            return this.belongsTo(target, options);
+          case 'hasOne':
+            return this.hasOne(target, options);
+          case 'hasMany':
+            return this.hasMany(target, options);
+        }
       }
     },
     ClassMethods: {
-      belongsTo: function(relations) {
-        return this.before({
-          initialize: function() {
-            return this.belongsTo((typeof relations === "function" ? relations() : void 0) || relations);
-          }
-        });
+      belongsTo: function(options) {
+        return this.addRelation('belongsTo', options);
       },
-      hasOne: function(relations) {
-        return this.before({
-          initialize: function() {
-            return this.hasOne((typeof relations === "function" ? relations() : void 0) || relations);
-          }
-        });
+      hasOne: function(options) {
+        return this.addRelation('hasOne', options);
       },
-      hasMany: function(relations) {
-        return this.before({
-          initialize: function() {
-            return this.hasMany((typeof relations === "function" ? relations() : void 0) || relations);
-          }
+      hasMany: function(options) {
+        return this.addRelation('hasMany', options);
+      },
+      addRelation: function(type, options) {
+        var attribute, relation, target;
+        attribute = _(options).keys()[0];
+        target = options[attribute];
+        options = _(options).pick('foreignKey', 'through', 'source');
+        options.attribute = attribute;
+        relation = new Relation({
+          owner: this,
+          type: type,
+          options: options
+        });
+        if (target.prototype instanceof Backbone.Model) {
+          return relation.set({
+            target: target
+          });
+        } else {
+          return relation.getter({
+            target: target
+          });
+        }
+      },
+      relations: function() {
+        return Relation.collection().where({
+          owner: this
         });
       },
       extended: function() {
         this.concern(Tails.Mixins.DynamicAttributes);
         this.concern(Tails.Mixins.Collectable);
-        return this.concern(Tails.Mixins.Interceptable);
+        this.concern(Tails.Mixins.Interceptable);
+        return this.before({
+          initialize: function() {
+            var options, relation, target, type, _i, _len, _ref, _results;
+            _ref = this.constructor.relations();
+            _results = [];
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              relation = _ref[_i];
+              target = relation.get('target');
+              type = relation.get('type');
+              options = relation.get('options');
+              _results.push(this.addRelation(target, type, options));
+            }
+            return _results;
+          }
+        });
       }
     }
   };
+
+  Relation = (function(_super) {
+    __extends(Relation, _super);
+
+    function Relation() {
+      return Relation.__super__.constructor.apply(this, arguments);
+    }
+
+    _.extend(Relation, Tails.Mixable);
+
+    Relation.concern(Tails.Mixins.DynamicAttributes);
+
+    Relation.concern(Tails.Mixins.Collectable);
+
+    return Relation;
+
+  })(Backbone.Model);
 
   Tails.Mixins.Storage = {
     InstanceMethods: {

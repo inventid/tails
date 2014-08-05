@@ -7,16 +7,7 @@ describe "Tails.Mixins.Relations", ->
       @concern Tails.Mixins.Relations
 
   describe ".belongsTo", ->
-
-    it "should add the relations when passing a function", ->
-      class Basket extends @Model
-      class Fruit  extends @Model
-        @belongsTo -> basket: Basket
-
-      fruit  = new Fruit()
-      expect(fruit.get('basket') instanceof Basket).toBe(true)
-
-    it "should add the relations when passing an object", ->
+    it "should add the relations", ->
       class Basket extends @Model
       class Fruit  extends @Model
         @belongsTo basket: Basket
@@ -24,11 +15,19 @@ describe "Tails.Mixins.Relations", ->
       fruit  = new Fruit()
       expect(fruit.get('basket') instanceof Basket).toBe(true)
 
+    it "should add the relations when wrapping the target in a function", ->
+      class Basket extends @Model
+      class Fruit  extends @Model
+        @belongsTo basket: (-> Basket)
+
+      fruit = new Fruit()
+      expect(fruit.get('basket') instanceof Basket).toBe(true)
+
     it "should instantiate the relation when passing the relation id to the constructor", ->
       class Fruit  extends @Model
-        @belongsTo ->
-          basket: Basket,
-          owner: Owner
+        @belongsTo basket: (-> Basket)
+        @belongsTo owner:  (-> Owner)
+
       class Basket extends @Model
       class Owner  extends @Model
 
@@ -43,7 +42,9 @@ describe "Tails.Mixins.Relations", ->
 
     it "should instantiate the relation when passing the relation to the constructor", ->
       class Fruit  extends @Model
-        @belongsTo -> basket: Basket, owner: Owner
+        @belongsTo basket: (-> Basket)
+        @belongsTo owner:  (-> Owner)
+
       class Basket extends @Model
       class Owner  extends @Model
 
@@ -59,7 +60,7 @@ describe "Tails.Mixins.Relations", ->
     it "should change the value of the foreign key when a different model is set", ->
       class Basket extends @Model
       class Fruit  extends @Model
-        @belongsTo -> basket: Basket
+        @belongsTo basket: (-> Basket)
 
       basket1 = new Basket({id: 1})
       basket2 = new Basket({id: 2})
@@ -73,7 +74,7 @@ describe "Tails.Mixins.Relations", ->
     it "should change the value of the model when a different foreign key is set", ->
       class Basket extends @Model
       class Fruit  extends @Model
-        @belongsTo -> basket: Basket
+        @belongsTo basket: (-> Basket)
 
       basket1 = new Basket({id: 1})
       basket2 = new Basket({id: 2})
@@ -87,7 +88,7 @@ describe "Tails.Mixins.Relations", ->
     it "should allow specifying a custom foreign key", ->
       class Basket extends @Model
       class Fruit  extends @Model
-        @belongsTo container: Basket, foreignKey: 'container_id'
+        @belongsTo container: (-> Basket), foreignKey: 'container_id'
 
       basket = new Basket({id: 1})
       fruit = new Fruit({container_id: 1})
@@ -95,23 +96,22 @@ describe "Tails.Mixins.Relations", ->
 
   describe ".hasOne", ->
 
-    it "should add the relations when passing a function", ->
+    it "should add the relation", ->
       class Fruit extends @Model
-        @belongsTo -> person: Person
-      class Person extends @Model
-        @hasOne -> fruit: Fruit
-
-      person = new Person()
-      expect(person.get('fruit')).toBeDefined()
-
-    it "should add the relations when passing an object", ->
-      class Fruit extends @Model
-        @belongsTo -> person: Person
       class Person extends @Model
         @hasOne fruit: Fruit
 
       person = new Person()
       expect(person.get('fruit')).toBeDefined()
+
+    it "should add the relation when wrapping the target in a function", ->
+      class Fruit extends @Model
+      class Person extends @Model
+        @hasOne fruit: (-> Fruit)
+
+      person = new Person()
+      expect(person.get('fruit')).toBeDefined()
+
 
     # it "should set the relation when one is created", ->
     #   class Fruit extends @Model
@@ -186,19 +186,8 @@ describe "Tails.Mixins.Relations", ->
 
   describe ".hasMany", ->
 
-    it "should add the collection when passing a function", ->
+    it "should add the collection", ->
       class Fruit extends @Model
-        @belongsTo -> basket: Basket
-      class Basket extends @Model
-        @hasMany -> fruits: Fruit
-
-      basket = new Basket()
-      expect(basket.get('fruits')).toBeDefined()
-      expect(basket.get('fruits').model).toBe(Fruit)
-
-    it "should add the collection when passing a object", ->
-      class Fruit extends @Model
-        @belongsTo -> basket: Basket
       class Basket extends @Model
         @hasMany fruits: Fruit
 
@@ -206,11 +195,20 @@ describe "Tails.Mixins.Relations", ->
       expect(basket.get('fruits')).toBeDefined()
       expect(basket.get('fruits').model).toBe(Fruit)
 
+    it "should add the collection when wrapping the target in a function", ->
+      class Fruit extends @Model
+      class Basket extends @Model
+        @hasMany fruits: (-> Fruit)
+
+      basket = new Basket()
+      expect(basket.get('fruits')).toBeDefined()
+      expect(basket.get('fruits').model).toBe(Fruit)
+
     it "should set the foreign key of the relation when it's added to the collection", ->
       class Fruit extends @Model
-        @belongsTo -> basket: Basket
+        @belongsTo basket: (-> Basket)
       class Basket extends @Model
-        @hasMany -> fruits: Fruit
+        @hasMany fruits: (-> Fruit)
 
       fruit = new Fruit({id: 1})
       basket = new Basket({id: 1})
@@ -221,9 +219,9 @@ describe "Tails.Mixins.Relations", ->
 
     it "should remove the foreign key of the relation when it's removed from the collection", ->
       class Fruit extends @Model
-        @belongsTo -> basket: Basket
+        @belongsTo basket: (-> Basket)
       class Basket extends @Model
-        @hasMany -> fruits: Fruit
+        @hasMany fruits: (-> Fruit)
 
       fruit = new Fruit({id: 1})
       basket = new Basket({id: 1})
@@ -235,9 +233,9 @@ describe "Tails.Mixins.Relations", ->
 
     it "should listen to changes of foreign keys in the related class", ->
       class Fruit extends @Model
-        @belongsTo -> basket: Basket
+        @belongsTo basket: (-> Basket)
       class Basket extends @Model
-        @hasMany -> fruits: Fruit
+        @hasMany fruits: (-> Fruit)
 
       fruit = new Fruit({id: 1})
       basket = new Basket({id: 1})
@@ -253,11 +251,19 @@ describe "Tails.Mixins.Relations", ->
 
     it "should allow specifying a custom foreign key", ->
       class Fruit extends @Model
-        @belongsTo -> container: Basket, foreignKey: 'container_id'
+        @belongsTo container: (-> Basket), foreignKey: 'container_id'
       class Basket extends @Model
-        @hasMany -> fruits: Fruit, foreignKey: 'container_id'
+        @hasMany fruits: (-> Fruit), foreignKey: 'container_id'
 
       basket = new Basket({id: 1})
       fruit = new Fruit({id: 1, container_id: 1})
 
       expect(basket.get('fruits').contains(fruit)).toBe(true)
+
+
+describe "Tails.Relation", ->
+
+  it "should work", ->
+    # class Model extends @Model
+    # relations = new Tails.Mixins.Relations.Relation({ klassFn: -> Model })
+    # expect(relations.get('klass')).toBe(Model)
