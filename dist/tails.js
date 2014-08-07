@@ -481,25 +481,21 @@
   Tails.Collection = (function(_super) {
     __extends(Collection, _super);
 
-    function Collection() {
-      return Collection.__super__.constructor.apply(this, arguments);
-    }
-
     _.extend(Collection, Tails.Mixable);
 
     Collection.prototype.format = 'json';
 
-    Collection.prototype.initialize = function(models, options) {
+    function Collection(models, options) {
       if (models == null) {
-        models = null;
+        models = [];
       }
       if (options == null) {
         options = {};
       }
       this.model = options.model || this.model || Tails.Model;
       this.parent = options.parent || this.parent;
-      return Collection.__super__.initialize.apply(this, arguments);
-    };
+      Collection.__super__.constructor.apply(this, arguments);
+    }
 
     Collection.prototype.urlRoot = function() {
       return inflection.transform(this.model.name, ['underscore', 'pluralize']);
@@ -523,6 +519,108 @@
       }));
     };
 
+    Collection.prototype.filter = function(filter) {
+      return new Tails.Collection.Filtered(this, {
+        filter: filter
+      });
+    };
+
+    Collection.prototype.where = function(attrs, first) {
+      var assimilate, distantiate, filter, key, query;
+      if (first != null) {
+        return Collection.__super__.where.call(this, attrs, first);
+      }
+      if (typeof attrs === 'object') {
+        filter = function(model) {
+          var key, value;
+          for (key in attrs) {
+            value = attrs[key];
+            if (model.get(key) !== value) {
+              return false;
+            }
+          }
+          return true;
+        };
+        assimilate = function(model) {
+          var key, value, _results;
+          _results = [];
+          for (key in attrs) {
+            value = attrs[key];
+            _results.push(model.set(key, value));
+          }
+          return _results;
+        };
+        distantiate = function(model) {
+          var key, value, _results;
+          _results = [];
+          for (key in attrs) {
+            value = attrs[key];
+            _results.push(model.unset(key));
+          }
+          return _results;
+        };
+        return new Tails.Collection.Filtered(this, {
+          filter: filter,
+          assimilate: assimilate,
+          distantiate: distantiate
+        });
+      } else if (typeof attrs === 'string') {
+        key = attrs;
+        query = {
+          is: (function(_this) {
+            return function(value) {
+              var selector, _base, _base1, _base2;
+              (selector = {})[key] = value;
+              return (_base = ((_base1 = ((_base2 = (_this._where || (_this._where = {})))[key] || (_base2[key] = {}))).is || (_base1.is = {})))[value] || (_base[value] = _this.where(selector));
+            };
+          })(this),
+          "in": (function(_this) {
+            return function(values) {
+              return _this.filter(function(model) {
+                var _ref;
+                return _ref = model.get(key), __indexOf.call(values, _ref) >= 0;
+              });
+            };
+          })(this),
+          atLeast: (function(_this) {
+            return function(value) {
+              return _this.filter(function(model) {
+                return model.get(key) >= value;
+              });
+            };
+          })(this),
+          atMost: (function(_this) {
+            return function(value) {
+              return _this.filter(function(model) {
+                return model.get(key) <= value;
+              });
+            };
+          })(this),
+          greaterThan: (function(_this) {
+            return function(value) {
+              return _this.filter(function(model) {
+                return model.get(key) > value;
+              });
+            };
+          })(this),
+          lessThan: (function(_this) {
+            return function(value) {
+              return _this.filter(function(model) {
+                return model.get(key) < value;
+              });
+            };
+          })(this)
+        };
+        return query;
+      }
+    };
+
+    Collection.prototype.pluck = function(attribute) {
+      return new Tails.Collection.Plucked(this, {
+        attribute: attribute
+      });
+    };
+
     Collection.prototype.parse = function(response, options) {
       var attrs, model, models, _i, _len;
       models = [];
@@ -543,115 +641,324 @@
 
   })(Backbone.Deferred.Collection);
 
+  Tails.Collection.Plucked = (function(_super) {
+    __extends(Plucked, _super);
+
+    function Plucked(collection, options) {
+      if (options == null) {
+        options = {};
+      }
+      this.collection = collection;
+      this.attribute = options.attribute;
+      this.length = 0;
+      Plucked.__super__.constructor.call(this, [], options);
+      this.collection.each((function(_this) {
+        return function(model) {
+          return _this.trigger('add', model.get(_this.attribute));
+        };
+      })(this));
+      this.listenTo(collection, "change:" + this.attribute, (function(_this) {
+        return function(model) {
+          var previousValue, value;
+          value = model.get(_this.attribute);
+          previousValue = model.previous(_this.attribute);
+          if (previousValue != null) {
+            _this.trigger('remove', previousValue);
+          }
+          if (value != null) {
+            return _this.trigger('add', value);
+          }
+        };
+      })(this));
+      this.listenTo(collection, 'add', (function(_this) {
+        return function(model) {
+          var value;
+          value = model.get(_this.attribute);
+          if (value != null) {
+            _this.trigger('add', value);
+          }
+          return _this.length++;
+        };
+      })(this));
+      this.listenTo(collection, 'remove', (function(_this) {
+        return function(model) {
+          var value;
+          value = model.get(_this.attribute);
+          if (value != null) {
+            _this.trigger('remove', value);
+          }
+          return _this.length--;
+        };
+      })(this));
+    }
+
+    Plucked.prototype.contains = function(value) {
+      return __indexOf.call(this.toArray(), value) >= 0;
+    };
+
+    Plucked.prototype.include = function() {
+      var args;
+      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+      return this.contains.apply(this, args);
+    };
+
+    Plucked.prototype.each = function(fn) {
+      return this.collection.each((function(_this) {
+        return function(model) {
+          return fn(model.get(_this.attribute));
+        };
+      })(this));
+    };
+
+    Plucked.prototype.forEach = function() {
+      var args;
+      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+      return this.each.apply(this, args);
+    };
+
+    Plucked.prototype.toArray = function() {
+      var model;
+      return (function() {
+        var _i, _len, _ref, _results;
+        _ref = this.collection.toArray();
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          model = _ref[_i];
+          _results.push(model.get(this.attribute));
+        }
+        return _results;
+      }).call(this);
+    };
+
+    return Plucked;
+
+  })(Tails.Collection);
+
+  Tails.Collection.Filtered = (function(_super) {
+    __extends(Filtered, _super);
+
+    function Filtered(collection, options) {
+      if (options == null) {
+        options = {};
+      }
+      this.collection = collection;
+      this.model = this.collection.model;
+      this.filter = options.filter;
+      this.assimilate = options.assimilate;
+      this.distantiate = options.distantiate;
+      Filtered.__super__.constructor.call(this, [], options);
+      this.collection.each((function(_this) {
+        return function(model) {
+          if (_this.filter(model)) {
+            return _this.add(model);
+          }
+        };
+      })(this));
+      this.listenTo(this.collection, 'add', (function(_this) {
+        return function(model) {
+          if (_this.filter(model)) {
+            return _this.add(model);
+          }
+        };
+      })(this));
+      this.listenTo(this.collection, 'remove', (function(_this) {
+        return function(model) {
+          return _this.remove(model);
+        };
+      })(this));
+      this.listenTo(this.collection, 'change', (function(_this) {
+        return function(model) {
+          if (_this.filter(model)) {
+            return _this.add(model);
+          } else {
+            return _this.remove(model);
+          }
+        };
+      })(this));
+      this.on('add', (function(_this) {
+        return function(model) {
+          if (_this.filter(model)) {
+            return;
+          }
+          if (_this.assimilate == null) {
+            _this.remove(model);
+            throw Error("Cannot assimilate model.");
+          }
+          _this.assimilate(model);
+          return _this.collection.add(model);
+        };
+      })(this));
+      this.on('remove', (function(_this) {
+        return function(model) {
+          if (!_this.collection.contains(model)) {
+            return;
+          }
+          if (!_this.filter(model)) {
+            return;
+          }
+          if (_this.distantiate == null) {
+            _this.add(model);
+            throw Error("Cannot distantiate model.");
+          }
+          return _this.distantiate(model);
+        };
+      })(this));
+    }
+
+    return Filtered;
+
+  })(Tails.Collection);
+
+  Tails.Collection.Mirror = (function(_super) {
+    __extends(Mirror, _super);
+
+    function Mirror(collection, options) {
+      if (options == null) {
+        options = {};
+      }
+      options.filter = function() {
+        return true;
+      };
+      Mirror.__super__.constructor.call(this, collection, options);
+    }
+
+    return Mirror;
+
+  })(Tails.Collection.Filtered);
+
+  Tails.Collection.Multi = (function(_super) {
+    __extends(Multi, _super);
+
+    function Multi(collections, options) {
+      var collection, _i, _len;
+      if (collections == null) {
+        collections = [];
+      }
+      if (options == null) {
+        options = {};
+      }
+      this.collections = [];
+      this.modelCounts = {};
+      Multi.__super__.constructor.call(this, [], options);
+      for (_i = 0, _len = collections.length; _i < _len; _i++) {
+        collection = collections[_i];
+        this.addCollection(collection);
+      }
+    }
+
+    Multi.prototype.increment = function(model) {
+      var _base, _name;
+      (_base = this.modelCounts)[_name = model.cid] || (_base[_name] = 0);
+      return ++this.modelCounts[model.cid];
+    };
+
+    Multi.prototype.decrement = function(model) {
+      var _base, _name;
+      (_base = this.modelCounts)[_name = model.cid] || (_base[_name] = 0);
+      return --this.modelCounts[model.cid];
+    };
+
+    Multi.prototype.addCollection = function(collection) {
+      if (!(collection instanceof Backbone.Collection)) {
+        return;
+      }
+      this.model || (this.model = collection.model);
+      this.collections.push(collection);
+      collection.each((function(_this) {
+        return function(model) {
+          return _this.increment(model);
+        };
+      })(this));
+      this.listenTo(collection, 'add', this.increment);
+      this.listenTo(collection, 'remove', this.decrement);
+      return this.trigger('addCollection', collection);
+    };
+
+    Multi.prototype.removeCollection = function(collection) {
+      var index;
+      if (!(collection instanceof Backbone.Collection)) {
+        return;
+      }
+      index = this.collections.indexOf(collection);
+      if (!(index >= 0)) {
+        return;
+      }
+      this.collections = this.collections.slice(0, index).concat(this.collections.slice(index + 1, this.collections.length));
+      collection.each((function(_this) {
+        return function(model) {
+          return _this.decrement(model);
+        };
+      })(this));
+      this.stopListening(collection);
+      return this.trigger('removeCollection', collection);
+    };
+
+    return Multi;
+
+  })(Tails.Collection);
+
+  Tails.Collection.Union = (function(_super) {
+    __extends(Union, _super);
+
+    function Union() {
+      return Union.__super__.constructor.apply(this, arguments);
+    }
+
+    Union.prototype.increment = function(model) {
+      if (Union.__super__.increment.apply(this, arguments) === 1) {
+        return this.add(model);
+      }
+    };
+
+    Union.prototype.decrement = function(model) {
+      if (Union.__super__.decrement.apply(this, arguments) === 0) {
+        return this.remove(model);
+      }
+    };
+
+    return Union;
+
+  })(Tails.Collection.Multi);
+
   Tails.Mixins.Collectable = {
     InstanceMethods: {
       included: function() {
         this.concern(Tails.Mixins.Interceptable);
         return this.after({
           initialize: function() {
-            if ((this.id != null) && (this.constructor.collection().get(this.id) != null)) {
+            if ((this.id != null) && (this.constructor.all().get(this.id) != null)) {
               throw new Error("Duplicate " + this.constructor.name + " for id " + this.id + ".");
             }
-            return this.constructor.add(this);
+            return this.constructor.all().add(this);
           }
         });
       }
     },
     ClassMethods: {
-      collection: function() {
+      all: function() {
         var _ref;
-        if (((_ref = this._collection) != null ? _ref.klass : void 0) !== this) {
-          this._collection = new Tails.Collection(null, {
+        if (((_ref = this._all) != null ? _ref.klass : void 0) !== this) {
+          this._all = new Tails.Collection(null, {
             model: this
           });
-          this._collection.klass = this;
+          this._all.klass = this;
         }
-        return this._collection;
+        return this._all;
       },
       get: function(id) {
-        return this.collection().get(id) || new this({
+        return this.all().get(id) || new this({
           id: id
         });
       },
       scope: function(name, options) {
-        var attr, collection, value, _ref;
-        if (typeof name !== 'string') {
-          options = name;
-        }
-        collection = new Tails.Collection(this.collection().where(options.where), {
-          model: this,
-          parent: this
-        });
-        _ref = options.where;
-        for (attr in _ref) {
-          value = _ref[attr];
-          this.collection().on("change:" + attr, (function(_this) {
-            return function(model, v) {
-              if (v !== value && collection.contains(model)) {
-                return collection.remove(model);
-              } else if (v === value && !collection.contains(model)) {
-                return collection.add(model);
-              }
-            };
-          })(this));
-          this.collection().on("add", (function(_this) {
-            return function(model) {
-              if (model.get(attr) === value && !collection.contains(model)) {
-                return collection.add(model);
-              }
-            };
-          })(this));
-          this.collection().on("remove", (function(_this) {
-            return function(model) {
-              if (model.get(attr) === value && collection.contains(model)) {
-                return collection.remove(model);
-              }
-            };
-          })(this));
-          collection.on("add", (function(_this) {
-            return function(model) {
-              if (model.get(attr) !== value) {
-                return model.set(attr, value);
-              }
-            };
-          })(this));
-          collection.on("remove", (function(_this) {
-            return function(model) {
-              if (model.get(attr) === value) {
-                return model.set(attr, void 0);
-              }
-            };
-          })(this));
-        }
-        if (name != null) {
-          this[name] = collection;
-        }
-        return collection;
-      },
-      extended: function() {
-        var key, methods, _i, _len, _results;
-        methods = ['forEach', 'each', 'map', 'collect', 'reduce', 'foldl', 'inject', 'reduceRight', 'foldr', 'find', 'detect', 'filter', 'select', 'reject', 'every', 'all', 'some', 'any', 'contains', 'invoke', 'max', 'min', 'toArray', 'size', 'first', 'head', 'take', 'initial', 'rest', 'tail', 'drop', 'last', 'without', 'difference', 'indexOf', 'shuffle', 'lastIndexOf', 'isEmpty', 'chain', 'sample', 'add', 'remove', 'set', 'at', 'push', 'pop', 'unshift', 'shift', 'slice', 'sort', 'pluck', 'where', 'findWhere', 'clone', 'create', 'fetch', 'reset', 'urlRoot', 'on', 'off', 'once', 'trigger', 'listenTo', 'stopListening', 'listenOnce'];
-        _results = [];
-        for (_i = 0, _len = methods.length; _i < _len; _i++) {
-          key = methods[_i];
-          _results.push((function(_this) {
-            return function(key) {
-              return _this[key] = function() {
-                var args;
-                args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-                return this.collection()[key].apply(this.collection(), args);
-              };
-            };
-          })(this)(key));
-        }
-        return _results;
+        return this[name] = this.all().where(options.where);
       }
     },
     Interactions: function() {
       return {
         ClassMethods: this["with"](Tails.Mixins.Storage, {
           extended: function() {
-            return this.collection().on('add remove', (function(_this) {
+            return this.all().on('add remove', (function(_this) {
               return function(instance) {
                 if (instance.id != null) {
                   return _this.store();
@@ -666,13 +973,11 @@
 
   Tails.Mixins.Relations = {
     InstanceMethods: {
-      belongsTo: function(target, options) {
-        var attribute, foreignId, foreignKey, foreignModel;
-        if (options == null) {
-          options = {};
-        }
-        attribute = options.attribute || inflection.camelize(target.name, true);
-        foreignKey = options.foreignKey || inflection.foreign_key(target.name);
+      belongsTo: function(relation) {
+        var attribute, foreignId, foreignKey, foreignModel, target;
+        target = relation.get('target');
+        attribute = relation.get('attribute') || inflection.camelize(target.name, true);
+        foreignKey = relation.get('foreignKey') || inflection.foreign_key(target.name);
         foreignId = this.get(foreignKey);
         foreignModel = this.get(attribute);
         this.unset(foreignKey, {
@@ -683,9 +988,7 @@
         });
         this.getter(attribute, (function(_this) {
           return function() {
-            return target.get(_this.get(foreignKey)) || new target({
-              id: _this.get(foreignKey)
-            });
+            return target.all().get(_this.get(foreignKey));
           };
         })(this));
         this.setter(attribute, (function(_this) {
@@ -693,7 +996,7 @@
             if (model == null) {
               return _this.unset(foreignKey);
             }
-            if (target.get(model.id) == null) {
+            if (target.all().get(model.id) == null) {
               target.create(model);
             }
             return _this.set(foreignKey, model.id);
@@ -703,7 +1006,7 @@
           return function(we, id) {
             var model, previousModel;
             model = _this.get(attribute);
-            previousModel = target.get(_this.previous(foreignKey));
+            previousModel = target.all().get(_this.previous(foreignKey));
             if ((model != null) && model !== previousModel) {
               if (previousModel) {
                 _this.stopListening(previousModel);
@@ -721,52 +1024,117 @@
           return this.set(foreignKey, foreignId);
         }
       },
-      hasOne: function(target, options) {
-        var attribute, attrs, foreignKey;
-        if (options == null) {
-          options = {};
-        }
-        attribute = options.attribute || inflection.camelize(target.name, true);
-        foreignKey = options.foreignKey || inflection.foreign_key(this.constructor.name);
-        attrs = {};
-        attrs[foreignKey] = this.id;
-        this.getter(attribute, (function(_this) {
-          return function() {
-            return target.findWhere(attrs) || new target(attrs);
-          };
-        })(this));
-        return this.setter(attribute, (function(_this) {
-          return function(model) {
-            _this.attributes(attribute)[foreignKey] = void 0;
-            return model[foreignKey] = _this.id;
-          };
-        })(this));
-      },
-      hasMany: function(target, options) {
-        var attribute, foreignKey, selector;
-        if (options == null) {
-          options = {};
-        }
-        attribute = options.attribute || inflection.camelize(target.name);
-        foreignKey = options.foreignKey || inflection.foreign_key(this.constructor.name);
-        (selector = {})[foreignKey] = this.id;
-        return this.lazy(attribute, function() {
-          return target.scope({
-            where: selector
-          });
+      hasOne: function(relation) {
+        var attribute, foreignKey, foreignModel, source, target, through;
+        target = relation.get('target');
+        attribute = relation.get('attribute') || inflection.camelize(target.name, true);
+        foreignKey = relation.get('foreignKey') || inflection.foreign_key(this.constructor.name);
+        through = relation.get('through');
+        source = relation.get('source') || attribute;
+        foreignModel = this.get(attribute);
+        this.unset(attribute, {
+          silent: true
         });
-      },
-      addRelation: function(target, type, options) {
-        if (options == null) {
-          options = {};
+        if (through == null) {
+          this.getter(attribute, (function(_this) {
+            return function() {
+              return target.all().where(foreignKey).is(_this.id).first();
+            };
+          })(this));
+          this.setter(attribute, (function(_this) {
+            return function(model) {
+              var _ref;
+              if ((_ref = target.all().where(foreignKey).is(_this.id).first()) != null) {
+                _ref.unset(foreignKey);
+              }
+              return model.set(foreignKey, _this.id);
+            };
+          })(this));
+          if (foreignModel != null) {
+            return this.set(attribute, foreignModel);
+          }
+        } else {
+          this.getter(attribute, (function(_this) {
+            return function() {
+              return _this.get(through).get(source);
+            };
+          })(this));
+          return this.setter(attribute, (function(_this) {
+            return function(model) {
+              return _this.get(through).set(source, model);
+            };
+          })(this));
         }
-        switch (type) {
+      },
+      hasMany: function(relation) {
+        var attribute, foreignKey, source, sourceRelation, target, through, throughRelation;
+        target = relation.get('target');
+        attribute = relation.get('attribute') || inflection.transform(target.name, ['camelize', 'pluralize']);
+        foreignKey = relation.get('foreignKey') || inflection.foreign_key(this.constructor.name);
+        through = relation.get('through');
+        source = relation.get('source');
+        if (through == null) {
+          return this.lazy(attribute, (function(_this) {
+            return function() {
+              return target.all().where(foreignKey).is(_this.id);
+            };
+          })(this));
+        } else {
+          throughRelation = this.constructor.relations().findWhere({
+            attribute: through
+          });
+          if (throughRelation.get('type') !== 'hasMany') {
+            return this.getter(attribute, (function(_this) {
+              return function() {
+                return _this.get(through).get(source || attribute);
+              };
+            })(this));
+          } else {
+            sourceRelation = (source && throughRelation.get('target').relations().findWhere({
+              attribute: source
+            })) || throughRelation.get('target').relations().findWhere({
+              attribute: attribute,
+              type: 'hasMany'
+            }) || throughRelation.get('target').relations().findWhere({
+              attribute: inflection.singularize(attribute)
+            });
+            if (sourceRelation.get('type') === 'hasMany') {
+              source = sourceRelation.get('attribute');
+              return this.lazy(attribute, (function(_this) {
+                return function() {
+                  var union;
+                  union = new Tails.Collection.Union();
+                  _this.get(through).each(function(model) {
+                    return union.addCollection(model.get(source));
+                  });
+                  _this.get(through).on('add', function(model) {
+                    return union.addCollection(model.get(source));
+                  });
+                  _this.get(through).on('remove', function(model) {
+                    return union.removeCollection(model.get(source));
+                  });
+                  return union;
+                };
+              })(this));
+            } else {
+              source = sourceRelation.get('attribute');
+              return this.lazy(attribute, (function(_this) {
+                return function() {
+                  return _this.get(through).pluck(source);
+                };
+              })(this));
+            }
+          }
+        }
+      },
+      addRelation: function(relation) {
+        switch (relation.get('type')) {
           case 'belongsTo':
-            return this.belongsTo(target, options);
+            return this.belongsTo(relation);
           case 'hasOne':
-            return this.hasOne(target, options);
+            return this.hasOne(relation);
           case 'hasMany':
-            return this.hasMany(target, options);
+            return this.hasMany(relation);
         }
       }
     },
@@ -784,12 +1152,13 @@
         var attribute, relation, target;
         attribute = _(options).keys()[0];
         target = options[attribute];
-        options = _(options).pick('foreignKey', 'through', 'source');
-        options.attribute = attribute;
         relation = new Relation({
           owner: this,
           type: type,
-          options: options
+          attribute: attribute,
+          foreignKey: options.foreignKey,
+          through: options.through,
+          source: options.source
         });
         if (target.prototype instanceof Backbone.Model) {
           return relation.set({
@@ -802,7 +1171,7 @@
         }
       },
       relations: function() {
-        return Relation.collection().where({
+        return Relation.all().where({
           owner: this
         });
       },
@@ -812,17 +1181,11 @@
         this.concern(Tails.Mixins.Interceptable);
         return this.before({
           initialize: function() {
-            var options, relation, target, type, _i, _len, _ref, _results;
-            _ref = this.constructor.relations();
-            _results = [];
-            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-              relation = _ref[_i];
-              target = relation.get('target');
-              type = relation.get('type');
-              options = relation.get('options');
-              _results.push(this.addRelation(target, type, options));
-            }
-            return _results;
+            return this.constructor.relations().each((function(_this) {
+              return function(relation) {
+                return _this.addRelation(relation);
+              };
+            })(this));
           }
         });
       }
@@ -940,7 +1303,7 @@
                   console.log(this.toJSON(this.name));
                   return this.after({
                     store: function() {
-                      return this.log("Stored instances", this.constructor.pluck("id"));
+                      return this.log("Stored instances", this.constructor.all().pluck("id"));
                     }
                   });
                 }
@@ -958,7 +1321,7 @@
               store: function() {
                 var json, key, _ref;
                 key = (_ref = typeof this.indexRoot === "function" ? this.indexRoot() : void 0) != null ? _ref : this.indexRoot;
-                json = this.toJSON(this.constructor.pluck("id"));
+                json = this.toJSON(this.constructor.all().pluck("id"));
                 return this.constructor.storage().setItem(key, json);
               }
             });

@@ -1,6 +1,5 @@
 describe "Tails.Mixins.Relations", ->
 
-
   beforeEach ->
     class @Model extends Backbone.Model
       _.extend @, Tails.Mixable
@@ -13,7 +12,8 @@ describe "Tails.Mixins.Relations", ->
         @belongsTo basket: Basket
 
       fruit  = new Fruit()
-      expect(fruit.get('basket') instanceof Basket).toBe(true)
+      expect(Fruit.relations().findWhere(attribute: 'basket')).toBeDefined()
+      expect(Fruit.relations().findWhere(attribute: 'basket').get('target')).toBe(Basket)
 
     it "should add the relations when wrapping the target in a function", ->
       class Basket extends @Model
@@ -21,7 +21,8 @@ describe "Tails.Mixins.Relations", ->
         @belongsTo basket: (-> Basket)
 
       fruit = new Fruit()
-      expect(fruit.get('basket') instanceof Basket).toBe(true)
+      expect(Fruit.relations().findWhere(attribute: 'basket')).toBeDefined()
+      expect(Fruit.relations().findWhere(attribute: 'basket').get('target')).toBe(Basket)
 
     it "should instantiate the relation when passing the relation id to the constructor", ->
       class Fruit  extends @Model
@@ -102,7 +103,8 @@ describe "Tails.Mixins.Relations", ->
         @hasOne fruit: Fruit
 
       person = new Person()
-      expect(person.get('fruit')).toBeDefined()
+      expect(Person.relations().findWhere(attribute: 'fruit')).toBeDefined()
+      expect(Person.relations().findWhere(attribute: 'fruit').get('target')).toBe(Fruit)
 
     it "should add the relation when wrapping the target in a function", ->
       class Fruit extends @Model
@@ -110,79 +112,44 @@ describe "Tails.Mixins.Relations", ->
         @hasOne fruit: (-> Fruit)
 
       person = new Person()
-      expect(person.get('fruit')).toBeDefined()
+      expect(Person.relations().findWhere(attribute: 'fruit')).toBeDefined()
+      expect(Person.relations().findWhere(attribute: 'fruit').get('target')).toBe(Fruit)
 
+    it "should set the relation when the foreign model has its foreign key set", ->
+      class Fruit extends @Model
+      class Person extends @Model
+        @hasOne fruit: (-> Fruit)
 
-    # it "should set the relation when one is created", ->
-    #   class Fruit extends @Model
-    #     @belongsTo -> person: Person
-    #   class Person extends @Model
-    #     @hasOne -> fruit: Fruit
+      person = new Person({ id: 1 })
+      fruit = new Fruit({ id: 1, person_id: person.id })
 
-    #   person = new Person()
-    #   expect
-    #   fruit = new Basket({id: 1})
-    #   fruit = new Fruit({basket_id: basket.id, owner_id: owner.id})
+      expect(person.get('fruit')).toBe(fruit)
 
-    #   expect(fruit.get('basket')).toBe(basket)
-    #   expect(fruit.get('basket_id')).toBe(basket.id)
-    #   expect(fruit.get('owner')).toBe(owner)
-    #   expect(fruit.get('owner_id')).toBe(owner.id)
+    it "should set the relation when passing the relation to the constructor", ->
+      class Fruit extends @Model
+      class Person extends @Model
+        @hasOne fruit: (-> Fruit)
 
-    # it "should instantiate the relation when passing the relation to the constructor", ->
-    #   class Fruit extends @Model
-    #     @belongsTo -> person: Person
-    #   class Person extends @Model
-    #     @hasOne -> fruit: Fruit
+      fruit = new Fruit({ id: 1 })
+      person = new Person({ id: 1, fruit: fruit })
 
-    #   basket = new Basket({id: 1})
-    #   owner  = new Owner({id: 4})
-    #   fruit = new Fruit({basket: basket, owner: owner})
+      expect(person.get('fruit')).toBe(fruit)
 
-    #   expect(fruit.get('basket')).toBe(basket)
-    #   expect(fruit.get('basket_id')).toBe(basket.id)
-    #   expect(fruit.get('owner')).toBe(owner)
-    #   expect(fruit.get('owner_id')).toBe(owner.id)
+    it "should set the relation through another relation", ->
+      class Fruit extends @Model
+        @belongsTo fruitBox: (-> FruitBox)
+      class FruitBox extends @Model
+        @hasOne fruit: (-> Fruit)
+        @belongsTo person: (-> Person)
+      class Person extends @Model
+        @hasOne fruitBox: (-> FruitBox)
+        @hasOne fruit: (-> Fruit), through: 'fruitBox'
 
-    # it "should change the value of the foreign key when a different model is set", ->
-    #   class Fruit extends @Model
-    #     @belongsTo -> person: Person
-    #   class Person extends @Model
-    #     @hasOne -> fruit: Fruit
+      person = new Person({ id: 1})
+      fruitBox = new FruitBox({ id: 1, person: person })
+      fruit = new Fruit({ id: 1, fruitBox: fruitBox })
 
-    #   basket1 = new Basket({id: 1})
-    #   basket2 = new Basket({id: 2})
-    #   fruit   = new Fruit({basket: basket1})
-
-    #   expect(fruit.get('basket_id')).toBe(basket1.id)
-
-    #   fruit.set('basket', basket2)
-    #   expect(fruit.get('basket_id')).toBe(basket2.id)
-
-    # it "should change the value of the model when a different foreign key is set", ->
-    #   class Fruit extends @Model
-    #     @belongsTo -> person: Person
-    #   class Person extends @Model
-    #     @hasOne -> fruit: Fruit
-
-    #   basket1 = new Basket({id: 1})
-    #   basket2 = new Basket({id: 2})
-    #   fruit   = new Fruit({basket_id: basket1.id})
-
-    #   expect(fruit.get('basket')).toBe(basket1)
-
-    #   fruit.set('basket_id', basket2.id)
-    #   expect(fruit.get('basket')).toBe(basket2)
-
-    # it "should allow specifying a custom foreign key", ->
-    #   class Fruit extends @Model
-    #     @belongsTo -> owner: Person, foreignKey: 'owner'
-    #   class Person extends @Model
-    #     @hasOne -> fruit: Fruit, foreignKey: 'owner'
-
-    #   basket = new Basket({id: 1})
-    #   fruit = new Fruit({container_id: 1})
-    #   expect(fruit.get('container')).toBe(basket)
+      expect(person.get('fruit')).toBe(fruit)
 
   describe ".hasMany", ->
 
@@ -260,10 +227,40 @@ describe "Tails.Mixins.Relations", ->
 
       expect(basket.get('fruits').contains(fruit)).toBe(true)
 
+    it "should allow relations through another relation", ->
+      class Fruit extends @Model
+        @belongsTo basket: (-> Basket)
 
-describe "Tails.Relation", ->
+      class Basket extends @Model
+        @hasMany   fruits: (-> Fruit)
+        @belongsTo store:  (-> Store)
 
-  it "should work", ->
-    # class Model extends @Model
-    # relations = new Tails.Mixins.Relations.Relation({ klassFn: -> Model })
-    # expect(relations.get('klass')).toBe(Model)
+      class Store extends @Model
+        @hasMany   baskets: (-> Basket)
+        @hasMany   fruits:  (-> Fruit), through: 'baskets'
+        @belongsTo owner: (-> Owner)
+
+      class Owner extends @Model
+        @hasOne  store: (-> Store)
+        @hasMany fruits: (-> Fruit), through: 'store'
+        @belongsTo city: (-> City)
+
+      class City extends @Model
+        @hasMany owners: (-> Owner)
+        @hasMany stores: (-> Store), through: 'owners'
+        @hasMany fruits: (-> Fruit), through: 'stores'
+
+      city   = new City({ id: 1 })
+      owner  = new Owner({ id: 1, city: city })
+      store  = new Store({ id: 1, owner: owner })
+      basket = new Basket({ id: 1, store: store })
+      fruit  = new Fruit({ id: 1, basket: basket })
+
+      # Through many, source many
+      expect(store.get('fruits').contains(fruit)).toBe(true)
+      # Through one, source many
+      expect(owner.get('fruits').contains(fruit)).toBe(true)
+      # Through many, source one
+      expect(city.get('stores').contains(store)).toBe(true)
+      # Nested throughs
+      expect(city.get('fruits').contains(fruit)).toBe(true)
