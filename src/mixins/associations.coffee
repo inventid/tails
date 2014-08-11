@@ -1,18 +1,18 @@
-# Because classes aren't always loaded yet when these relational
+# Because classes aren't always loaded yet when these associational
 # functions are called (which is at class definition), and because
 # manually defining the load order causes circular dependencies, we
 # pass a function that will evaluate to the correct class when called.
 # This seemed to be our best option.
 #
-Tails.Mixins.Relations =
+Tails.Mixins.Associations =
 
   InstanceMethods:
-    belongsTo: ( relation ) ->
-      target     = relation.get('target')
-      attribute  = relation.get('attribute')  or inflection.camelize(target.name, true)
-      foreignKey = relation.get('foreignKey') or inflection.foreign_key(target.name)
+    belongsTo: ( association ) ->
+      target     = association.get('target')
+      attribute  = association.get('attribute')  or inflection.camelize(target.name, true)
+      foreignKey = association.get('foreignKey') or inflection.foreign_key(target.name)
 
-      # Store the foreignId and relation we were defined with.
+      # Store the foreignId and association we were defined with.
       # We will overwrite these.
       foreignId    = @get foreignKey
       foreignModel = @get attribute
@@ -29,7 +29,7 @@ Tails.Mixins.Relations =
             target.create(model)
           @set foreignKey, model.id
 
-      # When the relation is changed to a raw object, we parse it into
+      # When the association is changed to a raw object, we parse it into
       # an actual model.
       @on "change:#{foreignKey}", ( we, id ) =>
         model = @get attribute
@@ -45,12 +45,12 @@ Tails.Mixins.Relations =
       if foreignModel?   then @set attribute, foreignModel
       else if foreignId? then @set foreignKey,  foreignId
 
-    hasOne: ( relation ) ->
-      target     = relation.get('target')
-      attribute  = relation.get('attribute')  or inflection.camelize(target.name, true)
-      foreignKey = relation.get('foreignKey') or inflection.foreign_key(@constructor.name)
-      through    = relation.get('through')
-      source     = relation.get('source')     or attribute
+    hasOne: ( association ) ->
+      target     = association.get('target')
+      attribute  = association.get('attribute')  or inflection.camelize(target.name, true)
+      foreignKey = association.get('foreignKey') or inflection.foreign_key(@constructor.name)
+      through    = association.get('through')
+      source     = association.get('source')     or attribute
 
       foreignModel = @get attribute
       @unset attribute,  silent: true
@@ -66,34 +66,34 @@ Tails.Mixins.Relations =
         @getter attribute, ( ) => @get(through).get source
         @setter attribute, ( model ) => @get(through).set source, model
 
-    hasMany: ( relation ) ->
-      target     = relation.get('target')
-      attribute  = relation.get('attribute')  or inflection.transform(target.name, ['camelize', 'pluralize'])
-      foreignKey = relation.get('foreignKey') or inflection.foreign_key(@constructor.name)
-      through    = relation.get('through')
-      source     = relation.get('source')
+    hasMany: ( association ) ->
+      target     = association.get('target')
+      attribute  = association.get('attribute')  or inflection.transform(target.name, ['camelize', 'pluralize'])
+      foreignKey = association.get('foreignKey') or inflection.foreign_key(@constructor.name)
+      through    = association.get('through')
+      source     = association.get('source')
 
       if not through? then @lazy attribute, => target.all().where(foreignKey).is(@id)
 
-      # We're dealing with a through relation. We have three kinds of hasMany through relations:
-      # 1. The through relation is a singular relation (belongsTo, hasOne). In this case
-      #    we create a getter on the owner that points to the source on the through relation.
-      # 2. It's a plural relation (hasMany) and the source relation is singular. We then pluck
-      #    the sources from the colleciton of through relations.
-      # 3. It's a plural relation and the source relation is plural as well. We create a union
+      # We're dealing with a through association. We have three kinds of hasMany through associations:
+      # 1. The through association is a singular association (belongsTo, hasOne). In this case
+      #    we create a getter on the owner that points to the source on the through association.
+      # 2. It's a plural association (hasMany) and the source association is singular. We then pluck
+      #    the sources from the colleciton of through associations.
+      # 3. It's a plural association and the source association is plural as well. We create a union
       #    and add or remove the individual collections.
       # TODO: Write this a bit clearer. The code could maybe be written a bit nicer as well.
       else
-        throughRelation = @constructor.relations().findWhere(attribute: through)
-        if throughRelation.get('type') isnt 'hasMany'
+        throughAssociation = @constructor.associations().findWhere(attribute: through)
+        if throughAssociation.get('type') isnt 'hasMany'
           @getter attribute, => @get(through).get(source or attribute)
 
         else
-          sourceRelation = (source and throughRelation.get('target').relations().findWhere(attribute: source)) or
-                           throughRelation.get('target').relations().findWhere(attribute: attribute, type: 'hasMany') or
-                           throughRelation.get('target').relations().findWhere(attribute: inflection.singularize(attribute))
-          if sourceRelation.get('type') is 'hasMany'
-            source = sourceRelation.get('attribute')
+          sourceAssociation = (source and throughAssociation.get('target').associations().findWhere(attribute: source)) or
+                           throughAssociation.get('target').associations().findWhere(attribute: attribute, type: 'hasMany') or
+                           throughAssociation.get('target').associations().findWhere(attribute: inflection.singularize(attribute))
+          if sourceAssociation.get('type') is 'hasMany'
+            source = sourceAssociation.get('attribute')
             @lazy attribute, =>
               union = new Tails.Collection.Union()
               @get(through).each         ( model ) => union.addCollection model.get(source)
@@ -101,30 +101,30 @@ Tails.Mixins.Relations =
               @get(through).on 'remove', ( model ) => union.removeCollection model.get(source)
               return union
           else
-            source = sourceRelation.get('attribute')
+            source = sourceAssociation.get('attribute')
             @lazy attribute, => @get(through).pluck(source)
 
-    addRelation: ( relation ) ->
-      switch relation.get('type')
-        when 'belongsTo' then @belongsTo relation
-        when 'hasOne'    then @hasOne    relation
-        when 'hasMany'   then @hasMany   relation
+    addAssociation: ( association ) ->
+      switch association.get('type')
+        when 'belongsTo' then @belongsTo association
+        when 'hasOne'    then @hasOne    association
+        when 'hasMany'   then @hasMany   association
 
   ClassMethods:
     belongsTo: ( options ) ->
-      @addRelation 'belongsTo', options
+      @addAssociation 'belongsTo', options
 
     hasOne: ( options ) ->
-      @addRelation 'hasOne', options
+      @addAssociation 'hasOne', options
 
     hasMany: ( options ) ->
-      @addRelation 'hasMany', options
+      @addAssociation 'hasMany', options
 
-    addRelation: ( type, options ) ->
+    addAssociation: ( type, options ) ->
       attribute  = _(options).keys()[0]
       target     = options[attribute]
 
-      relation = new Relation
+      association = new Association
         owner:      @
         type:       type
         attribute:  attribute
@@ -133,11 +133,11 @@ Tails.Mixins.Relations =
         source:     options.source
 
       if target.prototype instanceof Backbone.Model
-        relation.set target: target
-      else relation.getter target: target
+        association.set target: target
+      else association.getter target: target
 
-    relations: ( ) ->
-      Relation.all().where owner: @
+    associations: ( ) ->
+      Association.all().where owner: @
 
     extended: ( ) ->
       @concern Tails.Mixins.DynamicAttributes
@@ -145,9 +145,11 @@ Tails.Mixins.Relations =
       @concern Tails.Mixins.Interceptable
 
       @before initialize: ( ) ->
-        @constructor.relations().each ( relation ) => @addRelation relation
+        @constructor.associations().each ( association ) => @addAssociation association
 
-class Relation extends Backbone.Model
+class Association extends Backbone.Model
   _.extend @, Tails.Mixable
   @concern Tails.Mixins.DynamicAttributes
   @concern Tails.Mixins.Collectable
+
+class BelongsToAssociation extends Association

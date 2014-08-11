@@ -1,30 +1,30 @@
-describe "Tails.Mixins.Relations", ->
+describe "Tails.Mixins.Associations", ->
 
   beforeEach ->
     class @Model extends Backbone.Model
       _.extend @, Tails.Mixable
-      @concern Tails.Mixins.Relations
+      @concern Tails.Mixins.Associations
 
   describe ".belongsTo", ->
-    it "should add the relations", ->
+    it "should add the associations", ->
       class Basket extends @Model
       class Fruit  extends @Model
         @belongsTo basket: Basket
 
       fruit  = new Fruit()
-      expect(Fruit.relations().findWhere(attribute: 'basket')).toBeDefined()
-      expect(Fruit.relations().findWhere(attribute: 'basket').get('target')).toBe(Basket)
+      expect(Fruit.associations().findWhere(attribute: 'basket')).toBeDefined()
+      expect(Fruit.associations().findWhere(attribute: 'basket').get('target')).toBe(Basket)
 
-    it "should add the relations when wrapping the target in a function", ->
+    it "should add the associations when wrapping the target in a function", ->
       class Basket extends @Model
       class Fruit  extends @Model
         @belongsTo basket: (-> Basket)
 
       fruit = new Fruit()
-      expect(Fruit.relations().findWhere(attribute: 'basket')).toBeDefined()
-      expect(Fruit.relations().findWhere(attribute: 'basket').get('target')).toBe(Basket)
+      expect(Fruit.associations().findWhere(attribute: 'basket')).toBeDefined()
+      expect(Fruit.associations().findWhere(attribute: 'basket').get('target')).toBe(Basket)
 
-    it "should instantiate the relation when passing the relation id to the constructor", ->
+    it "should instantiate the association when passing the association id to the constructor", ->
       class Fruit  extends @Model
         @belongsTo basket: (-> Basket)
         @belongsTo owner:  (-> Owner)
@@ -41,7 +41,7 @@ describe "Tails.Mixins.Relations", ->
       expect(fruit.get('owner')).toBe(owner)
       expect(fruit.get('owner_id')).toBe(owner.id)
 
-    it "should instantiate the relation when passing the relation to the constructor", ->
+    it "should instantiate the association when passing the association to the constructor", ->
       class Fruit  extends @Model
         @belongsTo basket: (-> Basket)
         @belongsTo owner:  (-> Owner)
@@ -97,25 +97,25 @@ describe "Tails.Mixins.Relations", ->
 
   describe ".hasOne", ->
 
-    it "should add the relation", ->
+    it "should add the association", ->
       class Fruit extends @Model
       class Person extends @Model
         @hasOne fruit: Fruit
 
       person = new Person()
-      expect(Person.relations().findWhere(attribute: 'fruit')).toBeDefined()
-      expect(Person.relations().findWhere(attribute: 'fruit').get('target')).toBe(Fruit)
+      expect(Person.associations().findWhere(attribute: 'fruit')).toBeDefined()
+      expect(Person.associations().findWhere(attribute: 'fruit').get('target')).toBe(Fruit)
 
-    it "should add the relation when wrapping the target in a function", ->
+    it "should add the association when wrapping the target in a function", ->
       class Fruit extends @Model
       class Person extends @Model
         @hasOne fruit: (-> Fruit)
 
       person = new Person()
-      expect(Person.relations().findWhere(attribute: 'fruit')).toBeDefined()
-      expect(Person.relations().findWhere(attribute: 'fruit').get('target')).toBe(Fruit)
+      expect(Person.associations().findWhere(attribute: 'fruit')).toBeDefined()
+      expect(Person.associations().findWhere(attribute: 'fruit').get('target')).toBe(Fruit)
 
-    it "should set the relation when the foreign model has its foreign key set", ->
+    it "should set the association when the foreign model has its foreign key set", ->
       class Fruit extends @Model
       class Person extends @Model
         @hasOne fruit: (-> Fruit)
@@ -125,7 +125,7 @@ describe "Tails.Mixins.Relations", ->
 
       expect(person.get('fruit')).toBe(fruit)
 
-    it "should set the relation when passing the relation to the constructor", ->
+    it "should set the association when passing the association to the constructor", ->
       class Fruit extends @Model
       class Person extends @Model
         @hasOne fruit: (-> Fruit)
@@ -135,7 +135,7 @@ describe "Tails.Mixins.Relations", ->
 
       expect(person.get('fruit')).toBe(fruit)
 
-    it "should set the relation through another relation", ->
+    it "should set the association through another association", ->
       class Fruit extends @Model
         @belongsTo fruitBox: (-> FruitBox)
       class FruitBox extends @Model
@@ -171,7 +171,7 @@ describe "Tails.Mixins.Relations", ->
       expect(basket.get('fruits')).toBeDefined()
       expect(basket.get('fruits').model).toBe(Fruit)
 
-    it "should set the foreign key of the relation when it's added to the collection", ->
+    it "should set the foreign key of the association when it's added to the collection", ->
       class Fruit extends @Model
         @belongsTo basket: (-> Basket)
       class Basket extends @Model
@@ -184,7 +184,7 @@ describe "Tails.Mixins.Relations", ->
       basket.get('fruits').add(fruit)
       expect(fruit.get('basket_id')).toBe(basket.id)
 
-    it "should remove the foreign key of the relation when it's removed from the collection", ->
+    it "should remove the foreign key of the association when it's removed from the collection", ->
       class Fruit extends @Model
         @belongsTo basket: (-> Basket)
       class Basket extends @Model
@@ -227,7 +227,7 @@ describe "Tails.Mixins.Relations", ->
 
       expect(basket.get('fruits').contains(fruit)).toBe(true)
 
-    it "should allow relations through another relation", ->
+    it "should allow associations through another association", ->
       class Fruit extends @Model
         @belongsTo basket: (-> Basket)
 

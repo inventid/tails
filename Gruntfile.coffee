@@ -24,7 +24,7 @@ module.exports = ( grunt ) ->
             'src/mixins/dynamic_attributes.coffee'
             'src/collection.coffee'
             'src/mixins/collectable.coffee'
-            'src/mixins/relations.coffee'
+            'src/mixins/associations.coffee'
             'src/mixins/storage.coffee'
             'src/mixins/history.coffee'
             'src/mixins/debug.coffee'
