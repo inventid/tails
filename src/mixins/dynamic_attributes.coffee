@@ -23,21 +23,17 @@ Tails.Mixins.DynamicAttributes =
         (attributes = {})[name] = fn
       for key, fn of attributes
         do ( key, fn ) =>
-          (getter = {})[key] = ( )       ->
-            return @attributes[key] = fn()
-
-          (setter = {})[key] = ( value ) ->
+          @getter key, => @attributes[key] = fn()
+          @setter key, ( value ) =>
             delete @attributes[key]
             @attributes[key] = value
-
-          @getter getter
-          @setter setter
 
     defineAttribute: ( params ) ->
       for type, attributes of params when type in ['getter', 'setter']
         for key, fn of attributes
           do ( key, fn ) =>
             map = Object.getOwnPropertyDescriptor(@attributes, key) or configurable: true
+            delete @attributes[key]
             if      type is 'getter' then map.get = ( )       => fn.call @
             else if type is 'setter' then map.set = ( value ) => fn.call @, value
             Object.defineProperty @attributes, key, map
