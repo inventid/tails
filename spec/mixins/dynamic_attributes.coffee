@@ -30,28 +30,28 @@ describe "Tails.Mixins.DynamicAttributes", ->
       instance.get 'prop'
       expect(instance.fn).toHaveBeenCalled()
 
-    it "should use the default setter when none is defined", ->
-      fn = jasmine.createSpy()
+    # it "should use the default setter when none is defined", ->
+    #   fn = jasmine.createSpy()
 
-      class AnotherModel extends @Model
-        @getter prop: fn
+    #   class AnotherModel extends @Model
+    #     @getter prop: fn
 
-      instance = new AnotherModel()
-      instance.set prop: 3
+    #   instance = new AnotherModel()
+    #   instance.set prop: 3
 
-      expect(instance.get 'prop').toEqual(3)
+    #   expect(instance.get 'prop').toEqual(3)
 
-    it "should not overwrite a previously defined attribute", ->
-      fn = jasmine.createSpy()
+    # it "should not overwrite a previously defined attribute", ->
+    #   fn = jasmine.createSpy()
 
-      class AnotherModel extends @Model
-      instance = new AnotherModel()
+    #   class AnotherModel extends @Model
+    #   instance = new AnotherModel()
 
-      instance.set prop: 3
-      instance.getter prop: fn
+    #   instance.set prop: 3
+    #   instance.getter prop: fn
 
-      instance.get 'prop'
-      expect(fn).not.toHaveBeenCalled()
+    #   instance.get 'prop'
+    #   expect(fn).not.toHaveBeenCalled()
 
     it "should overwrite the existing getter", ->
       fn1 = jasmine.createSpy('fn1')
@@ -97,31 +97,31 @@ describe "Tails.Mixins.DynamicAttributes", ->
       expect(fn1).toHaveBeenCalled()
       expect(fn2).toHaveBeenCalled()
 
-    it "should use the default getter when none is defined", ->
-      spy = jasmine.createSpy()
-      fn = ( value ) ->
-        spy()
-        value + 3
+    # it "should use the default getter when none is defined", ->
+    #   spy = jasmine.createSpy()
+    #   fn = ( value ) ->
+    #     spy()
+    #     value + 3
 
-      class AnotherModel extends @Model
-        @setter prop: fn
+    #   class AnotherModel extends @Model
+    #     @setter prop: fn
 
-      instance = new AnotherModel()
-      instance.set prop: 3
+    #   instance = new AnotherModel()
+    #   instance.set prop: 3
 
-      expect(instance.get 'prop').toEqual(6)
+    #   expect(instance.get 'prop').toEqual(6)
 
-    it "should not overwrite a previously defined attribute", ->
-      fn = jasmine.createSpy()
+    # it "should not overwrite a previously defined attribute", ->
+    #   fn = jasmine.createSpy()
 
-      class AnotherModel extends @Model
-      instance = new AnotherModel()
+    #   class AnotherModel extends @Model
+    #   instance = new AnotherModel()
 
-      instance.set prop: 3
-      instance.setter prop: fn
+    #   instance.set prop: 3
+    #   instance.setter prop: fn
 
-      instance.set 'prop', 5
-      expect(fn).not.toHaveBeenCalled()
+    #   instance.set 'prop', 5
+    #   expect(fn).not.toHaveBeenCalled()
 
     it "should add the setter when it's a string", ->
       class AnotherModel extends @Model

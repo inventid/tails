@@ -86,6 +86,21 @@ describe "Tails.Mixins.Interceptable", ->
       expect(_fn1.calls.count()).toBe(2)
       expect(_fn2.calls.count()).toBe(2)
 
+    it "should work properly when a class with an intercepted method is subclassed", ->
+      fn1 = jasmine.createSpy('1')
+      fn2 = jasmine.createSpy('2')
+
+      class A extends @Model
+        @before initialize: fn1
+
+      class B extends A
+        initialize: fn2
+
+      b = new B()
+      b.initialize()
+      expect(fn1).toHaveBeenCalled()
+      expect(fn2).toHaveBeenCalled()
+
   describe ".after", ->
 
     it "should add the interceptor to an instance of the class when passing a function", ->

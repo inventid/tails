@@ -1,6 +1,6 @@
 class Tails.Model extends Backbone.Deferred.Model
   _.extend @, Tails.Mixable
-  @concern Tails.Mixins.Associations
+  @concern Tails.Mixins.Associable
 
   format: 'json'
 

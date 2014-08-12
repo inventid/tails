@@ -1,19 +1,20 @@
-describe "Tails.Mixins.Associations", ->
+describe "Tails.Mixins.Associable", ->
 
   beforeEach ->
     class @Model extends Backbone.Model
       _.extend @, Tails.Mixable
-      @concern Tails.Mixins.Associations
+      @concern Tails.Mixins.Associable
 
   describe ".belongsTo", ->
     it "should add the associations", ->
       class Basket extends @Model
       class Fruit  extends @Model
-        @belongsTo basket: Basket
+        @belongsTo basket: (-> Basket)
 
       fruit  = new Fruit()
-      expect(Fruit.associations().findWhere(attribute: 'basket')).toBeDefined()
-      expect(Fruit.associations().findWhere(attribute: 'basket').get('target')).toBe(Basket)
+      association = Tails.Associations.Association.all().findWhere(from: Fruit, name: 'basket')
+      expect(association).toBeDefined()
+      expect(association.get('to')).toBe(Basket)
 
     it "should add the associations when wrapping the target in a function", ->
       class Basket extends @Model
@@ -21,8 +22,9 @@ describe "Tails.Mixins.Associations", ->
         @belongsTo basket: (-> Basket)
 
       fruit = new Fruit()
-      expect(Fruit.associations().findWhere(attribute: 'basket')).toBeDefined()
-      expect(Fruit.associations().findWhere(attribute: 'basket').get('target')).toBe(Basket)
+      association = Tails.Associations.Association.all().findWhere(from: Fruit, name: 'basket')
+      expect(association).toBeDefined()
+      expect(association.get('to')).toBe(Basket)
 
     it "should instantiate the association when passing the association id to the constructor", ->
       class Fruit  extends @Model
@@ -95,6 +97,17 @@ describe "Tails.Mixins.Associations", ->
       fruit = new Fruit({container_id: 1})
       expect(fruit.get('container')).toBe(basket)
 
+    it "should work", ->
+      class Fruit extends @Model
+        @belongsTo basket: (-> Basket)
+
+      class Basket extends @Model
+
+
+      fruit = new Fruit({id: 1, basket: { id: 1, color: 'green'}})
+      expect(fruit.get('basket')).toBeDefined()
+      expect(fruit.get('basket').get('color')).toEqual('green')
+
   describe ".hasOne", ->
 
     it "should add the association", ->
@@ -103,8 +116,9 @@ describe "Tails.Mixins.Associations", ->
         @hasOne fruit: Fruit
 
       person = new Person()
-      expect(Person.associations().findWhere(attribute: 'fruit')).toBeDefined()
-      expect(Person.associations().findWhere(attribute: 'fruit').get('target')).toBe(Fruit)
+      association = Tails.Associations.HasOneRelation.all().findWhere(from: Person, name: 'fruit')
+      expect(association).toBeDefined()
+      expect(association.get('to')).toBe(Fruit)
 
     it "should add the association when wrapping the target in a function", ->
       class Fruit extends @Model
@@ -112,8 +126,9 @@ describe "Tails.Mixins.Associations", ->
         @hasOne fruit: (-> Fruit)
 
       person = new Person()
-      expect(Person.associations().findWhere(attribute: 'fruit')).toBeDefined()
-      expect(Person.associations().findWhere(attribute: 'fruit').get('target')).toBe(Fruit)
+      association = Tails.Associations.HasOneRelation.all().findWhere(from: Person, name: 'fruit')
+      expect(association).toBeDefined()
+      expect(association.get('to')).toBe(Fruit)
 
     it "should set the association when the foreign model has its foreign key set", ->
       class Fruit extends @Model
@@ -138,9 +153,11 @@ describe "Tails.Mixins.Associations", ->
     it "should set the association through another association", ->
       class Fruit extends @Model
         @belongsTo fruitBox: (-> FruitBox)
+
       class FruitBox extends @Model
         @hasOne fruit: (-> Fruit)
         @belongsTo person: (-> Person)
+
       class Person extends @Model
         @hasOne fruitBox: (-> FruitBox)
         @hasOne fruit: (-> Fruit), through: 'fruitBox'
@@ -156,7 +173,7 @@ describe "Tails.Mixins.Associations", ->
     it "should add the collection", ->
       class Fruit extends @Model
       class Basket extends @Model
-        @hasMany fruits: Fruit
+        @hasMany fruits: (-> Fruit)
 
       basket = new Basket()
       expect(basket.get('fruits')).toBeDefined()
@@ -179,6 +196,7 @@ describe "Tails.Mixins.Associations", ->
 
       fruit = new Fruit({id: 1})
       basket = new Basket({id: 1})
+
       expect(fruit.get('basket_id')).toBeUndefined()
 
       basket.get('fruits').add(fruit)

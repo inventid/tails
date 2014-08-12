@@ -19,15 +19,20 @@ module.exports = ( grunt ) ->
             'src/tails.coffee'
             'src/utils/hash.coffee'
             'src/mixins/interceptable.coffee'
+            'src/mixins/debug.coffee'
             'src/mixable.coffee'
 
             'src/mixins/dynamic_attributes.coffee'
             'src/collection.coffee'
             'src/mixins/collectable.coffee'
-            'src/mixins/associations.coffee'
+            'src/associations/relation.coffee'
+            'src/associations/belongs_to_relation.coffee'
+            'src/associations/has_one_relation.coffee'
+            'src/associations/has_many_relation.coffee'
+            'src/associations/association.coffee'
+            'src/mixins/associable.coffee'
             'src/mixins/storage.coffee'
             'src/mixins/history.coffee'
-            'src/mixins/debug.coffee'
 
             'src/model.coffee'
             'src/template.coffee'
@@ -92,18 +97,18 @@ module.exports = ( grunt ) ->
             'bower_components/rivets/dist/rivets.js'
             'bower_components/jasmine-ajax/lib/mock-ajax.js'
           ]
-          template: require('grunt-template-jasmine-istanbul')
-          templateOptions:
-            coverage: 'bin/coverage/coverage.json'
-            report:
-              type: 'lcovonly'
-              options:
-                dir: '.grunt/tails/coverage/lcov'
-            thresholds:
-              lines: 60
-              statements: 60
-              branches: 60
-              functions: 60
+          # template: require('grunt-template-jasmine-istanbul')
+          # templateOptions:
+          #   coverage: 'bin/coverage/coverage.json'
+          #   report:
+          #     type: 'lcovonly'
+          #     options:
+          #       dir: '.grunt/tails/coverage/lcov'
+          #   thresholds:
+          #     lines: 60
+          #     statements: 60
+          #     branches: 60
+          #     functions: 60
       html:
         src: ['dist/tails-only.js']
         options:
