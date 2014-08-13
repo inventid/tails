@@ -35,6 +35,17 @@ module.exports = ( grunt ) ->
 
             'src/export.coffee'
           ]
+      src:
+        options:
+          join: false
+          sourceMap: true
+        files: [
+          expand: true
+          cwd: 'src'
+          src: ['**/*.coffee']
+          dest: '.grunt/tails/src_compiled'
+          ext: '.js'
+        ]
 
       spec:
         files: [
@@ -131,6 +142,13 @@ module.exports = ( grunt ) ->
               branches: 60
               functions: 60
 
+    plato:
+      all:
+        options:
+          jshint: false
+        files:
+          'bin/complexity' : ['.grunt/tails/src_compiled/**/*.js']
+
 
     clean:
       dist: ['dist']
@@ -148,8 +166,10 @@ module.exports = ( grunt ) ->
   grunt.loadNpmTasks 'grunt-contrib-clean'
   grunt.loadNpmTasks 'grunt-contrib-jasmine'
   grunt.loadNpmTasks 'grunt-contrib-watch'
+  grunt.loadNpmTasks 'grunt-plato'
 
   grunt.registerTask 'default', ['watch']
   grunt.registerTask 'spec',  ['clean:spec', 'coffee:dist', 'coffee:spec', 'jasmine:dist', 'clean:spec']
   grunt.registerTask 'build',   ['coffee:dist', 'uglify:dist']
   grunt.registerTask 'bundle',   ['coffee:dist', 'concat:bundle', 'uglify:bundle']
+  grunt.registerTask 'analyse',   ['coffee','jasmine:html', 'plato']
