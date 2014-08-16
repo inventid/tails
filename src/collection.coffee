@@ -180,13 +180,6 @@ class Tails.Collection.Filtered extends Tails.Collection
 
 
 
-class Tails.Collection.Mirror extends Tails.Collection.Filtered
-  constructor: ( collection, options = {} ) ->
-    options.filter = -> true
-    super collection, options
-
-
-
 class Tails.Collection.Multi extends Tails.Collection
 
   constructor: ( collections = [], options = {} ) ->
@@ -194,13 +187,6 @@ class Tails.Collection.Multi extends Tails.Collection
     @modelCounts = {}
 
     super([], options)
-
-    # if collections instanceof Tails.Collection.Plucked
-    #   @collections = collections
-    #   collections = @collections.toArray()
-
-    #   @collections.on 'add',    @addCollection
-    #   @collections.on 'remove', @removeCollection
 
     @addCollection(collection) for collection in collections
 
@@ -247,35 +233,4 @@ class Tails.Collection.Union extends Tails.Collection.Multi
 
   decrement: ( model ) ->
     @remove model if super is 0
-
-
-
-# class Tails.Collection.Intersection extends Tails.Collection.Multi
-
-#   constructor: ( ) ->
-#     super
-#     @on 'addCollection removeCollection', ( ) =>
-#       for cid, count of @modelCounts
-#         @add @model.all().get(cid) if count is @collections.length
-#         @remove @get(cid) if count isnt @collections.length
-
-#   increment: ( model ) ->
-#     @add model if super is @collections.length
-#     @remove model if super isnt @collections.length
-
-#   decrement: ( model ) ->
-#     @add model if super is @collections.length
-#     @remove model if super isnt @collections.length
-
-
-
-# class Tails.Collection.Difference extends Tails.Collection.Multi
-
-#   increment: ( model ) ->
-#     @add model if super is 1
-#     @remove model if super is 2
-
-#   decrement: ( model ) ->
-#     @add model if super is 1
-#     @remove model if super is 0
 
