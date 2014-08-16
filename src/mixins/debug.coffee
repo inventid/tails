@@ -13,6 +13,9 @@ Tails.Mixins.Debug =
       "constructor", "log", "message", "warn", "error", "info"
     ]
 
+    debug: () ->
+      @LOG_LEVELS.INFO = on
+
     message: (things...) ->
       line = "#{new Date()} - "
       for thing in things

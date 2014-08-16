@@ -1,5 +1,7 @@
 node_modules
 bower_components
 spec_compiled
+bin
+.grunt
 
 npm-debug.log
