@@ -154,6 +154,9 @@ module.exports = ( grunt ) ->
         files:
           'bin/complexity' : ['.grunt/tails/src_compiled/**/*.js']
 
+    coffeelint:
+      src: ['src/**/*.coffee']
+      spec: ['spec/**/*.coffee']
 
     clean:
       dist: ['dist']
@@ -172,6 +175,7 @@ module.exports = ( grunt ) ->
   grunt.loadNpmTasks 'grunt-contrib-jasmine'
   grunt.loadNpmTasks 'grunt-contrib-watch'
   grunt.loadNpmTasks 'grunt-plato'
+  grunt.loadNpmTasks 'grunt-coffeelint'
 
   grunt.registerTask 'default', ['watch']
   grunt.registerTask 'spec',  ['clean:spec', 'coffee:dist', 'coffee:spec', 'jasmine:dist', 'clean:spec']
