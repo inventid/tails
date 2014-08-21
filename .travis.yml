@@ -1,9 +1,15 @@
 language: node_js
 node_js:
-  - "0.10"
+- '0.10'
 before_script:
-  - npm install -g grunt-cli
-  - npm install -g bower
-  - bower install
+- npm install -g grunt-cli
+- npm install -g bower
+- bower install
 after_script:
-  - cat .grunt/tails/coverage/lcov/lcov.info | ./node_modules/coveralls/bin/coveralls.js
+- cat .grunt/tails/coverage/lcov/lcov.info | ./node_modules/coveralls/bin/coveralls.js
+notifications:
+  hipchat:
+    rooms:
+      secure: cr4A6RcpGbOGaOEOt5b+lUEuK9+I+szjUgawFxG7vbXf6re0S1fNgbTg5hDCDhYQVl0PkCKGTa1rCqrnwwTyTz46Sxb24ICQcyAZCoDE2je15LOMhn1KiltxvINFQ3UujzShW5wqon00gnliu9ExPIEHzoNqI4GFa+HuOUiiVio=
+    template:
+    - "%{repository}#%{build_number} (%{branch} - %{commit} : %{author}): %{message}"
