@@ -918,23 +918,6 @@
 
   })(Tails.Collection);
 
-  Tails.Collection.Mirror = (function(_super) {
-    __extends(Mirror, _super);
-
-    function Mirror(collection, options) {
-      if (options == null) {
-        options = {};
-      }
-      options.filter = function() {
-        return true;
-      };
-      Mirror.__super__.constructor.call(this, collection, options);
-    }
-
-    return Mirror;
-
-  })(Tails.Collection.Filtered);
-
   Tails.Collection.Multi = (function(_super) {
     __extends(Multi, _super);
 
@@ -1801,5 +1784,3 @@
   }
 
 }).call(this);
-
-//# sourceMappingURL=tails-only.js.map
