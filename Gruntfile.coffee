@@ -99,9 +99,8 @@ module.exports = ( grunt ) ->
       bundle:
         options:
           banner: '<%= meta.banner %>'
-          sourceMap: true
         files:
-          'build/tails.bundle.js': bundle
+          'dist/tails.bundle.js': bundle
 
     uglify:
       dist:
@@ -109,13 +108,13 @@ module.exports = ( grunt ) ->
           banner: '<%= meta.banner %>'
           report: 'gzip'
         files:
-          'build/tails.min.js': 'build/tails.js'
+          'dist/tails.min.js': 'dist/tails.js'
       bundle:
         options:
           banner: '<%= meta.banner %>'
           report: 'gzip'
         files:
-          'build/tails.bundle.min.js': 'build/tails.bundle.js'
+          'dist/tails.bundle.min.js': 'dist/tails.bundle.js'
 
     jasmine:
       build:
