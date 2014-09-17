@@ -15,7 +15,7 @@ class Tails.Associations.BelongsToRelation extends Tails.Associations.Relation
         @set foreignKey, null
         return
       unless to.all().get(model.id)?
-        to.all().create(model)
+        to.all().add(model, parse: true)
       owner.set foreignKey, model.id
 
     super
