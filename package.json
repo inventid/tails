@@ -1,7 +1,7 @@
 {
   "name": "tails",
   "description": "Easy model management using Backbone",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "contributors": [
     "Joost Verdoorn",
     "Steffan Sluis"
