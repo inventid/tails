@@ -71,6 +71,7 @@ class Tails.Collection extends Backbone.Deferred.Collection
     return new Tails.Collection.Plucked(@, attribute: attribute)
 
   parse: ( response, options ) ->
+    response = [response] unless response instanceof Array
     models = []
     for attrs in response
       if attrs instanceof Backbone.Model
