@@ -732,6 +732,9 @@
 
     Collection.prototype.parse = function(response, options) {
       var attrs, model, models, _i, _len;
+      if (!(response instanceof Array)) {
+        response = [response];
+      }
       models = [];
       for (_i = 0, _len = response.length; _i < _len; _i++) {
         attrs = response[_i];
@@ -1107,7 +1110,9 @@
             return;
           }
           if (to.all().get(model.id) == null) {
-            to.all().create(model);
+            to.all().add(model, {
+              parse: true
+            });
           }
           return owner.set(foreignKey, model.id);
         }
