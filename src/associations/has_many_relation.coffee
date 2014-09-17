@@ -11,7 +11,11 @@ class Tails.Associations.HasManyRelation extends Tails.Associations.Relation
     through     = @get('through')
     source      = @get('source')
 
-    if not through? then @lazy target: => to.all().where(foreignKey).is(owner.id)
+    if not through?
+      @lazy target: ( ) =>
+        collection = to.all().where(foreignKey).is(owner.id)
+        collection.parent = owner
+        return collection
 
     # We're dealing with a through association. We have three kinds of hasMany through associations:
     # 1. The through association is a singular association (belongsTo, hasOne). In this case
@@ -34,6 +38,7 @@ class Tails.Associations.HasManyRelation extends Tails.Associations.Relation
           source = sourceAssociation.get('name')
           @lazy target: ->
             union = new Tails.Collection.Union()
+            union.parent = owner
             owner.get(through).each         ( model ) => union.addCollection model.get(source)
             owner.get(through).on 'add',    ( model ) => union.addCollection model.get(source)
             owner.get(through).on 'remove', ( model ) => union.removeCollection model.get(source)

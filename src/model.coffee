@@ -2,7 +2,7 @@ class Tails.Model extends Backbone.Deferred.Model
   _.extend @, Tails.Mixable
   @concern Tails.Mixins.Associable
 
-  format: 'json'
+  # format: 'json'
 
   initialize: ( attrs = {}, options = {} ) ->
     @parent = options.parent or @parent or @collection?.parent
