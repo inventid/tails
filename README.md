@@ -1,6 +1,11 @@
-![inventid logo](https://s3-eu-west-1.amazonaws.com/static-inventid-nl/content/img/logo.png)
+[![inventid logo](https://s3-eu-west-1.amazonaws.com/static-inventid-nl/content/img/logo.png)](http://opensource.inventid.nl)
 
 # Tails
+
+|Branch|Build status|Coverage|
+|----|----|---|
+|Master branch|[![Build Status master branch](https://travis-ci.org/inventid/tails.svg?branch=master)](https://travis-ci.org/inventid/tails)|[![Coverage Status](http://img.shields.io/coveralls/inventid/tails/master.svg)](https://coveralls.io/r/inventid/tails?branch=master)
+|Develop branch|[![Build Status develop branch](https://travis-ci.org/inventid/tails.svg?branch=develop)](https://travis-ci.org/inventid/tails)|[![Coverage Status](http://img.shields.io/coveralls/inventid/tails/develop.svg)](https://coveralls.io/r/inventid/tails?branch=develop)|
 
 ## What is it?
 
@@ -120,7 +125,6 @@ If there are any issues related to your changes, be sure to reference to those. 
 
 We would like to thank the developers which contributed to Tails, both big and small.
 
-- [joostverdoorn](https://github.com/joostverdoorn) (Lead developer of Tails @ [inventid](http://www.inventid.nl))
-- [rogierslag](https://github.com/rogierslag) (Developer @ [inventid](http://www.inventid.nl))
-
-
+- [joostverdoorn](https://github.com/joostverdoorn) (Lead developer of Tails @ [inventid](https://www.inventid.nl))
+- [steffansluis](https://github.com/steffansluis) (Developer @ [FeedbackFruits](https://secure.feedbackfruits.com))
+- [rogierslag](https://github.com/rogierslag) (Developer @ [inventid](https://www.inventid.nl))

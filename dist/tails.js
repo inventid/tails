@@ -7,11 +7,27 @@
 
   Tails = {
     Mixins: {},
+    Utils: {},
+    Associations: {},
     Models: {},
     Views: {},
     config: {
       url: 'http://localhost'
     }
+  };
+
+  Tails.Utils.Hash = function(string) {
+    var char, hash, i, _i, _ref;
+    hash = 0;
+    if (string.length === 0) {
+      return hash;
+    }
+    for (i = _i = 0, _ref = string.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
+      char = string.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    return hash;
   };
 
   Tails.Mixins.Interceptable = {
@@ -28,7 +44,7 @@
       },
       intercept: function(params) {
         var fn, fns, interceptors, k, key, klass, placement, v, _i, _len, _ref, _results;
-        klass = this.constructor || this;
+        klass = this.constructor;
         _results = [];
         for (placement in params) {
           interceptors = params[placement];
@@ -107,19 +123,21 @@
                         return Object.defineProperty(_this, key, {
                           configurable: true,
                           set: function(interceptable) {
-                            delete this[key];
-                            return this[key] = function() {
-                              var args, ret;
-                              args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-                              if (before != null) {
-                                before.apply(this, args);
+                            return Object.defineProperty(this, key, {
+                              writable: true,
+                              value: function() {
+                                var args, ret;
+                                args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+                                if (before != null) {
+                                  before.apply(this, args);
+                                }
+                                ret = interceptable.apply(this, args);
+                                if (after != null) {
+                                  after.apply(this, args);
+                                }
+                                return ret;
                               }
-                              ret = interceptable.apply(this, args);
-                              if (after != null) {
-                                after.apply(this, args);
-                              }
-                              return ret;
-                            };
+                            });
                           },
                           get: function() {
                             var interceptor;
@@ -183,10 +201,155 @@
     }
   };
 
+  Tails.Mixins.Debug = {
+    InstanceMethods: {
+      LOG_LEVELS: {
+        "ERROR": true,
+        "WARNING": true,
+        "INFO": false
+      },
+      _excludedMethods: _.union(Object.keys(Tails.Mixins.Interceptable.InstanceMethods), ["constructor", "log", "message", "warn", "error", "info"]),
+      debug: function() {
+        return this.LOG_LEVELS.INFO = true;
+      },
+      message: function() {
+        var line, thing, things, _i, _len;
+        things = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+        line = "" + (new Date()) + " - ";
+        for (_i = 0, _len = things.length; _i < _len; _i++) {
+          thing = things[_i];
+          if (thing.constructor.name === "String") {
+            line += thing + " ";
+          } else {
+            line += JSON.stringify(thing) + " ";
+          }
+        }
+        line += "in " + this.constructor.name + "(" + this.id + ")";
+        return line;
+      },
+      error: function() {
+        var line, things;
+        things = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+        if (!this.LOG_LEVELS.ERROR) {
+          return;
+        }
+        line = this.message.apply(this, things);
+        return console.error(line);
+      },
+      warn: function() {
+        var line, things;
+        things = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+        if (!this.LOG_LEVELS.WARNING) {
+          return;
+        }
+        line = this.message.apply(this, things);
+        return console.warn(line);
+      },
+      log: function() {
+        var line, things;
+        things = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+        line = this.message.apply(this, things);
+        return console.log(line);
+      },
+      info: function() {
+        var line, things;
+        things = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+        if (!this.LOG_LEVELS.INFO) {
+          return;
+        }
+        line = this.message.apply(this, things);
+        return console.log(line);
+      },
+      included: function() {
+        this.concern(Tails.Mixins.Interceptable);
+        return this.after({
+          initialize: function() {
+            var args, funcs, key, value, _i, _len, _results;
+            args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+            this.info("Called function 'initialize' of " + this.constructor.name + " with arguments:", args);
+            this.on("change", (function(_this) {
+              return function(event) {
+                return _this.info("Change of attributes:", event.changedAttributes());
+              };
+            })(this));
+            funcs = (function() {
+              var _results;
+              _results = [];
+              for (key in this) {
+                value = this[key];
+                if (value instanceof Function && __indexOf.call(this._excludedMethods, key) < 0) {
+                  _results.push(key);
+                } else {
+                  continue;
+                }
+              }
+              return _results;
+            }).call(this);
+            _results = [];
+            for (_i = 0, _len = funcs.length; _i < _len; _i++) {
+              key = funcs[_i];
+              _results.push((function(_this) {
+                return function(key) {
+                  return _this.after({
+                    "these": [key],
+                    "do": function() {
+                      var args;
+                      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+                      return this.info("Called function '" + key + "' of " + this.constructor.name + " with arguments:", args);
+                    }
+                  });
+                };
+              })(this)(key));
+            }
+            return _results;
+          }
+        });
+      }
+    }
+  };
+
   Tails.Mixable = {
-    MixableKeywords: ['included', 'extended', 'constructor'],
+    MixableKeywords: ['included', 'extended', 'constructor', 'Interactions', 'InstanceMethods', 'ClassMethods'],
+    _include: function(mixin) {
+      var funcs, key, value, _ref;
+      if (mixin.InstanceMethods != null) {
+        funcs = mixin.InstanceMethods;
+      } else if (mixin.ClassMethods != null) {
+        return;
+      } else {
+        funcs = mixin;
+      }
+      for (key in funcs) {
+        value = funcs[key];
+        if (__indexOf.call(Tails.Mixable.MixableKeywords, key) < 0) {
+          if (value != null) {
+            this.prototype[key] = value;
+          }
+        }
+      }
+      return (_ref = funcs.included) != null ? _ref.apply(this) : void 0;
+    },
+    _extend: function(mixin) {
+      var funcs, key, value, _ref;
+      if (mixin.ClassMethods != null) {
+        funcs = mixin.ClassMethods;
+      } else if (mixin.InstanceMethods != null) {
+        return;
+      } else {
+        funcs = mixin;
+      }
+      for (key in funcs) {
+        value = funcs[key];
+        if (__indexOf.call(Tails.Mixable.MixableKeywords, key) < 0) {
+          if (value != null) {
+            this[key] = value;
+          }
+        }
+      }
+      return (_ref = funcs.extended) != null ? _ref.apply(this) : void 0;
+    },
     include: function() {
-      var key, mixin, mixins, value, _i, _len, _ref, _ref1;
+      var interactions, mixin, mixins, _i, _j, _len, _len1, _ref, _ref1;
       mixins = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
       if (((_ref = this._includedMixins) != null ? _ref.klass : void 0) !== this) {
         this._includedMixins = _(this._includedMixins).clone() || [];
@@ -194,27 +357,34 @@
       }
       for (_i = 0, _len = mixins.length; _i < _len; _i++) {
         mixin = mixins[_i];
-        if (mixin.InstanceMethods != null) {
-          mixin = mixin.InstanceMethods;
-        }
         if (__indexOf.call(this._includedMixins, mixin) >= 0) {
           continue;
         }
-        for (key in mixin) {
-          value = mixin[key];
-          if (__indexOf.call(Tails.Mixable.MixableKeywords, key) < 0) {
-            this.prototype[key] = value;
+        if (mixin != null) {
+          this._includedMixins.push(mixin);
+        }
+        this._include(mixin);
+        if (mixin.Interactions != null) {
+          interactions = mixin.Interactions.apply(this);
+          if (interactions != null) {
+            this._include(interactions);
           }
         }
-        this._includedMixins.push(mixin);
-        if ((_ref1 = mixin.included) != null) {
-          _ref1.apply(this);
+      }
+      _ref1 = this._includedMixins;
+      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+        mixin = _ref1[_j];
+        if (mixin.Interactions != null) {
+          interactions = mixin.Interactions.apply(this);
+          if (interactions != null) {
+            this._include(interactions);
+          }
         }
       }
       return this;
     },
     extend: function() {
-      var key, mixin, mixins, value, _i, _len, _ref, _ref1;
+      var interactions, mixin, mixins, _i, _j, _len, _len1, _ref, _ref1;
       mixins = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
       if (((_ref = this._extendedMixins) != null ? _ref.klass : void 0) !== this) {
         this._extendedMixins = _(this._extendedMixins).clone() || [];
@@ -222,54 +392,109 @@
       }
       for (_i = 0, _len = mixins.length; _i < _len; _i++) {
         mixin = mixins[_i];
-        if (mixin.ClassMethods != null) {
-          mixin = mixin.ClassMethods;
-        }
         if (__indexOf.call(this._extendedMixins, mixin) >= 0) {
           continue;
         }
-        for (key in mixin) {
-          value = mixin[key];
-          if (__indexOf.call(Tails.Mixable.MixableKeywords, key) < 0) {
-            this[key] = value;
+        if (mixin != null) {
+          this._extendedMixins.push(mixin);
+        }
+        this._extend(mixin);
+        if (mixin.Interactions != null) {
+          interactions = mixin.Interactions.apply(this);
+          if (interactions != null) {
+            this._extend(interactions);
           }
         }
-        this._extendedMixins.push(mixin);
-        if ((_ref1 = mixin.extended) != null) {
-          _ref1.apply(this);
+      }
+      _ref1 = this._extendedMixins;
+      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+        mixin = _ref1[_j];
+        if (mixin.Interactions != null) {
+          interactions = mixin.Interactions.apply(this);
+          if (interactions != null) {
+            this._extend(interactions);
+          }
         }
       }
       return this;
+    },
+    "with": function(mixin, funcs) {
+      if (funcs == null) {
+        funcs = {};
+      }
+      if (__indexOf.call(this._includedMixins, mixin) >= 0 || __indexOf.call(this._extendedMixins, mixin) >= 0) {
+        return funcs;
+      } else {
+        return null;
+      }
     },
     concern: function() {
       var mixin, mixins, _i, _len;
       mixins = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
       for (_i = 0, _len = mixins.length; _i < _len; _i++) {
         mixin = mixins[_i];
-        if (mixin.InstanceMethods != null) {
-          this.include(mixin.InstanceMethods);
-        }
-        if (mixin.ClassMethods != null) {
-          this.extend(mixin.ClassMethods);
-        }
+        this.include(mixin);
+        this.extend(mixin);
       }
       return this;
     }
   };
 
-  Tails.Mixins.DynamicProperties = {
+  Tails.Mixins.DynamicAttributes = {
     InstanceMethods: {
-      getter: function(getters) {
-        return this.defineProperty({
+      getter: function(getters, fn) {
+        var name;
+        if (fn == null) {
+          fn = null;
+        }
+        if (typeof getters === 'string' && (fn != null)) {
+          name = getters;
+          (getters = {})[name] = fn;
+        }
+        return this.defineAttribute({
           getter: getters
         });
       },
-      setter: function(setters) {
-        return this.defineProperty({
+      setter: function(setters, fn) {
+        var name;
+        if (fn == null) {
+          fn = null;
+        }
+        if (typeof setters === 'string' && (fn != null)) {
+          name = setters;
+          (setters = {})[name] = fn;
+        }
+        return this.defineAttribute({
           setter: setters
         });
       },
-      defineProperty: function(params) {
+      lazy: function(attributes, fn) {
+        var key, name, _results;
+        if (fn == null) {
+          fn = null;
+        }
+        if (typeof attributes === 'string' && (fn != null)) {
+          name = attributes;
+          (attributes = {})[name] = fn;
+        }
+        _results = [];
+        for (key in attributes) {
+          fn = attributes[key];
+          _results.push((function(_this) {
+            return function(key, fn) {
+              _this.getter(key, function() {
+                return _this.attributes[key] = (_this[fn] || fn).call(_this);
+              });
+              return _this.setter(key, function(value) {
+                delete _this.attributes[key];
+                return _this.attributes[key] = value;
+              });
+            };
+          })(this)(key, fn));
+        }
+        return _results;
+      },
+      defineAttribute: function(params) {
         var attributes, fn, key, type, _results;
         _results = [];
         for (type in params) {
@@ -283,19 +508,23 @@
                 _results1.push((function(_this) {
                   return function(key, fn) {
                     var map;
-                    map = Object.getOwnPropertyDescriptor(_this, key) || {
+                    map = Object.getOwnPropertyDescriptor(_this.attributes, key) || {
                       configurable: true
                     };
+                    delete _this.attributes[key];
+                    delete map.value;
+                    delete map.writable;
                     if (type === 'getter') {
                       map.get = function() {
-                        return fn.call(_this);
+                        return (_this[fn] || fn).call(_this);
                       };
                     } else if (type === 'setter') {
                       map.set = function(value) {
-                        return fn.call(_this, value);
+                        var result;
+                        return result = (_this[fn] || fn).call(_this, value);
                       };
                     }
-                    return Object.defineProperty(_this, key, map);
+                    return Object.defineProperty(_this.attributes, key, map);
                   };
                 })(this)(key, fn));
               }
@@ -307,17 +536,48 @@
       }
     },
     ClassMethods: {
-      getter: function(getters) {
+      getter: function(getters, fn) {
+        var name;
+        if (fn == null) {
+          fn = null;
+        }
+        if (typeof getters === 'string' && (fn != null)) {
+          name = getters;
+          (getters = {})[name] = fn;
+        }
         return this.before({
           initialize: function() {
-            return this.getter((typeof getters === "function" ? getters() : void 0) || getters);
+            return this.getter(getters);
           }
         });
       },
-      setter: function(setters) {
+      setter: function(setters, fn) {
+        var name;
+        if (fn == null) {
+          fn = null;
+        }
+        if (typeof setters === 'string' && (fn != null)) {
+          name = setters;
+          (setters = {})[name] = fn;
+        }
         return this.before({
           initialize: function() {
-            return this.setter((typeof setters === "function" ? setters() : void 0) || setters);
+            return this.setter(setters);
+          }
+        });
+      },
+      lazy: function(attributes, fn) {
+        var name;
+        if (fn == null) {
+          fn = null;
+        }
+        if (typeof attributes === 'string' && (fn != null)) {
+          name = attributes;
+          (attributes = {})[name] = fn;
+        }
+        return this.before({
+          initialize: function() {
+            return this.lazy(attributes);
           }
         });
       },
@@ -330,25 +590,21 @@
   Tails.Collection = (function(_super) {
     __extends(Collection, _super);
 
-    function Collection() {
-      return Collection.__super__.constructor.apply(this, arguments);
-    }
-
     _.extend(Collection, Tails.Mixable);
 
     Collection.prototype.format = 'json';
 
-    Collection.prototype.initialize = function(models, options) {
+    function Collection(models, options) {
       if (models == null) {
-        models = null;
+        models = [];
       }
       if (options == null) {
         options = {};
       }
       this.model = options.model || this.model || Tails.Model;
       this.parent = options.parent || this.parent;
-      return Collection.__super__.initialize.apply(this, arguments);
-    };
+      Collection.__super__.constructor.apply(this, arguments);
+    }
 
     Collection.prototype.urlRoot = function() {
       return inflection.transform(this.model.name, ['underscore', 'pluralize']);
@@ -372,6 +628,108 @@
       }));
     };
 
+    Collection.prototype.filter = function(filter) {
+      return new Tails.Collection.Filtered(this, {
+        filter: filter
+      });
+    };
+
+    Collection.prototype.where = function(attrs, first) {
+      var assimilate, distantiate, filter, key, query;
+      if (first != null) {
+        return Collection.__super__.where.call(this, attrs, first);
+      }
+      if (typeof attrs === 'object') {
+        filter = function(model) {
+          var key, value;
+          for (key in attrs) {
+            value = attrs[key];
+            if (model.get(key) !== value) {
+              return false;
+            }
+          }
+          return true;
+        };
+        assimilate = function(model) {
+          var key, value, _results;
+          _results = [];
+          for (key in attrs) {
+            value = attrs[key];
+            _results.push(model.set(key, value));
+          }
+          return _results;
+        };
+        distantiate = function(model) {
+          var key, value, _results;
+          _results = [];
+          for (key in attrs) {
+            value = attrs[key];
+            _results.push(model.unset(key));
+          }
+          return _results;
+        };
+        return new Tails.Collection.Filtered(this, {
+          filter: filter,
+          assimilate: assimilate,
+          distantiate: distantiate
+        });
+      } else if (typeof attrs === 'string') {
+        key = attrs;
+        query = {
+          is: (function(_this) {
+            return function(value) {
+              var selector, _base, _base1, _base2;
+              (selector = {})[key] = value;
+              return (_base = ((_base1 = ((_base2 = (_this._where || (_this._where = {})))[key] || (_base2[key] = {}))).is || (_base1.is = {})))[value] || (_base[value] = _this.where(selector));
+            };
+          })(this),
+          "in": (function(_this) {
+            return function(values) {
+              return _this.filter(function(model) {
+                var _ref;
+                return _ref = model.get(key), __indexOf.call(values, _ref) >= 0;
+              });
+            };
+          })(this),
+          atLeast: (function(_this) {
+            return function(value) {
+              return _this.filter(function(model) {
+                return model.get(key) >= value;
+              });
+            };
+          })(this),
+          atMost: (function(_this) {
+            return function(value) {
+              return _this.filter(function(model) {
+                return model.get(key) <= value;
+              });
+            };
+          })(this),
+          greaterThan: (function(_this) {
+            return function(value) {
+              return _this.filter(function(model) {
+                return model.get(key) > value;
+              });
+            };
+          })(this),
+          lessThan: (function(_this) {
+            return function(value) {
+              return _this.filter(function(model) {
+                return model.get(key) < value;
+              });
+            };
+          })(this)
+        };
+        return query;
+      }
+    };
+
+    Collection.prototype.pluck = function(attribute) {
+      return new Tails.Collection.Plucked(this, {
+        attribute: attribute
+      });
+    };
+
     Collection.prototype.parse = function(response, options) {
       var attrs, model, models, _i, _len;
       models = [];
@@ -392,213 +750,864 @@
 
   })(Backbone.Deferred.Collection);
 
+  Tails.Collection.Plucked = (function(_super) {
+    __extends(Plucked, _super);
+
+    function Plucked(collection, options) {
+      if (options == null) {
+        options = {};
+      }
+      this.collection = collection;
+      this.attribute = options.attribute;
+      this.length = 0;
+      Plucked.__super__.constructor.call(this, [], options);
+      this.collection.each((function(_this) {
+        return function(model) {
+          return _this.trigger('add', model.get(_this.attribute));
+        };
+      })(this));
+      this.listenTo(collection, "change:" + this.attribute, (function(_this) {
+        return function(model) {
+          var previousValue, value;
+          value = model.get(_this.attribute);
+          previousValue = model.previous(_this.attribute);
+          if (previousValue != null) {
+            _this.trigger('remove', previousValue);
+          }
+          if (value != null) {
+            return _this.trigger('add', value);
+          }
+        };
+      })(this));
+      this.listenTo(collection, 'add', (function(_this) {
+        return function(model) {
+          var value;
+          value = model.get(_this.attribute);
+          if (value != null) {
+            _this.trigger('add', value);
+          }
+          return _this.length++;
+        };
+      })(this));
+      this.listenTo(collection, 'remove', (function(_this) {
+        return function(model) {
+          var value;
+          value = model.get(_this.attribute);
+          if (value != null) {
+            _this.trigger('remove', value);
+          }
+          return _this.length--;
+        };
+      })(this));
+    }
+
+    Plucked.prototype.contains = function(value) {
+      return __indexOf.call(this.toArray(), value) >= 0;
+    };
+
+    Plucked.prototype.include = function() {
+      var args;
+      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+      return this.contains.apply(this, args);
+    };
+
+    Plucked.prototype.each = function(fn) {
+      return this.collection.each((function(_this) {
+        return function(model) {
+          return fn(model.get(_this.attribute));
+        };
+      })(this));
+    };
+
+    Plucked.prototype.forEach = function() {
+      var args;
+      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+      return this.each.apply(this, args);
+    };
+
+    Plucked.prototype.toArray = function() {
+      var model;
+      return (function() {
+        var _i, _len, _ref, _results;
+        _ref = this.collection.toArray();
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          model = _ref[_i];
+          _results.push(model.get(this.attribute));
+        }
+        return _results;
+      }).call(this);
+    };
+
+    return Plucked;
+
+  })(Tails.Collection);
+
+  Tails.Collection.Filtered = (function(_super) {
+    __extends(Filtered, _super);
+
+    function Filtered(collection, options) {
+      if (options == null) {
+        options = {};
+      }
+      this.collection = collection;
+      this.model = this.collection.model;
+      this.filter = options.filter;
+      this.assimilate = options.assimilate;
+      this.distantiate = options.distantiate;
+      Filtered.__super__.constructor.call(this, [], options);
+      this.collection.each((function(_this) {
+        return function(model) {
+          if (_this.filter(model)) {
+            return _this.add(model);
+          }
+        };
+      })(this));
+      this.listenTo(this.collection, 'add', (function(_this) {
+        return function(model) {
+          if (_this.filter(model)) {
+            return _this.add(model);
+          }
+        };
+      })(this));
+      this.listenTo(this.collection, 'remove', (function(_this) {
+        return function(model) {
+          return _this.remove(model);
+        };
+      })(this));
+      this.listenTo(this.collection, 'change', (function(_this) {
+        return function(model) {
+          if (_this.filter(model)) {
+            return _this.add(model);
+          } else {
+            return _this.remove(model);
+          }
+        };
+      })(this));
+      this.on('add', (function(_this) {
+        return function(model) {
+          if (_this.filter(model)) {
+            return;
+          }
+          if (_this.assimilate == null) {
+            _this.remove(model);
+            throw Error("Cannot assimilate model.");
+          }
+          _this.assimilate(model);
+          return _this.collection.add(model);
+        };
+      })(this));
+      this.on('remove', (function(_this) {
+        return function(model) {
+          if (!_this.collection.contains(model)) {
+            return;
+          }
+          if (!_this.filter(model)) {
+            return;
+          }
+          if (_this.distantiate == null) {
+            _this.add(model);
+            throw Error("Cannot distantiate model.");
+          }
+          return _this.distantiate(model);
+        };
+      })(this));
+    }
+
+    return Filtered;
+
+  })(Tails.Collection);
+
+  Tails.Collection.Multi = (function(_super) {
+    __extends(Multi, _super);
+
+    function Multi(collections, options) {
+      var collection, _i, _len;
+      if (collections == null) {
+        collections = [];
+      }
+      if (options == null) {
+        options = {};
+      }
+      this.collections = [];
+      this.modelCounts = {};
+      Multi.__super__.constructor.call(this, [], options);
+      for (_i = 0, _len = collections.length; _i < _len; _i++) {
+        collection = collections[_i];
+        this.addCollection(collection);
+      }
+    }
+
+    Multi.prototype.increment = function(model) {
+      var _base, _name;
+      (_base = this.modelCounts)[_name = model.cid] || (_base[_name] = 0);
+      return ++this.modelCounts[model.cid];
+    };
+
+    Multi.prototype.decrement = function(model) {
+      var _base, _name;
+      (_base = this.modelCounts)[_name = model.cid] || (_base[_name] = 0);
+      return --this.modelCounts[model.cid];
+    };
+
+    Multi.prototype.addCollection = function(collection) {
+      if (!(collection instanceof Backbone.Collection)) {
+        return;
+      }
+      this.model || (this.model = collection.model);
+      this.collections.push(collection);
+      collection.each((function(_this) {
+        return function(model) {
+          return _this.increment(model);
+        };
+      })(this));
+      this.listenTo(collection, 'add', this.increment);
+      this.listenTo(collection, 'remove', this.decrement);
+      return this.trigger('addCollection', collection);
+    };
+
+    Multi.prototype.removeCollection = function(collection) {
+      var index;
+      if (!(collection instanceof Backbone.Collection)) {
+        return;
+      }
+      index = this.collections.indexOf(collection);
+      if (!(index >= 0)) {
+        return;
+      }
+      this.collections = this.collections.slice(0, index).concat(this.collections.slice(index + 1, this.collections.length));
+      collection.each((function(_this) {
+        return function(model) {
+          return _this.decrement(model);
+        };
+      })(this));
+      this.stopListening(collection);
+      return this.trigger('removeCollection', collection);
+    };
+
+    return Multi;
+
+  })(Tails.Collection);
+
+  Tails.Collection.Union = (function(_super) {
+    __extends(Union, _super);
+
+    function Union() {
+      return Union.__super__.constructor.apply(this, arguments);
+    }
+
+    Union.prototype.increment = function(model) {
+      if (Union.__super__.increment.apply(this, arguments) === 1) {
+        return this.add(model);
+      }
+    };
+
+    Union.prototype.decrement = function(model) {
+      if (Union.__super__.decrement.apply(this, arguments) === 0) {
+        return this.remove(model);
+      }
+    };
+
+    return Union;
+
+  })(Tails.Collection.Multi);
+
   Tails.Mixins.Collectable = {
-    ClassMethods: {
-      collection: function() {
-        var _ref;
-        if (((_ref = this._collection) != null ? _ref.klass : void 0) !== this) {
-          this._collection = new Tails.Collection(null, {
-            model: this
-          });
-          this._collection.klass = this;
-        }
-        return this._collection;
-      },
-      extended: function() {
-        var key, methods, _fn, _i, _len;
+    InstanceMethods: {
+      included: function() {
         this.concern(Tails.Mixins.Interceptable);
-        methods = ['forEach', 'each', 'map', 'collect', 'reduce', 'foldl', 'inject', 'reduceRight', 'foldr', 'find', 'detect', 'filter', 'select', 'reject', 'every', 'all', 'some', 'any', 'include', 'contains', 'invoke', 'max', 'min', 'toArray', 'size', 'first', 'head', 'take', 'initial', 'rest', 'tail', 'drop', 'last', 'without', 'difference', 'indexOf', 'shuffle', 'lastIndexOf', 'isEmpty', 'chain', 'sample', 'add', 'remove', 'set', 'get', 'at', 'push', 'pop', 'unshift', 'shift', 'slice', 'sort', 'pluck', 'where', 'findWhere', 'clone', 'create', 'fetch', 'on', 'off', 'once', 'trigger', 'listenTo', 'stopListening', 'listenOnce'];
-        _fn = (function(_this) {
-          return function(key) {
-            return _this[key] = function() {
-              var args;
-              args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-              return this.collection()[key].apply(this.collection(), args);
-            };
-          };
-        })(this);
-        for (_i = 0, _len = methods.length; _i < _len; _i++) {
-          key = methods[_i];
-          _fn(key);
-        }
         return this.after({
           initialize: function() {
-            if ((this.id != null) && (this.constructor.get(this.id) != null)) {
+            if ((this.id != null) && (this.constructor.all().get(this.id) != null)) {
               throw new Error("Duplicate " + this.constructor.name + " for id " + this.id + ".");
             }
-            return this.constructor.add(this);
+            return this.constructor.all().add(this);
+          }
+        });
+      }
+    },
+    ClassMethods: {
+      all: function() {
+        var _ref;
+        if (((_ref = this._all) != null ? _ref.klass : void 0) !== this) {
+          this._all = new Tails.Collection(null, {
+            model: this
+          });
+          this._all.klass = this;
+        }
+        return this._all;
+      },
+      get: function(id) {
+        return this.all().get(id) || new this({
+          id: id
+        });
+      },
+      scope: function(name, options) {
+        return this[name] = this.all().where(options.where);
+      }
+    },
+    Interactions: function() {
+      return {
+        ClassMethods: this["with"](Tails.Mixins.Storage, {
+          extended: function() {
+            return this.all().on('add remove', (function(_this) {
+              return function(instance) {
+                if (instance.id != null) {
+                  return _this.store();
+                }
+              };
+            })(this));
+          }
+        })
+      };
+    }
+  };
+
+  Tails.Associations.Relation = (function(_super) {
+    __extends(Relation, _super);
+
+    function Relation() {
+      return Relation.__super__.constructor.apply(this, arguments);
+    }
+
+    _.extend(Relation, Tails.Mixable);
+
+    Relation.concern(Tails.Mixins.DynamicAttributes);
+
+    Relation.concern(Tails.Mixins.Collectable);
+
+    Relation.prototype.initialize = function() {};
+
+    return Relation;
+
+  })(Backbone.Model);
+
+  Tails.Associations.BelongsToRelation = (function(_super) {
+    __extends(BelongsToRelation, _super);
+
+    function BelongsToRelation() {
+      return BelongsToRelation.__super__.constructor.apply(this, arguments);
+    }
+
+    BelongsToRelation.prototype.initialize = function() {
+      var association, foreignKey, owner, to;
+      association = this.get('association');
+      to = association.get('to');
+      foreignKey = this.get('foreignKey');
+      owner = this.get('owner');
+      this.getter({
+        target: function() {
+          return to.all().get(owner.get(foreignKey));
+        }
+      });
+      this.setter({
+        target: function(model) {
+          if (model == null) {
+            this.set(foreignKey, null);
+            return;
+          }
+          if (to.all().get(model.id) == null) {
+            to.all().create(model);
+          }
+          return owner.set(foreignKey, model.id);
+        }
+      });
+      return BelongsToRelation.__super__.initialize.apply(this, arguments);
+    };
+
+    return BelongsToRelation;
+
+  })(Tails.Associations.Relation);
+
+  Tails.Associations.HasOneRelation = (function(_super) {
+    __extends(HasOneRelation, _super);
+
+    function HasOneRelation() {
+      return HasOneRelation.__super__.constructor.apply(this, arguments);
+    }
+
+    HasOneRelation.prototype.initialize = function() {
+      var association, foreignKey, owner, source, through, to;
+      owner = this.get('owner');
+      association = this.get('association');
+      to = association.get('to');
+      foreignKey = this.get('foreignKey');
+      through = this.get('through');
+      source = this.get('source');
+      if (through == null) {
+        this.getter({
+          target: (function(_this) {
+            return function() {
+              return to.all().where(foreignKey).is(owner.id).first();
+            };
+          })(this)
+        });
+        this.setter({
+          target: (function(_this) {
+            return function(model) {
+              var _ref;
+              if ((_ref = to.all().where(foreignKey).is(owner.id).first()) != null) {
+                _ref.unset(foreignKey);
+              }
+              return model.set(foreignKey, owner.id);
+            };
+          })(this)
+        });
+      } else {
+        this.getter({
+          target: (function(_this) {
+            return function() {
+              return owner.get(through).get(source);
+            };
+          })(this)
+        });
+        this.setter({
+          target: (function(_this) {
+            return function(model) {
+              return owner.get(through).set(source, model);
+            };
+          })(this)
+        });
+      }
+      return HasOneRelation.__super__.initialize.apply(this, arguments);
+    };
+
+    return HasOneRelation;
+
+  })(Tails.Associations.Relation);
+
+  Tails.Associations.HasManyRelation = (function(_super) {
+    __extends(HasManyRelation, _super);
+
+    function HasManyRelation() {
+      return HasManyRelation.__super__.constructor.apply(this, arguments);
+    }
+
+    HasManyRelation.prototype.initialize = function() {
+      var association, foreignKey, name, owner, source, sourceAssociation, through, throughAssociation, to;
+      association = this.get('association');
+      to = association.get('to');
+      owner = this.get('owner');
+      name = this.get('name');
+      foreignKey = this.get('foreignKey');
+      through = this.get('through');
+      source = this.get('source');
+      if (through == null) {
+        return this.lazy({
+          target: (function(_this) {
+            return function() {
+              return to.all().where(foreignKey).is(owner.id);
+            };
+          })(this)
+        });
+      } else {
+        throughAssociation = owner.constructor.associations().findWhere({
+          name: through
+        });
+        if (throughAssociation.get('type') !== 'hasMany') {
+          return this.getter({
+            target: (function(_this) {
+              return function() {
+                return owner.get(through).get(source || name);
+              };
+            })(this)
+          });
+        } else {
+          sourceAssociation = (source && throughAssociation.get('to').associations().findWhere({
+            name: source
+          })) || throughAssociation.get('to').associations().findWhere({
+            name: name,
+            type: 'hasMany'
+          }) || throughAssociation.get('to').associations().findWhere({
+            name: inflection.singularize(name)
+          });
+          if (sourceAssociation.get('type') === 'hasMany') {
+            source = sourceAssociation.get('name');
+            return this.lazy({
+              target: function() {
+                var union;
+                union = new Tails.Collection.Union();
+                owner.get(through).each((function(_this) {
+                  return function(model) {
+                    return union.addCollection(model.get(source));
+                  };
+                })(this));
+                owner.get(through).on('add', (function(_this) {
+                  return function(model) {
+                    return union.addCollection(model.get(source));
+                  };
+                })(this));
+                owner.get(through).on('remove', (function(_this) {
+                  return function(model) {
+                    return union.removeCollection(model.get(source));
+                  };
+                })(this));
+                return union;
+              }
+            });
+          } else {
+            source = sourceAssociation.get('name');
+            return this.lazy({
+              target: function() {
+                return owner.get(through).pluck(source);
+              }
+            });
+          }
+        }
+      }
+    };
+
+    return HasManyRelation;
+
+  })(Tails.Associations.Relation);
+
+  Tails.Associations.Association = (function(_super) {
+    __extends(Association, _super);
+
+    function Association() {
+      return Association.__super__.constructor.apply(this, arguments);
+    }
+
+    _.extend(Association, Tails.Mixable);
+
+    Association.concern(Tails.Mixins.Debug);
+
+    Association.concern(Tails.Mixins.DynamicAttributes);
+
+    Association.concern(Tails.Mixins.Collectable);
+
+    Association.prototype.relations = function() {
+      if (this._relations == null) {
+        this._relations = new Tails.Collection([], {
+          model: Tails.Associations.Relation
+        });
+      }
+      return this._relations;
+    };
+
+    Association.prototype.apply = function(owner) {
+      var attrs, model, relation;
+      attrs = {
+        association: this,
+        from: this.get('from'),
+        to: this.get('to'),
+        name: this.get('name'),
+        owner: owner
+      };
+      switch (this.get('type')) {
+        case 'belongsTo':
+          model = owner.get(attrs.name);
+          relation = new Tails.Associations.BelongsToRelation(_.extend(attrs, {
+            foreignKey: this.get('foreignKey') || inflection.foreign_key(attrs.to.name)
+          }));
+          if (model != null) {
+            relation.set("target", model);
+          }
+          break;
+        case 'hasOne':
+          model = owner.get(attrs.name);
+          relation = new Tails.Associations.HasOneRelation(_.extend(attrs, {
+            foreignKey: this.get('foreignKey') || inflection.foreign_key(attrs.from.name),
+            through: this.get('through'),
+            source: this.get('source') || this.get('name')
+          }));
+          if (model != null) {
+            relation.set("target", model);
+          }
+          break;
+        case 'hasMany':
+          relation = new Tails.Associations.HasManyRelation(_.extend(attrs, {
+            foreignKey: this.get('foreignKey') || inflection.foreign_key(attrs.from.name),
+            through: this.get('through'),
+            source: this.get('source') || this.get('name')
+          }));
+      }
+      this.relations().add(relation);
+      owner.relations().add(relation);
+      owner.getter(attrs.name, function() {
+        return relation.get('target');
+      });
+      return owner.setter(attrs.name, function(value) {
+        return relation.set('target', value);
+      });
+    };
+
+    return Association;
+
+  })(Backbone.Model);
+
+  Tails.Mixins.Associable = {
+    InstanceMethods: {
+      relations: function() {
+        if (this._relations == null) {
+          this._relations = new Tails.Collection([], {
+            model: Tails.Associations.Relation
+          });
+        }
+        return this._relations;
+      }
+    },
+    ClassMethods: {
+      belongsTo: function(options) {
+        return this.associate('belongsTo', options);
+      },
+      hasOne: function(options) {
+        return this.associate('hasOne', options);
+      },
+      hasMany: function(options) {
+        return this.associate('hasMany', options);
+      },
+      associate: function(type, options) {
+        var association, attrs, name, to;
+        name = _(options).keys()[0];
+        to = options[name];
+        attrs = {
+          type: type,
+          from: this,
+          name: name,
+          foreignKey: options.foreignKey,
+          through: options.through,
+          source: options.source
+        };
+        association = new Tails.Associations.Association(attrs);
+        if (to.prototype instanceof Backbone.Model) {
+          return association.set({
+            to: to
+          });
+        } else {
+          return association.getter({
+            to: to
+          });
+        }
+      },
+      associations: function() {
+        var _ref;
+        if (!((_ref = this._associations) != null ? _ref.klass = this : void 0)) {
+          this._associations = Tails.Associations.Association.all().where({
+            from: this
+          });
+          this._associations.klass = this;
+        }
+        return this._associations;
+      },
+      extended: function() {
+        this.concern(Tails.Mixins.DynamicAttributes);
+        this.concern(Tails.Mixins.Collectable);
+        this.concern(Tails.Mixins.Interceptable);
+        return this.before({
+          initialize: function() {
+            return this.constructor.associations().each((function(_this) {
+              return function(association) {
+                return association.apply(_this);
+              };
+            })(this));
           }
         });
       }
     }
   };
 
-  Tails.Mixins.Relations = {
+  Tails.Mixins.Storage = {
     InstanceMethods: {
-      belongsTo: function(relations) {
-        var foreignKey, foreignName, klass, _ref, _results;
-        foreignKey = relations.foreignKey;
-        _ref = _(relations).omit('foreignKey');
-        _results = [];
-        for (foreignName in _ref) {
-          klass = _ref[foreignName];
-          _results.push((function(_this) {
-            return function(foreignKey, foreignName, klass) {
-              var foreignId, foreignModel;
-              foreignKey || (foreignKey = inflection.foreign_key(klass.name));
-              foreignId = _this.get(foreignKey);
-              foreignModel = _this.get(foreignName);
-              _this.unset(foreignKey, {
-                silent: true
-              });
-              _this.unset(foreignName, {
-                silent: true
-              });
-              Object.defineProperty(_this.attributes, foreignName, {
-                get: function() {
-                  return klass.get(_this.get(foreignKey)) || new klass({
-                    id: _this.get(foreignKey)
-                  });
-                },
-                set: function(model) {
-                  if (model == null) {
-                    return _this.unset(foreignKey);
-                  }
-                  if (klass.get(model.id) == null) {
-                    klass.create(model);
-                  }
-                  return _this.set(foreignKey, model.id);
-                }
-              });
-              _this.on("change:" + foreignKey, function(we, id) {
-                var model, previousModel;
-                model = _this.get(foreignName);
-                previousModel = klass.get(_this.previous(foreignKey));
-                if ((model != null) && model !== previousModel) {
-                  if (previousModel) {
-                    _this.stopListening(previousModel);
-                  }
-                  _this.trigger("change:" + foreignName, _this, model);
-                  return _this.listenTo(model, "change:id", function(model, id) {
-                    return _this.set(foreignKey, id);
-                  });
-                }
-              });
-              if (foreignModel != null) {
-                return _this.set(foreignName, foreignModel);
-              } else if (foreignId != null) {
-                return _this.set(foreignKey, foreignId);
-              }
-            };
-          })(this)(foreignKey, foreignName, klass));
-        }
-        return _results;
+      storage: function() {
+        return this.constructor.storage();
       },
-      hasOne: function(relations) {
-        var foreignKey, foreignName, klass, _ref, _results;
-        foreignKey = relations.foreignKey;
-        _ref = _(relations).omit('foreignKey');
-        _results = [];
-        for (foreignName in _ref) {
-          klass = _ref[foreignName];
-          _results.push((function(_this) {
-            return function(foreignKey, foreignName, klass) {
-              var attrs;
-              foreignKey || (foreignKey = inflection.foreign_key(_this.constructor.name));
-              attrs = {};
-              attrs[foreignKey] = _this.id;
-              return Object.defineProperty(_this.attributes, foreignName, {
-                get: function() {
-                  return klass.findWhere(attrs) || new klass(attrs);
-                },
-                set: function(model) {
-                  _this.attributes(foreignName)[foreignKey] = void 0;
-                  return model[foreignKey] = _this.id;
-                }
-              });
-            };
-          })(this)(foreignKey, foreignName, klass));
-        }
-        return _results;
+      indexRoot: function() {
+        return this.constructor.indexRoot();
       },
-      hasMany: function(relations) {
-        var foreignKey, foreignName, klass, _ref, _results;
-        foreignKey = relations.foreignKey;
-        _ref = _(relations).omit('foreignKey');
-        _results = [];
-        for (foreignName in _ref) {
-          klass = _ref[foreignName];
-          _results.push((function(_this) {
-            return function(foreignKey, foreignName, klass) {
-              var collection;
-              foreignKey || (foreignKey = inflection.foreign_key(_this.constructor.name));
-              collection = new Tails.Collection(null, {
-                model: klass,
-                parent: _this
-              });
-              _this.set(foreignName, collection);
-              collection.add(klass.find(function(model) {
-                return model.get(foreignKey) === _this.id;
-              }));
-              klass.on("change:" + foreignKey, function(model, id) {
-                if (id !== _this.id && collection.contains(model)) {
-                  return collection.remove(model);
-                } else if (id === _this.id && !collection.contains(model)) {
-                  return collection.add(model);
-                }
-              });
-              klass.on("add", function(model) {
-                if (model.get(foreignKey) === _this.id && !collection.contains(model)) {
-                  return collection.add(model);
-                }
-              });
-              klass.on("remove", function(model) {
-                if (model.get(foreignKey) === _this.id && collection.contains(model)) {
-                  return collection.remove(model);
-                }
-              });
-              collection.on("add", function(model) {
-                if (model.get(foreignKey) !== _this.id) {
-                  return model.set(foreignKey, _this.id);
-                }
-              });
-              return collection.on("remove", function(model) {
-                if (model.get(foreignKey) === _this.id) {
-                  return model.set(foreignKey, void 0);
-                }
-              });
-            };
-          })(this)(foreignKey, foreignName, klass));
-        }
-        return _results;
+      store: function(data) {
+        return this.constructor.store(this, data);
+      },
+      retrieve: function(hash) {
+        return _.defaults(this.attributes, this.constructor.retrieve(this.id, hash));
+      },
+      included: function() {
+        this.concern(Tails.Mixins.Interceptable);
+        return this.after({
+          initialize: function() {
+            this.on("sync", this.store);
+            this.retrieve();
+            return this.store();
+          }
+        });
       }
     },
     ClassMethods: {
-      belongsTo: function(relations) {
-        return this.before({
-          initialize: function() {
-            return this.belongsTo((typeof relations === "function" ? relations() : void 0) || relations);
-          }
-        });
+      storage: function() {
+        return localStorage;
       },
-      hasOne: function(relations) {
-        return this.before({
-          initialize: function() {
-            return this.hasOne((typeof relations === "function" ? relations() : void 0) || relations);
-          }
-        });
+      toJSON: function(obj) {
+        if (typeof obj.has === "function" ? obj.has("$el") : void 0) {
+          obj.get("$el").toJSON = function() {
+            return this.clone().wrap('<div/>').parent().html();
+          };
+        }
+        return JSON.stringify(obj);
       },
-      hasMany: function(relations) {
-        return this.before({
-          initialize: function() {
-            return this.hasMany((typeof relations === "function" ? relations() : void 0) || relations);
-          }
-        });
+      indexRoot: function() {
+        return inflection.transform(this.name, ['underscore', 'pluralize']);
       },
-      extended: function() {
-        this.concern(Tails.Mixins.Collectable);
-        return this.concern(Tails.Mixins.Interceptable);
+      store: function(instance, data) {
+        var indexRoot, json, key, _ref;
+        if (!((instance != null) && (instance.id != null))) {
+          return;
+        }
+        indexRoot = (_ref = typeof this.indexRoot === "function" ? this.indexRoot() : void 0) != null ? _ref : this.indexRoot;
+        key = "" + indexRoot + "/" + instance.id;
+        if (data != null) {
+          key += "/" + Tails.Utils.Hash(this.toJSON(data));
+          json = this.toJSON({
+            "instance": instance,
+            "data": data
+          });
+        } else {
+          json = this.toJSON(instance);
+        }
+        this.storage().setItem(key, json);
+        return key;
+      },
+      retrieve: function(id, hash) {
+        var ids, indexRoot, json, key, _i, _len, _ref;
+        indexRoot = (_ref = typeof this.indexRoot === "function" ? this.indexRoot() : void 0) != null ? _ref : this.indexRoot;
+        if (id != null) {
+          key = "" + indexRoot + "/" + id;
+          if (hash != null) {
+            key += "/" + hash;
+          }
+          json = this.storage().getItem(key);
+          if (json != null) {
+            return JSON.parse(json);
+          }
+        } else {
+          json = this.storage().getItem(Tails.Utils.Hash(indexRoot));
+          ids = JSON.parse(json);
+          if (json != null) {
+            for (_i = 0, _len = ids.length; _i < _len; _i++) {
+              id = ids[_i];
+              this.retrieve(id);
+            }
+          }
+          return ids;
+        }
       }
+    },
+    Interactions: function() {
+      return {
+        InstanceMethods: this["with"](Tails.Mixins.Debug, {
+          included: (function(_this) {
+            return function() {
+              return _this.after({
+                initialize: function() {
+                  console.log(this.toJSON(this.name));
+                  return this.after({
+                    store: function() {
+                      return this.log("Stored instances", this.constructor.all().pluck("id"));
+                    }
+                  });
+                }
+              });
+            };
+          })(this)
+        }),
+        ClassMethods: this["with"](Tails.Mixins.Collectable, {
+          indexRoot: function() {
+            var _ref;
+            return (_ref = typeof this.urlRoot === "function" ? this.urlRoot() : void 0) != null ? _ref : this.urlRoot;
+          },
+          extended: function() {
+            return this.after({
+              store: function() {
+                var json, key, _ref;
+                key = (_ref = typeof this.indexRoot === "function" ? this.indexRoot() : void 0) != null ? _ref : this.indexRoot;
+                json = this.toJSON(this.constructor.all().pluck("id"));
+                return this.constructor.storage().setItem(key, json);
+              }
+            });
+          }
+        })
+      };
+    }
+  };
+
+  Tails.Mixins.History = {
+    Interactions: function() {
+      return {
+        InstanceMethods: this["with"](Tails.Mixins.Storage, {
+          diff: function() {
+            var diff, key, prevAttrs, value, _ref;
+            diff = {};
+            diff.apply = (function(_this) {
+              return function(context) {
+                var change, key, type, values;
+                if (context == null) {
+                  context = _this;
+                }
+                for (key in diff) {
+                  change = diff[key];
+                  for (type in change) {
+                    values = change[type];
+                    switch (type) {
+                      case "create":
+                        context.set(key, values["value"]);
+                        break;
+                      case "update":
+                        context.set(key, values["new"]);
+                        break;
+                      case "delete":
+                        context.unset(key);
+                    }
+                  }
+                }
+                return context;
+              };
+            })(this);
+            prevAttrs = this.constructor.retrieve(this.id) || {};
+            _ref = this.attributes;
+            for (key in _ref) {
+              value = _ref[key];
+              if (prevAttrs[key] !== this.get(key)) {
+                if (prevAttrs[key] != null) {
+                  diff[key] = {
+                    "update": {
+                      "old": prevAttrs[key],
+                      "new": this.get(key)
+                    }
+                  };
+                } else {
+                  diff[key] = {
+                    "create": {
+                      "value": this.get(key)
+                    }
+                  };
+                }
+              }
+            }
+            for (key in prevAttrs) {
+              value = prevAttrs[key];
+              if (!this.has(key)) {
+                diff[key] = {
+                  "delete": {
+                    "value": value
+                  }
+                };
+              }
+            }
+            return diff;
+          },
+          commit: function() {
+            var key;
+            key = this.store(this.diff());
+            return key;
+          },
+          included: function() {
+            return this.after({
+              initialize: function() {
+                return this.on("change", this.commit);
+              }
+            });
+          }
+        })
+      };
     }
   };
 
@@ -611,7 +1620,7 @@
 
     _.extend(Model, Tails.Mixable);
 
-    Model.concern(Tails.Mixins.Relations);
+    Model.concern(Tails.Mixins.Associable);
 
     Model.prototype.format = 'json';
 
@@ -682,7 +1691,7 @@
       }).then((function(_this) {
         return function() {
           var $el;
-          $el = _this.get('$el').clone();
+          $el = $(_this.get('$el')).clone();
           rivets.bind($el, view);
           return $el;
         };
@@ -709,19 +1718,19 @@
     _.extend(View, Tails.Mixable);
 
     View.prototype.initialize = function(options) {
-      var _ref;
       if (options == null) {
         options = {};
       }
-      if ((_ref = this.template) != null) {
-        _ref.bind(this).then((function(_this) {
-          return function($el) {
-            _this.setElement($el);
-            return _this.render();
-          };
-        })(this));
+      if (this.template.constructor === String) {
+        this.template = Tails.Template.get(this.template);
       }
-      return View.__super__.initialize.apply(this, arguments);
+      this.template.bind(this).then((function(_this) {
+        return function($el) {
+          _this.setElement($el);
+          return _this.render();
+        };
+      })(this));
+      return View.__super__.initialize.call(this, options);
     };
 
     View.prototype.render = function() {
@@ -745,6 +1754,9 @@
     exports.View = Tails.View;
     exports.Template = Tails.Template;
     exports.Mixins = Tails.Mixins;
+    exports.Utils = Tails.Utils;
+    exports.Association = Tails.Association;
+    exports.Associations = Tails.Associations;
     exports.Models = Tails.Models;
     exports.Views = Tails.Views;
     exports.config = Tails.config;

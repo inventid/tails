@@ -1,17 +1,21 @@
 Tails.factory = ( exports ) ->
   exports._ = Tails
 
-  exports.Mixable    = Tails.Mixable
-  exports.Model      = Tails.Model
-  exports.Collection = Tails.Collection
-  exports.View       = Tails.View
-  exports.Template   = Tails.Template
-  exports.Mixins     = Tails.Mixins
+  exports.Mixable      = Tails.Mixable
+  exports.Model        = Tails.Model
+  exports.Collection   = Tails.Collection
+  exports.View         = Tails.View
+  exports.Template     = Tails.Template
+  exports.Mixins       = Tails.Mixins
+  exports.Utils        = Tails.Utils
 
-  exports.Models     = Tails.Models
-  exports.Views      = Tails.Views
+  exports.Association  = Tails.Association
+  exports.Associations = Tails.Associations
 
-  exports.config     = Tails.config
+  exports.Models       = Tails.Models
+  exports.Views        = Tails.Views
+
+  exports.config       = Tails.config
 
   exports.configure = ( options={} ) ->
     for property, value of options
