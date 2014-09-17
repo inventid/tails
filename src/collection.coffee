@@ -1,7 +1,7 @@
 class Tails.Collection extends Backbone.Deferred.Collection
   _.extend @, Tails.Mixable
 
-  format: 'json'
+  # format: 'json'
 
   constructor: ( models = [], options = {} ) ->
     @model = options.model or @model or Tails.Model

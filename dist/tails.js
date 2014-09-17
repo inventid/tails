@@ -592,8 +592,6 @@
 
     _.extend(Collection, Tails.Mixable);
 
-    Collection.prototype.format = 'json';
-
     function Collection(models, options) {
       if (models == null) {
         models = [];
@@ -1100,7 +1098,7 @@
       owner = this.get('owner');
       this.getter({
         target: function() {
-          return to.all().get(owner.get(foreignKey));
+          return to.get(owner.get(foreignKey));
         }
       });
       this.setter({
@@ -1201,7 +1199,10 @@
         return this.lazy({
           target: (function(_this) {
             return function() {
-              return to.all().where(foreignKey).is(owner.id);
+              var collection;
+              collection = to.all().where(foreignKey).is(owner.id);
+              collection.parent = owner;
+              return collection;
             };
           })(this)
         });
@@ -1232,6 +1233,7 @@
               target: function() {
                 var union;
                 union = new Tails.Collection.Union();
+                union.parent = owner;
                 owner.get(through).each((function(_this) {
                   return function(model) {
                     return union.addCollection(model.get(source));
@@ -1626,8 +1628,6 @@
     _.extend(Model, Tails.Mixable);
 
     Model.concern(Tails.Mixins.Associable);
-
-    Model.prototype.format = 'json';
 
     Model.prototype.initialize = function(attrs, options) {
       var _ref;
