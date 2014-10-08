@@ -30,10 +30,6 @@ Tails.Mixins.Storage =
         return localStorage
 
     toJSON: ( obj ) ->
-      if obj.has?("$el")
-        obj.get("$el").toJSON = () ->
-          @clone().wrap('<div/>').parent().html()
-
       JSON.stringify obj
 
     indexRoot: ( ) ->
