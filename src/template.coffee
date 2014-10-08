@@ -10,9 +10,9 @@ class Tails.Template extends Tails.Model
   # Binds an object to the template using rivets.js.
   bind: ( view ) ->
     return @fetch(parse: true).then ( ) =>
-      $el = $(@get('$el')).clone()
+      $el = $(@get('html')).clone()
       rivets.bind $el, view
       return $el
 
   parse: ( response, options ) ->
-    return $el: $(response)
+    return html: response
