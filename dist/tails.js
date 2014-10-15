@@ -1444,11 +1444,6 @@
         return localStorage;
       },
       toJSON: function(obj) {
-        if (typeof obj.has === "function" ? obj.has("$el") : void 0) {
-          obj.get("$el").toJSON = function() {
-            return this.clone().wrap('<div/>').parent().html();
-          };
-        }
         return JSON.stringify(obj);
       },
       indexRoot: function() {
@@ -1696,7 +1691,7 @@
       }).then((function(_this) {
         return function() {
           var $el;
-          $el = $(_this.get('$el')).clone();
+          $el = $(_this.get('html')).clone();
           rivets.bind($el, view);
           return $el;
         };
@@ -1705,7 +1700,7 @@
 
     Template.prototype.parse = function(response, options) {
       return {
-        $el: $(response)
+        html: response
       };
     };
 
