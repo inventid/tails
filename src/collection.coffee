@@ -2,10 +2,20 @@ class Tails.Collection extends Backbone.Deferred.Collection
   _.extend @, Tails.Mixable
 
   # format: 'json'
+  syncedAt: 0
 
   constructor: ( models = [], options = {} ) ->
-    @model = options.model or @model or Tails.Model
+    @model  = options.model  or @model or Tails.Model
     @parent = options.parent or @parent
+    @synced = options.synced or false
+
+    @on 'change', ( model ) =>
+      @synced = false
+
+    @on 'sync', =>
+      @synced   = true
+      @syncedAt = Date.now()
+
     super
 
   urlRoot: ( ) ->
@@ -20,7 +30,32 @@ class Tails.Collection extends Backbone.Deferred.Collection
     return url
 
   fetch: ( options = {} ) ->
-    super _.defaults options, dataType: @format
+    if (@synced or @syncing) and not options.force
+      return @_fetchPromise
+
+    options.dataType ||= @format
+    fetchPromise = super options
+
+    @synced  = false
+    @syncing = true
+    deferred = Q.defer()
+
+    resolve = ( args... ) =>
+      @syncing = false
+      deferred.resolve.apply deferred, args
+
+    reject = ( args... ) =>
+      @syncing = false
+      deferred.reject.apply deferred, args
+
+    fetchPromise.then ( args... ) =>
+      if   @synced then     resolve args...
+      else @once 'sync', -> resolve args...
+
+    fetchPromise.fail ( args... ) =>
+      reject args...
+
+    return @_fetchPromise = deferred.promise
 
   filter: ( filter ) ->
     return new Tails.Collection.Filtered(@, filter: filter)
