@@ -592,6 +592,8 @@
 
     _.extend(Collection, Tails.Mixable);
 
+    Collection.prototype.syncedAt = 0;
+
     function Collection(models, options) {
       if (models == null) {
         models = [];
@@ -601,6 +603,18 @@
       }
       this.model = options.model || this.model || Tails.Model;
       this.parent = options.parent || this.parent;
+      this.synced = options.synced || false;
+      this.on('change', (function(_this) {
+        return function(model) {
+          return _this.synced = false;
+        };
+      })(this));
+      this.on('sync', (function(_this) {
+        return function() {
+          _this.synced = true;
+          return _this.syncedAt = Date.now();
+        };
+      })(this));
       Collection.__super__.constructor.apply(this, arguments);
     }
 
@@ -618,12 +632,55 @@
     };
 
     Collection.prototype.fetch = function(options) {
+      var deferred, fetchPromise, reject, resolve;
       if (options == null) {
         options = {};
       }
-      return Collection.__super__.fetch.call(this, _.defaults(options, {
-        dataType: this.format
-      }));
+      if ((this.synced || this.syncing) && !options.force) {
+        return this._fetchPromise;
+      }
+      options.dataType || (options.dataType = this.format);
+      fetchPromise = Collection.__super__.fetch.call(this, options);
+      this.synced = false;
+      this.syncing = true;
+      deferred = Q.defer();
+      resolve = (function(_this) {
+        return function() {
+          var args;
+          args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+          _this.syncing = false;
+          return deferred.resolve.apply(deferred, args);
+        };
+      })(this);
+      reject = (function(_this) {
+        return function() {
+          var args;
+          args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+          _this.syncing = false;
+          return deferred.reject.apply(deferred, args);
+        };
+      })(this);
+      fetchPromise.then((function(_this) {
+        return function() {
+          var args;
+          args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+          if (_this.synced) {
+            return resolve.apply(null, args);
+          } else {
+            return _this.once('sync', function() {
+              return resolve.apply(null, args);
+            });
+          }
+        };
+      })(this));
+      fetchPromise.fail((function(_this) {
+        return function() {
+          var args;
+          args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+          return reject.apply(null, args);
+        };
+      })(this));
+      return this._fetchPromise = deferred.promise;
     };
 
     Collection.prototype.filter = function(filter) {
@@ -1624,6 +1681,8 @@
 
     Model.concern(Tails.Mixins.Associable);
 
+    Model.prototype.syncedAt = 0;
+
     Model.prototype.initialize = function(attrs, options) {
       var _ref;
       if (attrs == null) {
@@ -1633,6 +1692,18 @@
         options = {};
       }
       this.parent = options.parent || this.parent || ((_ref = this.collection) != null ? _ref.parent : void 0);
+      this.synced = options.synced || false;
+      this.on('change', (function(_this) {
+        return function(model) {
+          return _this.synced = false;
+        };
+      })(this));
+      this.on('sync', (function(_this) {
+        return function() {
+          _this.synced = true;
+          return _this.syncedAt = Date.now();
+        };
+      })(this));
       return Model.__super__.initialize.apply(this, arguments);
     };
 
@@ -1651,12 +1722,55 @@
     };
 
     Model.prototype.fetch = function(options) {
+      var deferred, fetchPromise, reject, resolve;
       if (options == null) {
         options = {};
       }
-      return Model.__super__.fetch.call(this, _.defaults(options, {
-        dataType: this.format
-      }));
+      if ((this.synced || this.syncing) && !options.force) {
+        return this._fetchPromise;
+      }
+      options.dataType || (options.dataType = this.format);
+      fetchPromise = Model.__super__.fetch.call(this, options);
+      this.synced = false;
+      this.syncing = true;
+      deferred = Q.defer();
+      resolve = (function(_this) {
+        return function() {
+          var args;
+          args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+          _this.syncing = false;
+          return deferred.resolve.apply(deferred, args);
+        };
+      })(this);
+      reject = (function(_this) {
+        return function() {
+          var args;
+          args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+          _this.syncing = false;
+          return deferred.reject.apply(deferred, args);
+        };
+      })(this);
+      fetchPromise.then((function(_this) {
+        return function() {
+          var args;
+          args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+          if (_this.synced) {
+            return resolve.apply(null, args);
+          } else {
+            return _this.once('sync', function() {
+              return resolve.apply(null, args);
+            });
+          }
+        };
+      })(this));
+      fetchPromise.fail((function(_this) {
+        return function() {
+          var args;
+          args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+          return reject.apply(null, args);
+        };
+      })(this));
+      return this._fetchPromise = deferred.promise;
     };
 
     Model.prototype.save = function(options) {

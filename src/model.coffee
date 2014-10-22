@@ -2,10 +2,19 @@ class Tails.Model extends Backbone.Deferred.Model
   _.extend @, Tails.Mixable
   @concern Tails.Mixins.Associable
 
-  # format: 'json'
+  syncedAt: 0
 
   initialize: ( attrs = {}, options = {} ) ->
     @parent = options.parent or @parent or @collection?.parent
+    @synced = options.synced or false
+
+    @on 'change', ( model ) =>
+      @synced = false
+
+    @on 'sync', =>
+      @synced   = true
+      @syncedAt = Date.now()
+
     super
 
   urlRoot: ( ) ->
@@ -21,7 +30,32 @@ class Tails.Model extends Backbone.Deferred.Model
     return url
 
   fetch: ( options = {} ) ->
-    super _.defaults options, dataType: @format
+    if (@synced or @syncing) and not options.force
+      return @_fetchPromise
+
+    options.dataType ||= @format
+    fetchPromise = super options
+
+    @synced  = false
+    @syncing = true
+    deferred = Q.defer()
+
+    resolve = ( args... ) =>
+      @syncing = false
+      deferred.resolve.apply deferred, args
+
+    reject = ( args... ) =>
+      @syncing = false
+      deferred.reject.apply deferred, args
+
+    fetchPromise.then ( args... ) =>
+      if   @synced then     resolve args...
+      else @once 'sync', -> resolve args...
+
+    fetchPromise.fail ( args... ) =>
+      reject args...
+
+    return @_fetchPromise = deferred.promise
 
   save: ( options = {} ) ->
     super _.defaults options, dataType: @format
