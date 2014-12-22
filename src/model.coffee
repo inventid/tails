@@ -30,8 +30,13 @@ class Tails.Model extends Backbone.Deferred.Model
     return url
 
   fetch: ( options = {} ) ->
-    if (@synced or @syncing) and not options.force
-      return @_fetchPromise
+    unless options.force
+      if @syncing
+        return @_fetchPromise
+      else if @synced
+        deferred = Q.defer()
+        deferred.resolve()
+        return deferred.promise
 
     options.dataType ||= @format
     fetchPromise = super options
