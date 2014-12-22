@@ -636,8 +636,14 @@
       if (options == null) {
         options = {};
       }
-      if ((this.synced || this.syncing) && !options.force) {
-        return this._fetchPromise;
+      if (!options.force) {
+        if (this.syncing) {
+          return this._fetchPromise;
+        } else if (this.synced) {
+          deferred = Q.defer();
+          deferred.resolve();
+          return deferred.promise;
+        }
       }
       options.dataType || (options.dataType = this.format);
       fetchPromise = Collection.__super__.fetch.call(this, options);
@@ -1726,8 +1732,14 @@
       if (options == null) {
         options = {};
       }
-      if ((this.synced || this.syncing) && !options.force) {
-        return this._fetchPromise;
+      if (!options.force) {
+        if (this.syncing) {
+          return this._fetchPromise;
+        } else if (this.synced) {
+          deferred = Q.defer();
+          deferred.resolve();
+          return deferred.promise;
+        }
       }
       options.dataType || (options.dataType = this.format);
       fetchPromise = Model.__super__.fetch.call(this, options);
