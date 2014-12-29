@@ -19,7 +19,7 @@ class Tails.Collection extends Backbone.Deferred.Collection
     super
 
   urlRoot: ( ) ->
-    return inflection.transform(@model.name, ['underscore', 'pluralize'])
+    return inflection.transform(@model.name or @model.toString().match(/^function\s*([^\s(]+)/)[1], ['underscore', 'pluralize'])
 
   url: ( ) ->
     base = @parent?.url?() or @parent?.url or Tails.url
