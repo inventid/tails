@@ -18,7 +18,7 @@ class Tails.Model extends Backbone.Deferred.Model
     super
 
   urlRoot: ( ) ->
-    return inflection.transform(@constructor.name, ['underscore', 'pluralize'])
+    return inflection.transform(@constructor.name or @constructor.toString().match(/^function\s*([^\s(]+)/)[1], ['underscore', 'pluralize'])
 
   url: ( ) ->
     base = @parent?.url?() or @parent?.url or Tails.config.url

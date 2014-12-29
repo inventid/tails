@@ -21,20 +21,20 @@ class Tails.Associations.Association extends Backbone.Model
       when 'belongsTo'
         model = owner.get(attrs.name)
         relation = new Tails.Associations.BelongsToRelation _.extend attrs,
-          foreignKey: @get('foreignKey') or inflection.foreign_key(attrs.to.name)
+          foreignKey: @get('foreignKey') or inflection.foreign_key(attrs.to.name or attrs.to.toString().match(/^function\s*([^\s(]+)/)[1])
         relation.set("target", model) if model?
 
       when 'hasOne'
         model = owner.get(attrs.name)
         relation = new Tails.Associations.HasOneRelation _.extend attrs,
-          foreignKey: @get('foreignKey') or inflection.foreign_key(attrs.from.name)
+          foreignKey: @get('foreignKey') or inflection.foreign_key(attrs.from.name or attrs.from.toString().match(/^function\s*([^\s(]+)/)[1])
           through: @get('through')
           source: @get('source') or @get('name')
         relation.set("target", model) if model?
 
       when 'hasMany'
         relation = new Tails.Associations.HasManyRelation _.extend attrs,
-          foreignKey: @get('foreignKey') or inflection.foreign_key(attrs.from.name)
+          foreignKey: @get('foreignKey') or inflection.foreign_key(attrs.from.name or attrs.from.toString().match(/^function\s*([^\s(]+)/)[1])
           through: @get('through')
           source: @get('source') or @get('name')
 

@@ -619,7 +619,7 @@
     }
 
     Collection.prototype.urlRoot = function() {
-      return inflection.transform(this.model.name, ['underscore', 'pluralize']);
+      return inflection.transform(this.model.name || this.model.toString().match(/^function\s*([^\s(]+)/)[1], ['underscore', 'pluralize']);
     };
 
     Collection.prototype.url = function() {
@@ -1368,7 +1368,7 @@
         case 'belongsTo':
           model = owner.get(attrs.name);
           relation = new Tails.Associations.BelongsToRelation(_.extend(attrs, {
-            foreignKey: this.get('foreignKey') || inflection.foreign_key(attrs.to.name)
+            foreignKey: this.get('foreignKey') || inflection.foreign_key(attrs.to.name || attrs.to.toString().match(/^function\s*([^\s(]+)/)[1])
           }));
           if (model != null) {
             relation.set("target", model);
@@ -1377,7 +1377,7 @@
         case 'hasOne':
           model = owner.get(attrs.name);
           relation = new Tails.Associations.HasOneRelation(_.extend(attrs, {
-            foreignKey: this.get('foreignKey') || inflection.foreign_key(attrs.from.name),
+            foreignKey: this.get('foreignKey') || inflection.foreign_key(attrs.from.name || attrs.from.toString().match(/^function\s*([^\s(]+)/)[1]),
             through: this.get('through'),
             source: this.get('source') || this.get('name')
           }));
@@ -1387,7 +1387,7 @@
           break;
         case 'hasMany':
           relation = new Tails.Associations.HasManyRelation(_.extend(attrs, {
-            foreignKey: this.get('foreignKey') || inflection.foreign_key(attrs.from.name),
+            foreignKey: this.get('foreignKey') || inflection.foreign_key(attrs.from.name || attrs.from.toString().match(/^function\s*([^\s(]+)/)[1]),
             through: this.get('through'),
             source: this.get('source') || this.get('name')
           }));
@@ -1714,7 +1714,7 @@
     };
 
     Model.prototype.urlRoot = function() {
-      return inflection.transform(this.constructor.name, ['underscore', 'pluralize']);
+      return inflection.transform(this.constructor.name || this.constructor.toString().match(/^function\s*([^\s(]+)/)[1], ['underscore', 'pluralize']);
     };
 
     Model.prototype.url = function() {
