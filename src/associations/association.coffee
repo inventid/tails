@@ -33,10 +33,12 @@ class Tails.Associations.Association extends Backbone.Model
         relation.set("target", model) if model?
 
       when 'hasMany'
+        models = owner.get(attrs.name)
         relation = new Tails.Associations.HasManyRelation _.extend attrs,
           foreignKey: @get('foreignKey') or inflection.foreign_key(attrs.from.name or attrs.from.toString().match(/^function\s*([^\s(]+)/)[1])
           through: @get('through')
           source: @get('source') or @get('name')
+        relation.set("target", models) if models?
 
     @relations().add(relation)
     owner.relations().add(relation)
