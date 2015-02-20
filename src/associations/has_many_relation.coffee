@@ -12,10 +12,13 @@ class Tails.Associations.HasManyRelation extends Tails.Associations.Relation
     source      = @get('source')
 
     if not through?
-      @lazy target: ( ) =>
-        collection = to.all().where(foreignKey).is(owner.id)
-        collection.parent = owner
-        return collection
+      collection = to.all().where(foreignKey).is(owner.id)
+      collection.parent = owner
+
+      @getter target: ( ) => collection
+      @setter target: ( models ) =>
+        collection.each ( model ) -> model.unset foreignKey
+        collection.add(models)
 
     # We're dealing with a through association. We have three kinds of hasMany through associations:
     # 1. The through association is a singular association (belongsTo, hasOne). In this case

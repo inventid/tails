@@ -1250,7 +1250,7 @@
     }
 
     HasManyRelation.prototype.initialize = function() {
-      var association, foreignKey, name, owner, source, sourceAssociation, through, throughAssociation, to;
+      var association, collection, foreignKey, name, owner, source, sourceAssociation, through, throughAssociation, to;
       association = this.get('association');
       to = association.get('to');
       owner = this.get('owner');
@@ -1259,13 +1259,22 @@
       through = this.get('through');
       source = this.get('source');
       if (through == null) {
-        return this.lazy({
+        collection = to.all().where(foreignKey).is(owner.id);
+        collection.parent = owner;
+        this.getter({
           target: (function(_this) {
             return function() {
-              var collection;
-              collection = to.all().where(foreignKey).is(owner.id);
-              collection.parent = owner;
               return collection;
+            };
+          })(this)
+        });
+        return this.setter({
+          target: (function(_this) {
+            return function(models) {
+              collection.each(function(model) {
+                return model.unset(foreignKey);
+              });
+              return collection.add(models);
             };
           })(this)
         });
@@ -1356,7 +1365,7 @@
     };
 
     Association.prototype.apply = function(owner) {
-      var attrs, model, relation;
+      var attrs, model, models, relation;
       attrs = {
         association: this,
         from: this.get('from'),
@@ -1386,11 +1395,15 @@
           }
           break;
         case 'hasMany':
+          models = owner.get(attrs.name);
           relation = new Tails.Associations.HasManyRelation(_.extend(attrs, {
             foreignKey: this.get('foreignKey') || inflection.foreign_key(attrs.from.name || attrs.from.toString().match(/^function\s*([^\s(]+)/)[1]),
             through: this.get('through'),
             source: this.get('source') || this.get('name')
           }));
+          if (models != null) {
+            attrs.to.all().add(models);
+          }
       }
       this.relations().add(relation);
       owner.relations().add(relation);
