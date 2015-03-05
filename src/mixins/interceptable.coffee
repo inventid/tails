@@ -19,7 +19,7 @@ Tails.Mixins.Interceptable =
       @intercept after: interceptors
 
     intercept: ( params ) ->
-      klass = @constructor or @
+      klass = @constructor
       for placement, interceptors of params when placement in ['before', 'after']
 
         # Map functions in interceptors.these to the
@@ -85,12 +85,16 @@ Tails.Mixins.Interceptable =
                   # Wrap the interceptable that is defined
                   # by when calling the following setter.
                   set: ( interceptable ) ->
-                    delete @[key]
-                    @[key] = ( args... ) ->
-                      before?.apply @, args
-                      ret = interceptable.apply @, args
-                      after?.apply @, args
-                      return ret
+                    # TODO: Look into this. This seems to be
+                    # the only way to avoid call stack size
+                    # exceptions.
+                    Object.defineProperty @, key,
+                      writable: true
+                      value: ( args... ) ->
+                        before?.apply @, args
+                        ret = interceptable.apply @, args
+                        after?.apply @, args
+                        return ret
 
                   # In case the method won't get defined at
                   # all, we wrap our super's method by the

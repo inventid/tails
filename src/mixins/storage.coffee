@@ -30,10 +30,6 @@ Tails.Mixins.Storage =
         return localStorage
 
     toJSON: ( obj ) ->
-      if obj.has?("$el")
-        obj.get("$el").toJSON = () ->
-          @clone().wrap('<div/>').parent().html()
-
       JSON.stringify obj
 
     indexRoot: ( ) ->
@@ -72,7 +68,7 @@ Tails.Mixins.Storage =
         @after initialize: () ->
           console.log @toJSON @name
           @after store: () ->
-            @log "Stored instances", @constructor.pluck("id")
+            @log "Stored instances", @constructor.all().pluck("id")
 
     ClassMethods:
       @with Tails.Mixins.Collectable,
@@ -81,5 +77,5 @@ Tails.Mixins.Storage =
         extended: () ->
           @after store: () ->
             key = @indexRoot?() ? @indexRoot
-            json = @toJSON @constructor.pluck("id")
+            json = @toJSON @constructor.all().pluck("id")
             @constructor.storage().setItem key, json
