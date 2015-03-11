@@ -22,7 +22,7 @@ class Tails.Collection extends Backbone.Deferred.Collection
     return inflection.transform(@model.name or @model.toString().match(/^function\s*([^\s(]+)/)[1], ['underscore', 'pluralize'])
 
   url: ( ) ->
-    base = @parent?.url?() or @parent?.url or Tails.url
+    base = @parent?.url?() or @parent?.url or Tails.config.url
     root = @urlRoot?() or @urlRoot
     format = if @format? then '.' + (@format?() or @format) else ''
 
