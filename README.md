@@ -128,3 +128,42 @@ We would like to thank the developers which contributed to Tails, both big and s
 - [joostverdoorn](https://github.com/joostverdoorn) (Lead developer of Tails @ [inventid](https://www.inventid.nl))
 - [steffansluis](https://github.com/steffansluis) (Developer @ [FeedbackFruits](https://secure.feedbackfruits.com))
 - [rogierslag](https://github.com/rogierslag) (Developer @ [inventid](https://www.inventid.nl))
+
+
+```
+
+                                                                   yy`                     
+                                                                  yy`                     
+                     `dd-                                      .oo..hd:                   
+                   `++yyyy-                                  .++//  NM/                   
+                   `yy//syss/                              ://+:..  hhys-                 
+  -::::::::      .:/+++++/ydy+:                          -://:..  ..symM+                 
+  odsoossss::::::+ys.-yy/:oshMy                        ::++.      ::+odM+                 
+  +ysoo++ooossssssso `yy/:/+smy--                    .-oo:-`      ::::hM+                 
+  ``ody/+ss/:::::/+/..yy/:::+shMM                 `.-oo--`     ```::::hM+                 
+  :///+ys:::://///:/++ss/:::/+sNN``              `:so--```     `::::::hM+                 
+oodNNNNNd::::mNNNy//::::::::/+oyyMN`            /y+:-``::`    `.::::::hM+                 
+MMo:::/++::++`   +Mm::::::::/++++MN`            /y/ `::::`   .::::::symM+                 
+oodNNNNNd::++`   `.-ss::::::/+sNNMN`          dNy+/::::::`   -+/::::mN/`                  
+NNyo++oyhmmo+oo-   .ys::::/+oso..MN`          syo/:::::::` :/++/::ssNM/                   
+////yddmNMMo+dm+   `oo::::-..----MN`       `yhoo+:::::::://+++/:::mm::`                   
+  odo//////ssdd/   `++....` `-/hhMN`       `hh+//::::::++++++/:/ooMN`                     
+  /o-`-sossddso- `..--      `.-oooooo.   `oooo/::://///+++++++/odd++                      
+      .osNNso-.` `..    ../oooooo  +o. -+oddhho++++++++++++++shyo+                        
+        .yy//--.......//+omMMMMMM::::::ohhhhyy+++++oooo++++syhdy::::                      
+           yho++o+oooommhhhddddddddddhho:+dy  .-. -++oooosshdy+sdddh::::.                 
+               +mddmNNss. -:///////+o- oNd--``oy:   `::yymmo:/+/::--dmmm/```              
+                   .MN::` -:+ssssooyy:`/yo `::sy/```.-:MM+:::::/++``  .-+sss+             
+                   .MN::`   .::::MMMMs:+yo .yyNMs:+yo `MM+::::::::++`     `:/ys`          
+                    ``ss/:` `````//NMNNs:+Nd````sNy::::MM+:.````````       ``::os`        
+                     `NNys/:. .::::yymMNNNMNmmmmNMNNNNmoo++++++/:-           ``::hm+      
+                      --hmdddhddd++//osdMMMm++dmdhhhhMN+++++++++++//----.      ``/+sh+    
+                        -:--oNmssmmss+/+ooso``syyyyyyhhmmo+/::::::::::::----.    ``/h+    
+                            .+ohhyydmhhhhyso  syyyo:/yyMMdhsooo+:::::::::::::..`   -+oso  
+                              .++hhNMhshmmddooyy+:- `:/ddNMs/oddyyyyo+++/::::::..:/oydMNoo
+                                 sssssshmdhhhhdd/     `yymM/.:ssssss+/yhysssssssshhyssssss
+                                     /ysyso+--yho/-   `ssmM/.`        /yyyyyyyyyyyy/      
+                                         -dh----sms-- `++mM/.`                            
+                                           .dd:.:/smh.-oodm/``                            
+                                              dMMMs.-MMMM:.                               
+```
