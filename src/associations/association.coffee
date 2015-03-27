@@ -1,13 +1,7 @@
 Mixable = require('../mixable')
+Collectable = require('../mixins/collectable')
 Debug = require('../mixins/debug')
 DynamicAttributes = require('../mixins/dynamic_attributes')
-Collectable = require('../mixins/collectable')
-Collection = require('../collection')
-Relation = require('./relation')
-
-BelongsToRelation = require('./belongs_to_relation')
-HasOneRelation = require('./has_one_relation')
-HasManyRelation = require('./has_many_relation')
 
 class Association extends Backbone.Model
   _.extend @, Mixable
@@ -16,11 +10,18 @@ class Association extends Backbone.Model
   @concern Collectable
 
   relations: ( ) ->
+    Collection = require('../collection')
+    Relation = require('./relation')
+
     unless @_relations?
       @_relations = new Collection [], model: Relation
     return @_relations
 
   apply: ( owner ) ->
+    BelongsToRelation = require('./belongs_to_relation')
+    HasOneRelation = require('./has_one_relation')
+    HasManyRelation = require('./has_many_relation')
+
     attrs =
       association: @
       from: @get('from')
@@ -56,3 +57,4 @@ class Association extends Backbone.Model
     owner.getter attrs.name, -> relation.get('target')
     owner.setter attrs.name, (value)-> relation.set('target', value)
 
+module.exports = Association

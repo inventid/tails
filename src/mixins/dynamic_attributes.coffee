@@ -6,7 +6,6 @@
 Interceptable = require('./interceptable')
 
 DynamicAttributes =
-
   InstanceMethods:
     getter: ( getters, fn = null ) ->
       if typeof getters is 'string' and fn?

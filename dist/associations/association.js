@@ -1,25 +1,15 @@
 (function() {
-  var Association, BelongsToRelation, Collectable, Collection, Debug, DynamicAttributes, HasManyRelation, HasOneRelation, Mixable, Relation,
+  var Association, Collectable, Debug, DynamicAttributes, Mixable,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   Mixable = require('../mixable');
 
+  Collectable = require('../mixins/collectable');
+
   Debug = require('../mixins/debug');
 
   DynamicAttributes = require('../mixins/dynamic_attributes');
-
-  Collectable = require('../mixins/collectable');
-
-  Collection = require('../collection');
-
-  Relation = require('./relation');
-
-  BelongsToRelation = require('./belongs_to_relation');
-
-  HasOneRelation = require('./has_one_relation');
-
-  HasManyRelation = require('./has_many_relation');
 
   Association = (function(_super) {
     __extends(Association, _super);
@@ -37,6 +27,9 @@
     Association.concern(Collectable);
 
     Association.prototype.relations = function() {
+      var Collection, Relation;
+      Collection = require('../collection');
+      Relation = require('./relation');
       if (this._relations == null) {
         this._relations = new Collection([], {
           model: Relation
@@ -46,7 +39,10 @@
     };
 
     Association.prototype.apply = function(owner) {
-      var attrs, model, models, relation;
+      var BelongsToRelation, HasManyRelation, HasOneRelation, attrs, model, models, relation;
+      BelongsToRelation = require('./belongs_to_relation');
+      HasOneRelation = require('./has_one_relation');
+      HasManyRelation = require('./has_many_relation');
       attrs = {
         association: this,
         from: this.get('from'),
@@ -99,6 +95,8 @@
     return Association;
 
   })(Backbone.Model);
+
+  module.exports = Association;
 
 }).call(this);
 

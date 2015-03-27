@@ -15,6 +15,10 @@
 
   Associable = require('./mixins/associable');
 
+  Storage = require('./mixins/storage');
+
+  History = require('./mixins/history');
+
   Collection = require('./collection');
 
   Association = require('./associations/association');
@@ -26,10 +30,6 @@
   HasOneRelation = require('./associations/has_one_relation');
 
   HasManyRelation = require('./associations/has_many_relation');
-
-  Storage = require('./mixins/storage');
-
-  History = require('./mixins/history');
 
   Model = require('./model');
 
@@ -47,13 +47,11 @@
     Views: {}
   };
 
-  Tails.Mixable = Mixable;
-
-  Tails.Collection = Collection;
-
   Tails.Utils = {
     Hash: Hash
   };
+
+  Tails.Mixable = Mixable;
 
   Tails.Mixins = {
     Interceptable: Interceptable,
@@ -65,15 +63,15 @@
     History: History
   };
 
-  Tails.Relation = Relation;
+  Tails.Collection = Collection;
 
-  Tails.Association = Association;
-
-  Tails.BelongsToRelation = BelongsToRelation;
-
-  Tails.HasOneRelation = HasOneRelation;
-
-  Tails.HasManyRelation = HasManyRelation;
+  Tails.Associations = {
+    Relation: Relation,
+    Association: Association,
+    BelongsToRelation: BelongsToRelation,
+    HasOneRelation: HasOneRelation,
+    HasManyRelation: HasManyRelation
+  };
 
   Tails.Model = Model;
 

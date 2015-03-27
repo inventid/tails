@@ -4,8 +4,6 @@
 #
 
 Interceptable = require('./interceptable')
-Collection    = require('../collection')
-Storage       = require('./storage')
 
 Collectable =
 
@@ -20,6 +18,7 @@ Collectable =
 
   ClassMethods:
     all: ( ) ->
+      Collection    = require('../collection')
       unless @_all?.klass is @
         @_all = new Collection null, model: @
         @_all.klass = @
@@ -32,6 +31,7 @@ Collectable =
       @[name] = @all().where(options.where)
 
   Interactions: () ->
+    Storage       = require('./storage')
     ClassMethods:
       @with Storage,
         extended: () ->

@@ -1,9 +1,13 @@
 (function() {
-  var Hash, Interceptable, Storage;
+  var Collectable, Debug, Hash, Interceptable, Storage;
 
   Interceptable = require('./interceptable');
 
   Hash = require('../utils/hash');
+
+  Debug = require('./debug');
+
+  Collectable = require('./collectable');
 
   Storage = {
     InstanceMethods: {
@@ -86,7 +90,7 @@
     },
     Interactions: function() {
       return {
-        InstanceMethods: this["with"](Tails.Mixins.Debug, {
+        InstanceMethods: this["with"](Debug, {
           included: (function(_this) {
             return function() {
               return _this.after({
@@ -102,7 +106,7 @@
             };
           })(this)
         }),
-        ClassMethods: this["with"](Tails.Mixins.Collectable, {
+        ClassMethods: this["with"](Collectable, {
           indexRoot: function() {
             var _ref;
             return (_ref = typeof this.urlRoot === "function" ? this.urlRoot() : void 0) != null ? _ref : this.urlRoot;

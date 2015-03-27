@@ -5,7 +5,6 @@
 # This seemed to be our best option.
 #
 
-Collection = require('../collection')
 Relation   = require('../associations/relation')
 Association = require('../associations/association')
 
@@ -13,6 +12,8 @@ Associable =
 
   InstanceMethods:
     relations: ( ) ->
+      Collection = require('../collection')
+
       unless @_relations?
         @_relations = new Collection [], model: Relation
       return @_relations
@@ -51,11 +52,15 @@ Associable =
       return @_associations
 
     extended: ( ) ->
-      @concern Tails.Mixins.DynamicAttributes
-      @concern Tails.Mixins.Collectable
-      @concern Tails.Mixins.Interceptable
+      DynamicAttributes = require('./dynamic_attributes')
+      Collectable = require('./collectable')
+      Interceptable = require('./interceptable')
+
+      @concern DynamicAttributes
+      @concern Collectable
+      @concern Interceptable
 
       @before initialize: ( ) ->
         @constructor.associations().each ( association ) => association.apply @
 
-module.exports = Association
+module.exports = Associable

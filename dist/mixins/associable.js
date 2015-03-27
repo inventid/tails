@@ -1,7 +1,5 @@
 (function() {
-  var Associable, Association, Collection, Relation;
-
-  Collection = require('../collection');
+  var Associable, Association, Relation;
 
   Relation = require('../associations/relation');
 
@@ -10,6 +8,8 @@
   Associable = {
     InstanceMethods: {
       relations: function() {
+        var Collection;
+        Collection = require('../collection');
         if (this._relations == null) {
           this._relations = new Collection([], {
             model: Relation
@@ -62,9 +62,13 @@
         return this._associations;
       },
       extended: function() {
-        this.concern(Tails.Mixins.DynamicAttributes);
-        this.concern(Tails.Mixins.Collectable);
-        this.concern(Tails.Mixins.Interceptable);
+        var Collectable, DynamicAttributes, Interceptable;
+        DynamicAttributes = require('./dynamic_attributes');
+        Collectable = require('./collectable');
+        Interceptable = require('./interceptable');
+        this.concern(DynamicAttributes);
+        this.concern(Collectable);
+        this.concern(Interceptable);
         return this.before({
           initialize: function() {
             return this.constructor.associations().each((function(_this) {
@@ -78,7 +82,7 @@
     }
   };
 
-  module.exports = Association;
+  module.exports = Associable;
 
 }).call(this);
 

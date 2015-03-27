@@ -1,11 +1,7 @@
 (function() {
-  var Collectable, Collection, Interceptable, Storage;
+  var Collectable, Interceptable;
 
   Interceptable = require('./interceptable');
-
-  Collection = require('../collection');
-
-  Storage = require('./storage');
 
   Collectable = {
     InstanceMethods: {
@@ -23,7 +19,8 @@
     },
     ClassMethods: {
       all: function() {
-        var _ref;
+        var Collection, _ref;
+        Collection = require('../collection');
         if (((_ref = this._all) != null ? _ref.klass : void 0) !== this) {
           this._all = new Collection(null, {
             model: this
@@ -42,6 +39,8 @@
       }
     },
     Interactions: function() {
+      var Storage;
+      Storage = require('./storage');
       return {
         ClassMethods: this["with"](Storage, {
           extended: function() {

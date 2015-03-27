@@ -1,26 +1,16 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Tails = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 (function() {
-  var Association, BelongsToRelation, Collectable, Collection, Debug, DynamicAttributes, HasManyRelation, HasOneRelation, Mixable, Relation,
+  var Association, Collectable, Debug, DynamicAttributes, Mixable,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   Mixable = require('../mixable');
 
+  Collectable = require('../mixins/collectable');
+
   Debug = require('../mixins/debug');
 
   DynamicAttributes = require('../mixins/dynamic_attributes');
-
-  Collectable = require('../mixins/collectable');
-
-  Collection = require('../collection');
-
-  Relation = require('./relation');
-
-  BelongsToRelation = require('./belongs_to_relation');
-
-  HasOneRelation = require('./has_one_relation');
-
-  HasManyRelation = require('./has_many_relation');
 
   Association = (function(_super) {
     __extends(Association, _super);
@@ -38,6 +28,9 @@
     Association.concern(Collectable);
 
     Association.prototype.relations = function() {
+      var Collection, Relation;
+      Collection = require('../collection');
+      Relation = require('./relation');
       if (this._relations == null) {
         this._relations = new Collection([], {
           model: Relation
@@ -47,7 +40,10 @@
     };
 
     Association.prototype.apply = function(owner) {
-      var attrs, model, models, relation;
+      var BelongsToRelation, HasManyRelation, HasOneRelation, attrs, model, models, relation;
+      BelongsToRelation = require('./belongs_to_relation');
+      HasOneRelation = require('./has_one_relation');
+      HasManyRelation = require('./has_many_relation');
       attrs = {
         association: this,
         from: this.get('from'),
@@ -100,6 +96,8 @@
     return Association;
 
   })(Backbone.Model);
+
+  module.exports = Association;
 
 }).call(this);
 
@@ -1047,9 +1045,7 @@
 
 },{}],9:[function(require,module,exports){
 (function() {
-  var Associable, Association, Collection, Relation;
-
-  Collection = require('../collection');
+  var Associable, Association, Relation;
 
   Relation = require('../associations/relation');
 
@@ -1058,6 +1054,8 @@
   Associable = {
     InstanceMethods: {
       relations: function() {
+        var Collection;
+        Collection = require('../collection');
         if (this._relations == null) {
           this._relations = new Collection([], {
             model: Relation
@@ -1110,9 +1108,13 @@
         return this._associations;
       },
       extended: function() {
-        this.concern(Tails.Mixins.DynamicAttributes);
-        this.concern(Tails.Mixins.Collectable);
-        this.concern(Tails.Mixins.Interceptable);
+        var Collectable, DynamicAttributes, Interceptable;
+        DynamicAttributes = require('./dynamic_attributes');
+        Collectable = require('./collectable');
+        Interceptable = require('./interceptable');
+        this.concern(DynamicAttributes);
+        this.concern(Collectable);
+        this.concern(Interceptable);
         return this.before({
           initialize: function() {
             return this.constructor.associations().each((function(_this) {
@@ -1126,21 +1128,17 @@
     }
   };
 
-  module.exports = Association;
+  module.exports = Associable;
 
 }).call(this);
 
 //# sourceMappingURL=associable.js.map
 
-},{"../associations/association":1,"../associations/relation":5,"../collection":6}],10:[function(require,module,exports){
+},{"../associations/association":1,"../associations/relation":5,"../collection":6,"./collectable":10,"./dynamic_attributes":12,"./interceptable":14}],10:[function(require,module,exports){
 (function() {
-  var Collectable, Collection, Interceptable, Storage;
+  var Collectable, Interceptable;
 
   Interceptable = require('./interceptable');
-
-  Collection = require('../collection');
-
-  Storage = require('./storage');
 
   Collectable = {
     InstanceMethods: {
@@ -1158,7 +1156,8 @@
     },
     ClassMethods: {
       all: function() {
-        var _ref;
+        var Collection, _ref;
+        Collection = require('../collection');
         if (((_ref = this._all) != null ? _ref.klass : void 0) !== this) {
           this._all = new Collection(null, {
             model: this
@@ -1177,6 +1176,8 @@
       }
     },
     Interactions: function() {
+      var Storage;
+      Storage = require('./storage');
       return {
         ClassMethods: this["with"](Storage, {
           extended: function() {
@@ -1757,11 +1758,15 @@
 
 },{}],15:[function(require,module,exports){
 (function() {
-  var Hash, Interceptable, Storage;
+  var Collectable, Debug, Hash, Interceptable, Storage;
 
   Interceptable = require('./interceptable');
 
   Hash = require('../utils/hash');
+
+  Debug = require('./debug');
+
+  Collectable = require('./collectable');
 
   Storage = {
     InstanceMethods: {
@@ -1844,7 +1849,7 @@
     },
     Interactions: function() {
       return {
-        InstanceMethods: this["with"](Tails.Mixins.Debug, {
+        InstanceMethods: this["with"](Debug, {
           included: (function(_this) {
             return function() {
               return _this.after({
@@ -1860,7 +1865,7 @@
             };
           })(this)
         }),
-        ClassMethods: this["with"](Tails.Mixins.Collectable, {
+        ClassMethods: this["with"](Collectable, {
           indexRoot: function() {
             var _ref;
             return (_ref = typeof this.urlRoot === "function" ? this.urlRoot() : void 0) != null ? _ref : this.urlRoot;
@@ -1886,7 +1891,7 @@
 
 //# sourceMappingURL=storage.js.map
 
-},{"../utils/hash":19,"./interceptable":14}],16:[function(require,module,exports){
+},{"../utils/hash":19,"./collectable":10,"./debug":11,"./interceptable":14}],16:[function(require,module,exports){
 (function() {
   var Associable, Mixable, Model, config,
     __hasProp = {}.hasOwnProperty,
@@ -2045,6 +2050,10 @@
 
   Associable = require('./mixins/associable');
 
+  Storage = require('./mixins/storage');
+
+  History = require('./mixins/history');
+
   Collection = require('./collection');
 
   Association = require('./associations/association');
@@ -2056,10 +2065,6 @@
   HasOneRelation = require('./associations/has_one_relation');
 
   HasManyRelation = require('./associations/has_many_relation');
-
-  Storage = require('./mixins/storage');
-
-  History = require('./mixins/history');
 
   Model = require('./model');
 
@@ -2077,13 +2082,11 @@
     Views: {}
   };
 
-  Tails.Mixable = Mixable;
-
-  Tails.Collection = Collection;
-
   Tails.Utils = {
     Hash: Hash
   };
+
+  Tails.Mixable = Mixable;
 
   Tails.Mixins = {
     Interceptable: Interceptable,
@@ -2095,15 +2098,15 @@
     History: History
   };
 
-  Tails.Relation = Relation;
+  Tails.Collection = Collection;
 
-  Tails.Association = Association;
-
-  Tails.BelongsToRelation = BelongsToRelation;
-
-  Tails.HasOneRelation = HasOneRelation;
-
-  Tails.HasManyRelation = HasManyRelation;
+  Tails.Associations = {
+    Relation: Relation,
+    Association: Association,
+    BelongsToRelation: BelongsToRelation,
+    HasOneRelation: HasOneRelation,
+    HasManyRelation: HasManyRelation
+  };
 
   Tails.Model = Model;
 

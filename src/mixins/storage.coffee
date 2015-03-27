@@ -5,6 +5,9 @@
 Interceptable = require('./interceptable')
 Hash          = require('../utils/hash')
 
+Debug         = require('./debug')
+Collectable   = require('./collectable')
+
 Storage =
 
   InstanceMethods:
@@ -67,7 +70,7 @@ Storage =
         return ids
 
   Interactions: () ->
-    InstanceMethods: @with Tails.Mixins.Debug,
+    InstanceMethods: @with Debug,
       included : () =>
         @after initialize: () ->
           console.log @toJSON @name
@@ -75,7 +78,7 @@ Storage =
             @log "Stored instances", @constructor.all().pluck("id")
 
     ClassMethods:
-      @with Tails.Mixins.Collectable,
+      @with Collectable,
         indexRoot: ( ) ->
           return @urlRoot?() ? @urlRoot
         extended: () ->
