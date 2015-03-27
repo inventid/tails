@@ -1,6 +1,8 @@
 (function() {
   var Associable, Association, BelongsToRelation, Collectable, Collection, Debug, DynamicAttributes, HasManyRelation, HasOneRelation, Hash, History, Interceptable, Mixable, Model, Relation, Storage, Tails, Template, View, config;
 
+  require('./utils/rivets-tails');
+
   Hash = require('./utils/hash');
 
   Mixable = require('./mixable');

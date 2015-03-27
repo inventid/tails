@@ -2,6 +2,8 @@ module.exports = ( grunt ) ->
   srcs = [
     'tails'
     'utils/hash'
+    'utils/rivets-tails'
+
     'mixable'
     'mixins/interceptable'
     'mixins/debug'
@@ -97,37 +99,26 @@ module.exports = ( grunt ) ->
         files: 'dist/tails.browser.js': 'dist/tails.js'
         options:
           sourceMap: false
-          # alias: [
-          #   './bower_components/underscore/underscore.js:underscore'
-          #   './bower_components/inflection/lib/inflection.js:inflection'
-          #   './bower_components/q/q.js:q'
-          #   './bower_components/jquery/jquery.js:jquery'
-          #   './bower_components/backbone/backbone.js:backbone'
-          #   './bower_components/backbone-deferred/backbone-deferred-q.js:backbone-deferred-q'
-          #   './bower_components/rivets/dist/rivets.js:rivets'
-          # ]
           browserifyOptions:
             standalone: 'Tails'
       istanbul:
         files: 'build/spec/tails.browser.js': 'dist/tails.js'
         options:
           sourceMap: true
-          # alias: [
-          #   './bower_components/underscore/underscore.js:underscore'
-          #   './bower_components/inflection/lib/inflection.js:inflection'
-          #   './bower_components/q/q.js:q'
-          #   './bower_components/jquery/jquery.js:jquery'
-          #   './bower_components/backbone/backbone.js:backbone'
-          #   './bower_components/backbone-deferred/backbone-deferred-q.js:backbone-deferred-q'
-          #   './bower_components/rivets/dist/rivets.js:rivets'
-          # ]
           transform: [require('browserify-istanbul')]
           browserifyOptions:
             standalone: 'Tails'
 
+    concat:
+      bundle:
+        files:
+          'dist/tails.bundle.js': deps.concat('dist/tails.browser.js')
+
     uglify:
       default:
         files: 'dist/tails.browser.min.js': 'dist/tails.browser.js'
+      bundle:
+        files: 'dist/tails.bundle.min.js': 'dist/tails.bundle.js'
 
     jasmine:
       default:
@@ -175,9 +166,10 @@ module.exports = ( grunt ) ->
   grunt.loadNpmTasks 'grunt-contrib-jasmine'
   grunt.loadNpmTasks 'grunt-benchmark'
   grunt.loadNpmTasks 'grunt-codo'
+  grunt.loadNpmTasks 'grunt-contrib-concat'
 
   grunt.registerTask 'default', ['watch']
-  grunt.registerTask 'dist',    ['coffee:src', 'browserify:default']
+  grunt.registerTask 'dist',    ['coffee:src', 'browserify:default', 'concat:bundle', 'uglify']
   grunt.registerTask 'spec',    ['clean', 'dist', 'coffee:spec' ,'jasmine:default']
   grunt.registerTask 'perf',    ['clean', 'dist', 'coffee:perf' ,'benchmark:default']
   grunt.registerTask 'test',    ['spec', 'browserify:istanbul', 'jasmine:lcovonly']

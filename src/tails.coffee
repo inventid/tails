@@ -1,5 +1,10 @@
 # Internal imports
+
+# This adds our Rivets adapter and doesn't export anything
+require('./utils/rivets-tails')
+
 Hash              = require('./utils/hash')
+
 Mixable           = require('./mixable')
 
 Interceptable     = require('./mixins/interceptable')

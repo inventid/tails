@@ -2036,6 +2036,8 @@
 (function() {
   var Associable, Association, BelongsToRelation, Collectable, Collection, Debug, DynamicAttributes, HasManyRelation, HasOneRelation, Hash, History, Interceptable, Mixable, Model, Relation, Storage, Tails, Template, View, config;
 
+  require('./utils/rivets-tails');
+
   Hash = require('./utils/hash');
 
   Mixable = require('./mixable');
@@ -2122,7 +2124,7 @@
 
 //# sourceMappingURL=tails.js.map
 
-},{"./associations/association":1,"./associations/belongs_to_relation":2,"./associations/has_many_relation":3,"./associations/has_one_relation":4,"./associations/relation":5,"./collection":6,"./config":7,"./mixable":8,"./mixins/associable":9,"./mixins/collectable":10,"./mixins/debug":11,"./mixins/dynamic_attributes":12,"./mixins/history":13,"./mixins/interceptable":14,"./mixins/storage":15,"./model":16,"./template":18,"./utils/hash":19,"./view":20}],18:[function(require,module,exports){
+},{"./associations/association":1,"./associations/belongs_to_relation":2,"./associations/has_many_relation":3,"./associations/has_one_relation":4,"./associations/relation":5,"./collection":6,"./config":7,"./mixable":8,"./mixins/associable":9,"./mixins/collectable":10,"./mixins/debug":11,"./mixins/dynamic_attributes":12,"./mixins/history":13,"./mixins/interceptable":14,"./mixins/storage":15,"./model":16,"./template":18,"./utils/hash":19,"./utils/rivets-tails":20,"./view":21}],18:[function(require,module,exports){
 (function() {
   var Collectable, Model, Template,
     __hasProp = {}.hasOwnProperty,
@@ -2199,6 +2201,39 @@
 //# sourceMappingURL=hash.js.map
 
 },{}],20:[function(require,module,exports){
+(function() {
+  if (typeof rivets !== "undefined" && rivets !== null) {
+    rivets.adapters[':'] = {
+      subscribe: function(obj, keypath, callback) {
+        if (obj instanceof Backbone.Collection) {
+          obj.on('add remove reset', callback);
+        }
+        return obj.on('change:' + keypath, callback);
+      },
+      unsubscribe: function(obj, keypath, callback) {
+        if (obj instanceof Backbone.Collection) {
+          obj.off('add remove reset', callback);
+        }
+        return obj.off('change:' + keypath, callback);
+      },
+      read: function(obj, keypath) {
+        if (obj instanceof Backbone.Collection) {
+          return obj.models;
+        } else {
+          return obj.get(keypath);
+        }
+      },
+      publish: function(obj, keypath, value) {
+        return obj.set(keypath, value);
+      }
+    };
+  }
+
+}).call(this);
+
+//# sourceMappingURL=rivets-tails.js.map
+
+},{}],21:[function(require,module,exports){
 (function() {
   var Mixable, Template, View,
     __hasProp = {}.hasOwnProperty,
