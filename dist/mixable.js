@@ -1,8 +1,9 @@
 (function() {
-  var __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
+  var Mixable,
+    __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
     __slice = [].slice;
 
-  Tails.Mixable = {
+  Mixable = {
     MixableKeywords: ['included', 'extended', 'constructor', 'Interactions', 'InstanceMethods', 'ClassMethods'],
     _include: function(mixin) {
       var funcs, key, value, _ref;
@@ -15,7 +16,7 @@
       }
       for (key in funcs) {
         value = funcs[key];
-        if (__indexOf.call(Tails.Mixable.MixableKeywords, key) < 0) {
+        if (__indexOf.call(this.MixableKeywords, key) < 0) {
           if (value != null) {
             this.prototype[key] = value;
           }
@@ -34,7 +35,7 @@
       }
       for (key in funcs) {
         value = funcs[key];
-        if (__indexOf.call(Tails.Mixable.MixableKeywords, key) < 0) {
+        if (__indexOf.call(this.MixableKeywords, key) < 0) {
           if (value != null) {
             this[key] = value;
           }
@@ -116,7 +117,9 @@
       if (funcs == null) {
         funcs = {};
       }
-      if (__indexOf.call(this._includedMixins, mixin) >= 0 || __indexOf.call(this._extendedMixins, mixin) >= 0) {
+      if ((this._includedMixins != null) && __indexOf.call(this._includedMixins, mixin) >= 0) {
+        return funcs;
+      } else if ((this._extendedMixins != null) && __indexOf.call(this._extendedMixins, mixin) >= 0) {
         return funcs;
       } else {
         return null;
@@ -133,6 +136,8 @@
       return this;
     }
   };
+
+  module.exports = Mixable;
 
 }).call(this);
 

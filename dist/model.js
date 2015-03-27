@@ -1,18 +1,25 @@
 (function() {
-  var __hasProp = {}.hasOwnProperty,
+  var Associable, Mixable, Model, config,
+    __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     __slice = [].slice;
 
-  Tails.Model = (function(_super) {
+  Mixable = require('./mixable');
+
+  Associable = require('./mixins/associable');
+
+  config = require('./config');
+
+  Model = (function(_super) {
     __extends(Model, _super);
 
     function Model() {
       return Model.__super__.constructor.apply(this, arguments);
     }
 
-    _.extend(Model, Tails.Mixable);
+    _.extend(Model, Mixable);
 
-    Model.concern(Tails.Mixins.Associable);
+    Model.concern(Associable);
 
     Model.prototype.syncedAt = 0;
 
@@ -46,7 +53,7 @@
 
     Model.prototype.url = function() {
       var base, format, id, root, url, _ref, _ref1;
-      base = ((_ref = this.parent) != null ? typeof _ref.url === "function" ? _ref.url() : void 0 : void 0) || ((_ref1 = this.parent) != null ? _ref1.url : void 0) || Tails.config.url;
+      base = ((_ref = this.parent) != null ? typeof _ref.url === "function" ? _ref.url() : void 0 : void 0) || ((_ref1 = this.parent) != null ? _ref1.url : void 0) || config.url;
       root = (typeof this.urlRoot === "function" ? this.urlRoot() : void 0) || this.urlRoot;
       id = this.id ? "/" + this.id : '';
       format = this.format != null ? '.' + ((typeof this.format === "function" ? this.format() : void 0) || this.format) : '';
@@ -124,6 +131,8 @@
     return Model;
 
   })(Backbone.Deferred.Model);
+
+  module.exports = Model;
 
 }).call(this);
 

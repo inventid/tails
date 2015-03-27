@@ -1,15 +1,20 @@
 (function() {
-  var __hasProp = {}.hasOwnProperty,
+  var Collectable, Model, Template,
+    __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  Tails.Template = (function(_super) {
+  Collectable = require('./mixins/collectable');
+
+  Model = require('./model');
+
+  Template = (function(_super) {
     __extends(Template, _super);
 
     function Template() {
       return Template.__super__.constructor.apply(this, arguments);
     }
 
-    Template.concern(Tails.Mixins.Collectable);
+    Template.concern(Collectable);
 
     Template.prototype.urlRoot = 'assets';
 
@@ -36,7 +41,9 @@
 
     return Template;
 
-  })(Tails.Model);
+  })(Model);
+
+  module.exports = Collectable;
 
 }).call(this);
 

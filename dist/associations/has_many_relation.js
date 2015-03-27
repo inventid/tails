@@ -1,8 +1,13 @@
 (function() {
-  var __hasProp = {}.hasOwnProperty,
+  var Collection, HasManyRelation, Relation,
+    __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  Tails.Associations.HasManyRelation = (function(_super) {
+  Relation = require('./relation');
+
+  Collection = require('../collection');
+
+  HasManyRelation = (function(_super) {
     __extends(HasManyRelation, _super);
 
     function HasManyRelation() {
@@ -64,7 +69,7 @@
             return this.lazy({
               target: function() {
                 var union;
-                union = new Tails.Collection.Union();
+                union = new Collection.Union();
                 union.parent = owner;
                 owner.get(through).each((function(_this) {
                   return function(model) {
@@ -98,7 +103,9 @@
 
     return HasManyRelation;
 
-  })(Tails.Associations.Relation);
+  })(Relation);
+
+  module.exports = HasManyRelation;
 
 }).call(this);
 

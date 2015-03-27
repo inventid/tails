@@ -1,5 +1,7 @@
 (function() {
-  Tails.Utils.Hash = function(string) {
+  var Hash;
+
+  Hash = function(string) {
     var char, hash, i, _i, _ref;
     hash = 0;
     if (string.length === 0) {
@@ -12,6 +14,8 @@
     }
     return hash;
   };
+
+  module.exports = Hash;
 
 }).call(this);
 

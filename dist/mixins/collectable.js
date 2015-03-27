@@ -1,8 +1,16 @@
 (function() {
-  Tails.Mixins.Collectable = {
+  var Collectable, Collection, Interceptable, Storage;
+
+  Interceptable = require('./interceptable');
+
+  Collection = require('../collection');
+
+  Storage = require('./storage');
+
+  Collectable = {
     InstanceMethods: {
       included: function() {
-        this.concern(Tails.Mixins.Interceptable);
+        this.concern(Interceptable);
         return this.after({
           initialize: function() {
             if ((this.id != null) && (this.constructor.all().get(this.id) != null)) {
@@ -17,7 +25,7 @@
       all: function() {
         var _ref;
         if (((_ref = this._all) != null ? _ref.klass : void 0) !== this) {
-          this._all = new Tails.Collection(null, {
+          this._all = new Collection(null, {
             model: this
           });
           this._all.klass = this;
@@ -35,7 +43,7 @@
     },
     Interactions: function() {
       return {
-        ClassMethods: this["with"](Tails.Mixins.Storage, {
+        ClassMethods: this["with"](Storage, {
           extended: function() {
             return this.all().on('add remove', (function(_this) {
               return function(instance) {
@@ -49,6 +57,8 @@
       };
     }
   };
+
+  module.exports = Collectable;
 
 }).call(this);
 

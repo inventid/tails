@@ -1,7 +1,8 @@
 (function() {
-  var __slice = [].slice;
+  var Interceptable,
+    __slice = [].slice;
 
-  Tails.Mixins.Interceptable = {
+  Interceptable = {
     InstanceMethods: {
       before: function(interceptors) {
         return this.intercept({
@@ -171,6 +172,8 @@
       }
     }
   };
+
+  module.exports = Interceptable;
 
 }).call(this);
 

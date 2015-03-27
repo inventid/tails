@@ -1,10 +1,18 @@
 (function() {
-  Tails.Mixins.Associable = {
+  var Associable, Association, Collection, Relation;
+
+  Collection = require('../collection');
+
+  Relation = require('../associations/relation');
+
+  Association = require('../associations/association');
+
+  Associable = {
     InstanceMethods: {
       relations: function() {
         if (this._relations == null) {
-          this._relations = new Tails.Collection([], {
-            model: Tails.Associations.Relation
+          this._relations = new Collection([], {
+            model: Relation
           });
         }
         return this._relations;
@@ -32,7 +40,7 @@
           through: options.through,
           source: options.source
         };
-        association = new Tails.Associations.Association(attrs);
+        association = new Association(attrs);
         if (to.prototype instanceof Backbone.Model) {
           return association.set({
             to: to
@@ -46,7 +54,7 @@
       associations: function() {
         var _ref;
         if (!((_ref = this._associations) != null ? _ref.klass = this : void 0)) {
-          this._associations = Tails.Associations.Association.all().where({
+          this._associations = Association.all().where({
             from: this
           });
           this._associations.klass = this;
@@ -69,6 +77,8 @@
       }
     }
   };
+
+  module.exports = Association;
 
 }).call(this);
 

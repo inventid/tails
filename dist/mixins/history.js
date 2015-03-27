@@ -1,8 +1,12 @@
 (function() {
-  Tails.Mixins.History = {
+  var History, Storage;
+
+  Storage = require('./storage');
+
+  History = {
     Interactions: function() {
       return {
-        InstanceMethods: this["with"](Tails.Mixins.Storage, {
+        InstanceMethods: this["with"](Storage, {
           diff: function() {
             var diff, key, prevAttrs, value, _ref;
             diff = {};
@@ -80,6 +84,8 @@
       };
     }
   };
+
+  module.exports = History;
 
 }).call(this);
 

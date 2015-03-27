@@ -1,13 +1,20 @@
 (function() {
-  var __hasProp = {}.hasOwnProperty,
+  var Collection, Mixable, Model, config,
+    __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     __slice = [].slice,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
-  Tails.Collection = (function(_super) {
+  Mixable = require('./mixable');
+
+  Model = require('./model');
+
+  config = require('./config');
+
+  Collection = (function(_super) {
     __extends(Collection, _super);
 
-    _.extend(Collection, Tails.Mixable);
+    _.extend(Collection, Mixable);
 
     Collection.prototype.syncedAt = 0;
 
@@ -18,7 +25,7 @@
       if (options == null) {
         options = {};
       }
-      this.model = options.model || this.model || Tails.Model;
+      this.model = options.model || this.model || Model;
       this.parent = options.parent || this.parent;
       this.synced = options.synced || false;
       this.on('change', (function(_this) {
@@ -41,7 +48,7 @@
 
     Collection.prototype.url = function() {
       var base, format, root, url, _ref, _ref1;
-      base = ((_ref = this.parent) != null ? typeof _ref.url === "function" ? _ref.url() : void 0 : void 0) || ((_ref1 = this.parent) != null ? _ref1.url : void 0) || Tails.config.url;
+      base = ((_ref = this.parent) != null ? typeof _ref.url === "function" ? _ref.url() : void 0 : void 0) || ((_ref1 = this.parent) != null ? _ref1.url : void 0) || config.url;
       root = (typeof this.urlRoot === "function" ? this.urlRoot() : void 0) || this.urlRoot;
       format = this.format != null ? '.' + ((typeof this.format === "function" ? this.format() : void 0) || this.format) : '';
       url = "" + base + "/" + root + format;
@@ -107,7 +114,7 @@
     };
 
     Collection.prototype.filter = function(filter) {
-      return new Tails.Collection.Filtered(this, {
+      return new Collection.Filtered(this, {
         filter: filter
       });
     };
@@ -146,7 +153,7 @@
           }
           return _results;
         };
-        return new Tails.Collection.Filtered(this, {
+        return new Collection.Filtered(this, {
           filter: filter,
           assimilate: assimilate,
           distantiate: distantiate
@@ -203,7 +210,7 @@
     };
 
     Collection.prototype.pluck = function(attribute) {
-      return new Tails.Collection.Plucked(this, {
+      return new Collection.Plucked(this, {
         attribute: attribute
       });
     };
@@ -231,7 +238,7 @@
 
   })(Backbone.Deferred.Collection);
 
-  Tails.Collection.Plucked = (function(_super) {
+  Collection.Plucked = (function(_super) {
     __extends(Plucked, _super);
 
     function Plucked(collection, options) {
@@ -322,9 +329,9 @@
 
     return Plucked;
 
-  })(Tails.Collection);
+  })(Collection);
 
-  Tails.Collection.Filtered = (function(_super) {
+  Collection.Filtered = (function(_super) {
     __extends(Filtered, _super);
 
     function Filtered(collection, options) {
@@ -397,9 +404,9 @@
 
     return Filtered;
 
-  })(Tails.Collection);
+  })(Collection);
 
-  Tails.Collection.Multi = (function(_super) {
+  Collection.Multi = (function(_super) {
     __extends(Multi, _super);
 
     function Multi(collections, options) {
@@ -468,9 +475,9 @@
 
     return Multi;
 
-  })(Tails.Collection);
+  })(Collection);
 
-  Tails.Collection.Union = (function(_super) {
+  Collection.Union = (function(_super) {
     __extends(Union, _super);
 
     function Union() {
@@ -491,7 +498,9 @@
 
     return Union;
 
-  })(Tails.Collection.Multi);
+  })(Collection.Multi);
+
+  module.exports = Collection;
 
 }).call(this);
 

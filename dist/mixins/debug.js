@@ -1,15 +1,18 @@
 (function() {
-  var __slice = [].slice,
+  var Debug, Interceptable,
+    __slice = [].slice,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
-  Tails.Mixins.Debug = {
+  Interceptable = require('./interceptable');
+
+  Debug = {
     InstanceMethods: {
       LOG_LEVELS: {
         "ERROR": true,
         "WARNING": true,
         "INFO": false
       },
-      _excludedMethods: _.union(Object.keys(Tails.Mixins.Interceptable.InstanceMethods), ["constructor", "log", "message", "warn", "error", "info"]),
+      _excludedMethods: _.union(Object.keys(Interceptable.InstanceMethods), ["constructor", "log", "message", "warn", "error", "info"]),
       debug: function() {
         return this.LOG_LEVELS.INFO = true;
       },
@@ -62,7 +65,7 @@
         return console.log(line);
       },
       included: function() {
-        this.concern(Tails.Mixins.Interceptable);
+        this.concern(Interceptable);
         return this.after({
           initialize: function() {
             var args, funcs, key, value, _i, _len, _results;
@@ -108,6 +111,8 @@
       }
     }
   };
+
+  module.exports = Debug;
 
 }).call(this);
 

@@ -1,8 +1,11 @@
 (function() {
-  var __hasProp = {}.hasOwnProperty,
+  var HasOneRelation, Relation,
+    __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  Tails.Associations.HasOneRelation = (function(_super) {
+  Relation = require('./relation');
+
+  HasOneRelation = (function(_super) {
     __extends(HasOneRelation, _super);
 
     function HasOneRelation() {
@@ -57,7 +60,9 @@
 
     return HasOneRelation;
 
-  })(Tails.Associations.Relation);
+  })(Relation);
+
+  module.exports = HasOneRelation;
 
 }).call(this);
 

@@ -1,5 +1,9 @@
 (function() {
-  Tails.Mixins.DynamicAttributes = {
+  var DynamicAttributes, Interceptable;
+
+  Interceptable = require('./interceptable');
+
+  DynamicAttributes = {
     InstanceMethods: {
       getter: function(getters, fn) {
         var name;
@@ -141,10 +145,12 @@
         });
       },
       extended: function() {
-        return this.concern(Tails.Mixins.Interceptable);
+        return this.concern(Interceptable);
       }
     }
   };
+
+  module.exports = DynamicAttributes;
 
 }).call(this);
 

@@ -1,5 +1,11 @@
 (function() {
-  Tails.Mixins.Storage = {
+  var Hash, Interceptable, Storage;
+
+  Interceptable = require('./interceptable');
+
+  Hash = require('../utils/hash');
+
+  Storage = {
     InstanceMethods: {
       storage: function() {
         return this.constructor.storage();
@@ -14,7 +20,7 @@
         return _.defaults(this.attributes, this.constructor.retrieve(this.id, hash));
       },
       included: function() {
-        this.concern(Tails.Mixins.Interceptable);
+        this.concern(Interceptable);
         return this.after({
           initialize: function() {
             this.on("sync", this.store);
@@ -42,7 +48,7 @@
         indexRoot = (_ref = typeof this.indexRoot === "function" ? this.indexRoot() : void 0) != null ? _ref : this.indexRoot;
         key = "" + indexRoot + "/" + instance.id;
         if (data != null) {
-          key += "/" + Tails.Utils.Hash(this.toJSON(data));
+          key += "/" + Hash(this.toJSON(data));
           json = this.toJSON({
             "instance": instance,
             "data": data
@@ -66,7 +72,7 @@
             return JSON.parse(json);
           }
         } else {
-          json = this.storage().getItem(Tails.Utils.Hash(indexRoot));
+          json = this.storage().getItem(Hash(indexRoot));
           ids = JSON.parse(json);
           if (json != null) {
             for (_i = 0, _len = ids.length; _i < _len; _i++) {
@@ -115,6 +121,8 @@
       };
     }
   };
+
+  module.exports = Storage;
 
 }).call(this);
 
