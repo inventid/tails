@@ -1,7 +1,10 @@
 # Makes classes print a log message after instantiation of a new
 # instance and instances print a log message after an attribute changes.
 #
-Tails.Mixins.Debug =
+
+Interceptable = require('./interceptable')
+
+Debug =
 
   InstanceMethods:
     LOG_LEVELS :
@@ -9,7 +12,7 @@ Tails.Mixins.Debug =
       "WARNING" : on
       "INFO"    : off
 
-    _excludedMethods : _.union Object.keys(Tails.Mixins.Interceptable.InstanceMethods), [
+    _excludedMethods : _.union Object.keys(Interceptable.InstanceMethods), [
       "constructor", "log", "message", "warn", "error", "info"
     ]
 
@@ -48,7 +51,7 @@ Tails.Mixins.Debug =
 
 
     included: ( ) ->
-      @concern Tails.Mixins.Interceptable
+      @concern Interceptable
 
       @after initialize: (args...) ->
         @info "Called function 'initialize' of #{@constructor.name} with arguments:", args
@@ -65,3 +68,5 @@ Tails.Mixins.Debug =
           do (key) =>
             @after "these": [key], "do" : (args...) ->
               @info "Called function '#{key}' of #{@constructor.name} with arguments:", args
+
+module.exports = Debug

@@ -1,4 +1,6 @@
-class Tails.Associations.HasOneRelation extends Tails.Associations.Relation
+Relation = require('./relation')
+
+class HasOneRelation extends Relation
 
   initialize: ( ) ->
     owner       = @get 'owner'
@@ -20,3 +22,5 @@ class Tails.Associations.HasOneRelation extends Tails.Associations.Relation
       @setter target: ( model ) => owner.get(through).set source, model
 
     super
+
+module.exports = HasOneRelation

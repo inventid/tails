@@ -1,7 +1,11 @@
-class Tails.Associations.Relation extends Backbone.Model
-  _.extend @, Tails.Mixable
-  @concern Tails.Mixins.DynamicAttributes
-  @concern Tails.Mixins.Collectable
+Mixable           = require('../mixable')
+DynamicAttributes = require('../mixins/dynamic_attributes')
+Collectable       = require('../mixins/collectable')
+
+class Relation extends Backbone.Model
+  _.extend @, Mixable
+  @concern DynamicAttributes
+  @concern Collectable
 
   initialize: ( ) ->
     # destroyer = ( ) =>
@@ -13,6 +17,4 @@ class Tails.Associations.Relation extends Backbone.Model
     # unless @get('target') instanceof Backbone.Collection
     #   @listenTo @get('target'), 'destroy', destroyer
 
-
-
-
+module.exports = Relation

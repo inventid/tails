@@ -9,7 +9,7 @@
 # interceptors. Chaining of interceptors also proved to be a challenge
 # in this scenario.
 #
-Tails.Mixins.Interceptable =
+Interceptable =
 
   InstanceMethods:
     before: ( interceptors ) ->
@@ -123,3 +123,4 @@ Tails.Mixins.Interceptable =
         @before initialize: -> @after interceptors.call @
       else @::after interceptors
 
+module.exports = Interceptable

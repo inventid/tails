@@ -1,11 +1,15 @@
-class Tails.Collection extends Backbone.Deferred.Collection
-  _.extend @, Tails.Mixable
+Mixable = require('./mixable')
+Model = require('./model')
+config = require('./config')
+
+class Collection extends Backbone.Deferred.Collection
+  _.extend @, Mixable
 
   # format: 'json'
   syncedAt: 0
 
   constructor: ( models = [], options = {} ) ->
-    @model  = options.model  or @model or Tails.Model
+    @model  = options.model  or @model or Model
     @parent = options.parent or @parent
     @synced = options.synced or false
 
@@ -22,7 +26,7 @@ class Tails.Collection extends Backbone.Deferred.Collection
     return inflection.transform(@model.name or @model.toString().match(/^function\s*([^\s(]+)/)[1], ['underscore', 'pluralize'])
 
   url: ( ) ->
-    base = @parent?.url?() or @parent?.url or Tails.config.url
+    base = @parent?.url?() or @parent?.url or config.url
     root = @urlRoot?() or @urlRoot
     format = if @format? then '.' + (@format?() or @format) else ''
 
@@ -63,7 +67,7 @@ class Tails.Collection extends Backbone.Deferred.Collection
     return @_fetchPromise = deferred.promise
 
   filter: ( filter ) ->
-    return new Tails.Collection.Filtered(@, filter: filter)
+    return new Collection.Filtered(@, filter: filter)
 
   where: ( attrs, first ) ->
     return super attrs, first if first?
@@ -81,7 +85,7 @@ class Tails.Collection extends Backbone.Deferred.Collection
         for key, value of attrs
           model.unset(key)
 
-      return new Tails.Collection.Filtered(@, { filter: filter, assimilate: assimilate, distantiate: distantiate })
+      return new Collection.Filtered(@, { filter: filter, assimilate: assimilate, distantiate: distantiate })
 
     else if typeof attrs is 'string'
       key = attrs
@@ -108,7 +112,7 @@ class Tails.Collection extends Backbone.Deferred.Collection
       return query
 
   pluck: ( attribute ) ->
-    return new Tails.Collection.Plucked(@, attribute: attribute)
+    return new Collection.Plucked(@, attribute: attribute)
 
   parse: ( response, options ) ->
     response = [response] unless response instanceof Array
@@ -131,7 +135,7 @@ class Tails.Collection extends Backbone.Deferred.Collection
 
 # TODO: I think this isn't a pretty way to do it. Maybe we should
 # create collections that can contain other things than models.
-class Tails.Collection.Plucked extends Tails.Collection
+class Collection.Plucked extends Collection
 
   constructor: ( collection, options = {} ) ->
     @collection = collection
@@ -178,7 +182,7 @@ class Tails.Collection.Plucked extends Tails.Collection
 
 
 
-class Tails.Collection.Filtered extends Tails.Collection
+class Collection.Filtered extends Collection
 
   constructor: ( collection, options = {} ) ->
     @collection = collection
@@ -221,7 +225,7 @@ class Tails.Collection.Filtered extends Tails.Collection
 
 
 
-class Tails.Collection.Multi extends Tails.Collection
+class Collection.Multi extends Collection
 
   constructor: ( collections = [], options = {} ) ->
     @collections = []
@@ -267,7 +271,7 @@ class Tails.Collection.Multi extends Tails.Collection
 
 
 
-class Tails.Collection.Union extends Tails.Collection.Multi
+class Collection.Union extends Collection.Multi
 
   increment: ( model ) ->
     @add model if super is 1
@@ -275,3 +279,4 @@ class Tails.Collection.Union extends Tails.Collection.Multi
   decrement: ( model ) ->
     @remove model if super is 0
 
+module.exports = Collection

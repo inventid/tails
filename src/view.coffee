@@ -3,11 +3,15 @@
 # will necessarily have a model, the model has to be manually
 # bound.
 #
-class Tails.View extends Backbone.View
-    _.extend @, Tails.Mixable
+
+Mixable = require('./mixable')
+Template = require('./template')
+
+class View extends Backbone.View
+    _.extend @, Mixable
 
     initialize: ( options = {} ) ->
-        @template = Tails.Template.get(@template) if @template.constructor is String
+        @template = Template.get(@template) if @template.constructor is String
 
         @template.bind(@)
             .then ( $el ) =>
@@ -24,3 +28,5 @@ class Tails.View extends Backbone.View
     setView: ( view ) ->
         @view = view
         @view.render()
+
+module.exports = View

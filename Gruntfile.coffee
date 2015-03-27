@@ -2,9 +2,9 @@ module.exports = ( grunt ) ->
   srcs = [
     'tails'
     'utils/hash'
+    'mixable'
     'mixins/interceptable'
     'mixins/debug'
-    'mixable'
     'mixins/dynamic_attributes'
 
     'collection'
@@ -21,6 +21,8 @@ module.exports = ( grunt ) ->
     'model'
     'template'
     'view'
+
+    'config'
   ]
 
   deps = [
@@ -95,30 +97,30 @@ module.exports = ( grunt ) ->
         files: 'dist/tails.browser.js': 'dist/tails.js'
         options:
           sourceMap: false
-          alias: [
-            './bower_components/underscore/underscore.js:underscore'
-            './bower_components/inflection/lib/inflection.js:inflection'
-            './bower_components/q/q.js:q'
-            './bower_components/jquery/jquery.js:jquery'
-            './bower_components/backbone/backbone.js:backbone'
-            './bower_components/backbone-deferred/backbone-deferred-q.js:backbone-deferred-q'
-            './bower_components/rivets/dist/rivets.js:rivets'
-          ]
+          # alias: [
+          #   './bower_components/underscore/underscore.js:underscore'
+          #   './bower_components/inflection/lib/inflection.js:inflection'
+          #   './bower_components/q/q.js:q'
+          #   './bower_components/jquery/jquery.js:jquery'
+          #   './bower_components/backbone/backbone.js:backbone'
+          #   './bower_components/backbone-deferred/backbone-deferred-q.js:backbone-deferred-q'
+          #   './bower_components/rivets/dist/rivets.js:rivets'
+          # ]
           browserifyOptions:
             standalone: 'Tails'
       istanbul:
         files: 'build/spec/tails.browser.js': 'dist/tails.js'
         options:
           sourceMap: true
-          alias: [
-            './bower_components/underscore/underscore.js:underscore'
-            './bower_components/inflection/lib/inflection.js:inflection'
-            './bower_components/q/q.js:q'
-            './bower_components/jquery/jquery.js:jquery'
-            './bower_components/backbone/backbone.js:backbone'
-            './bower_components/backbone-deferred/backbone-deferred-q.js:backbone-deferred-q'
-            './bower_components/rivets/dist/rivets.js:rivets'
-          ]
+          # alias: [
+          #   './bower_components/underscore/underscore.js:underscore'
+          #   './bower_components/inflection/lib/inflection.js:inflection'
+          #   './bower_components/q/q.js:q'
+          #   './bower_components/jquery/jquery.js:jquery'
+          #   './bower_components/backbone/backbone.js:backbone'
+          #   './bower_components/backbone-deferred/backbone-deferred-q.js:backbone-deferred-q'
+          #   './bower_components/rivets/dist/rivets.js:rivets'
+          # ]
           transform: [require('browserify-istanbul')]
           browserifyOptions:
             standalone: 'Tails'
@@ -130,21 +132,21 @@ module.exports = ( grunt ) ->
     jasmine:
       default:
         src:  ['dist/tails.browser.js']
-        vendor: ['bower_components/jasmine-ajax/lib/mock-ajax.js']
         options:
           keepRunner: true
+          vendor: deps.concat('bower_components/jasmine-ajax/lib/mock-ajax.js')
           specs: 'build/spec/**/*.js'
       lcovonly:
         src:  ['build/spec/tails.browser.js']
-        vendor: ['bower_components/jasmine-ajax/lib/mock-ajax.js']
         options: (coverage 'lcovonly',
           keepRunner: true
+          vendor: deps.concat('bower_components/jasmine-ajax/lib/mock-ajax.js')
           specs: 'build/spec/**/*.js'
         )
       html:
         src: ['build/spec/tails.browser.js']
-        vendor: ['bower_components/jasmine-ajax/lib/mock-ajax.js']
         options: (coverage 'html',
+          vendor: deps.concat('bower_components/jasmine-ajax/lib/mock-ajax.js')
           specs: 'build/spec/**/*.js'
         )
 

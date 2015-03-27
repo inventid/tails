@@ -1,6 +1,10 @@
-class Tails.Model extends Backbone.Deferred.Model
-  _.extend @, Tails.Mixable
-  @concern Tails.Mixins.Associable
+Mixable     = require('./mixable')
+Associable  = require('./mixins/associable')
+config      = require('./config')
+
+class Model extends Backbone.Deferred.Model
+  _.extend @, Mixable
+  @concern Associable
 
   syncedAt: 0
 
@@ -21,7 +25,7 @@ class Tails.Model extends Backbone.Deferred.Model
     return inflection.transform(@constructor.name or @constructor.toString().match(/^function\s*([^\s(]+)/)[1], ['underscore', 'pluralize'])
 
   url: ( ) ->
-    base = @parent?.url?() or @parent?.url or Tails.config.url
+    base = @parent?.url?() or @parent?.url or config.url
     root = @urlRoot?() or @urlRoot
     id = if @id then "/#{@id}" else ''
     format = if @format? then '.' + (@format?() or @format) else ''
@@ -64,3 +68,5 @@ class Tails.Model extends Backbone.Deferred.Model
 
   save: ( options = {} ) ->
     super _.defaults options, dataType: @format
+
+module.exports = Model

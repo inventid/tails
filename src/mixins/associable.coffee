@@ -4,12 +4,17 @@
 # pass a function that will evaluate to the correct class when called.
 # This seemed to be our best option.
 #
-Tails.Mixins.Associable =
+
+Collection = require('../collection')
+Relation   = require('../associations/relation')
+Association = require('../associations/association')
+
+Associable =
 
   InstanceMethods:
     relations: ( ) ->
       unless @_relations?
-        @_relations = new Tails.Collection [], model: Tails.Associations.Relation
+        @_relations = new Collection [], model: Relation
       return @_relations
 
   ClassMethods:
@@ -34,14 +39,14 @@ Tails.Mixins.Associable =
         through:    options.through
         source:     options.source
 
-      association = new Tails.Associations.Association attrs
+      association = new Association attrs
       if to.prototype instanceof Backbone.Model
         association.set to: to
       else association.getter to: to
 
     associations: ( ) ->
       unless @_associations?.klass = @
-        @_associations = Tails.Associations.Association.all().where(from: @)
+        @_associations = Association.all().where(from: @)
         @_associations.klass = @
       return @_associations
 
@@ -52,3 +57,5 @@ Tails.Mixins.Associable =
 
       @before initialize: ( ) ->
         @constructor.associations().each ( association ) => association.apply @
+
+module.exports = Association

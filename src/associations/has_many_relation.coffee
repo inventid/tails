@@ -1,5 +1,7 @@
+Relation = require('./relation')
+Collection = require('../collection')
 
-class Tails.Associations.HasManyRelation extends Tails.Associations.Relation
+class HasManyRelation extends Relation
 
   initialize: ( ) ->
     association = @get('association')
@@ -40,7 +42,7 @@ class Tails.Associations.HasManyRelation extends Tails.Associations.Relation
         if sourceAssociation.get('type') is 'hasMany'
           source = sourceAssociation.get('name')
           @lazy target: ->
-            union = new Tails.Collection.Union()
+            union = new Collection.Union()
             union.parent = owner
             owner.get(through).each         ( model ) => union.addCollection model.get(source)
             owner.get(through).on 'add',    ( model ) => union.addCollection model.get(source)
@@ -49,3 +51,5 @@ class Tails.Associations.HasManyRelation extends Tails.Associations.Relation
         else
           source = sourceAssociation.get('name')
           @lazy target: -> owner.get(through).pluck(source)
+
+module.exports = HasManyRelation

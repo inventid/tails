@@ -1,12 +1,23 @@
-class Tails.Associations.Association extends Backbone.Model
-  _.extend @, Tails.Mixable
-  @concern Tails.Mixins.Debug
-  @concern Tails.Mixins.DynamicAttributes
-  @concern Tails.Mixins.Collectable
+Mixable = require('../mixable')
+Debug = require('../mixins/debug')
+DynamicAttributes = require('../mixins/dynamic_attributes')
+Collectable = require('../mixins/collectable')
+Collection = require('../collection')
+Relation = require('./relation')
+
+BelongsToRelation = require('./belongs_to_relation')
+HasOneRelation = require('./has_one_relation')
+HasManyRelation = require('./has_many_relation')
+
+class Association extends Backbone.Model
+  _.extend @, Mixable
+  @concern Debug
+  @concern DynamicAttributes
+  @concern Collectable
 
   relations: ( ) ->
     unless @_relations?
-      @_relations = new Tails.Collection [], model: Tails.Associations.Relation
+      @_relations = new Collection [], model: Relation
     return @_relations
 
   apply: ( owner ) ->
@@ -20,13 +31,13 @@ class Tails.Associations.Association extends Backbone.Model
     switch @get 'type'
       when 'belongsTo'
         model = owner.get(attrs.name)
-        relation = new Tails.Associations.BelongsToRelation _.extend attrs,
+        relation = new BelongsToRelation _.extend attrs,
           foreignKey: @get('foreignKey') or inflection.foreign_key(attrs.to.name or attrs.to.toString().match(/^function\s*([^\s(]+)/)[1])
         relation.set("target", model) if model?
 
       when 'hasOne'
         model = owner.get(attrs.name)
-        relation = new Tails.Associations.HasOneRelation _.extend attrs,
+        relation = new HasOneRelation _.extend attrs,
           foreignKey: @get('foreignKey') or inflection.foreign_key(attrs.from.name or attrs.from.toString().match(/^function\s*([^\s(]+)/)[1])
           through: @get('through')
           source: @get('source') or @get('name')
@@ -34,7 +45,7 @@ class Tails.Associations.Association extends Backbone.Model
 
       when 'hasMany'
         models = owner.get(attrs.name)
-        relation = new Tails.Associations.HasManyRelation _.extend attrs,
+        relation = new HasManyRelation _.extend attrs,
           foreignKey: @get('foreignKey') or inflection.foreign_key(attrs.from.name or attrs.from.toString().match(/^function\s*([^\s(]+)/)[1])
           through: @get('through')
           source: @get('source') or @get('name')

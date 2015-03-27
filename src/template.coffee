@@ -1,8 +1,12 @@
 # The basic template model. Will use rivets.js for binding
 # objects to the template.
 #
-class Tails.Template extends Tails.Model
-  @concern Tails.Mixins.Collectable
+
+Collectable = require('./mixins/collectable')
+Model       = require('./model')
+
+class Template extends Model
+  @concern Collectable
 
   urlRoot: 'assets'
   format:  'html'
@@ -16,3 +20,5 @@ class Tails.Template extends Tails.Model
 
   parse: ( response, options ) ->
     return html: response
+
+module.exports = Collectable

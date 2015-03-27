@@ -1,4 +1,4 @@
-Tails.Mixable =
+Mixable =
 
   MixableKeywords : ['included', 'extended', 'constructor', 'Interactions', 'InstanceMethods', 'ClassMethods']
 
@@ -10,7 +10,7 @@ Tails.Mixable =
     else # Short style mixin
       funcs = mixin
 
-    for key, value of funcs when key not in Tails.Mixable.MixableKeywords
+    for key, value of funcs when key not in @MixableKeywords
       @::[key] = value if value? # Only keys with defined values
 
     funcs.included?.apply @
@@ -23,7 +23,7 @@ Tails.Mixable =
     else # Short style mixin
       funcs = mixin
 
-    for key, value of funcs when key not in Tails.Mixable.MixableKeywords
+    for key, value of funcs when key not in @MixableKeywords
       @[key] = value  if value? # Only keys with defined values
 
     funcs.extended?.apply @
@@ -51,7 +51,7 @@ Tails.Mixable =
       if mixin.Interactions?
         interactions = mixin.Interactions.apply(@)
         if interactions?
-          @_include interactions 
+          @_include interactions
 
     return @
 
@@ -63,7 +63,7 @@ Tails.Mixable =
     for mixin in mixins
       continue if mixin in @_extendedMixins
       @_extendedMixins.push mixin if mixin?
-      
+
       @_extend(mixin)
 
       # Apply our interactions with other mixins, if any
@@ -78,7 +78,7 @@ Tails.Mixable =
       if mixin.Interactions?
         interactions = mixin.Interactions.apply(@)
         if interactions?
-          @_extend interactions 
+          @_extend interactions
 
     return @
 
@@ -99,10 +99,11 @@ Tails.Mixable =
   #   return @
 
   with: (mixin, funcs = {}) ->
-    if mixin in @_includedMixins or mixin in @_extendedMixins
-      return funcs 
-    else
-      return null
+    if @_includedMixins? and mixin in @_includedMixins
+      return funcs
+    else if @_extendedMixins? and mixin in @_extendedMixins
+      return funcs
+    else return null
 
 
   concern: ( mixins... ) ->
@@ -111,3 +112,4 @@ Tails.Mixable =
       @extend mixin
     return @
 
+module.exports = Mixable

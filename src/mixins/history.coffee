@@ -1,9 +1,12 @@
 #
-Tails.Mixins.History =
+
+Storage = require('./storage')
+
+History =
 
   Interactions: () ->
     InstanceMethods:
-      @with Tails.Mixins.Storage,
+      @with Storage,
         diff: ( ) ->
           diff = {}
           # The apply function
@@ -46,3 +49,5 @@ Tails.Mixins.History =
         included: ( ) ->
           @after initialize: () ->
             @on "change", @commit
+
+module.exports = History

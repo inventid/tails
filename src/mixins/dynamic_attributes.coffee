@@ -2,7 +2,10 @@
 # Javascript can do this natively, but CoffeeScript lacks the
 # syntax for this.
 #
-Tails.Mixins.DynamicAttributes =
+
+Interceptable = require('./interceptable')
+
+DynamicAttributes =
 
   InstanceMethods:
     getter: ( getters, fn = null ) ->
@@ -59,4 +62,6 @@ Tails.Mixins.DynamicAttributes =
       @before initialize: ( ) -> @lazy attributes
 
     extended: ( ) ->
-      @concern Tails.Mixins.Interceptable
+      @concern Interceptable
+
+module.exports = DynamicAttributes

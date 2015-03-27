@@ -2,11 +2,16 @@
 # is stored. Individual instances can be retreived via the get class
 # method, which also create the instance when it's not yet present.
 #
-Tails.Mixins.Collectable =
+
+Interceptable = require('./interceptable')
+Collection    = require('../collection')
+Storage       = require('./storage')
+
+Collectable =
 
   InstanceMethods:
     included: ( ) ->
-      @concern Tails.Mixins.Interceptable
+      @concern Interceptable
 
       @after initialize: ->
         if @id? and @constructor.all().get(@id)?
@@ -16,7 +21,7 @@ Tails.Mixins.Collectable =
   ClassMethods:
     all: ( ) ->
       unless @_all?.klass is @
-        @_all = new Tails.Collection null, model: @
+        @_all = new Collection null, model: @
         @_all.klass = @
       return @_all
 
@@ -28,7 +33,9 @@ Tails.Mixins.Collectable =
 
   Interactions: () ->
     ClassMethods:
-      @with Tails.Mixins.Storage,
+      @with Storage,
         extended: () ->
           @all().on 'add remove', ( instance ) =>
             @store() if instance.id?
+
+module.exports = Collectable

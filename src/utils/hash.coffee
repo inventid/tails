@@ -1,4 +1,4 @@
-Tails.Utils.Hash = ( string ) ->
+Hash = ( string ) ->
   # Taken from http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
   hash = 0;
   return hash if string.length is 0
@@ -10,3 +10,4 @@ Tails.Utils.Hash = ( string ) ->
 
   return hash
 
+module.exports = Hash

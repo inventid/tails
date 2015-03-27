@@ -1,7 +1,11 @@
 # Gives classes and instances the ability to store data in a
 # storage. By default all data will be stored in localStorage.
 #
-Tails.Mixins.Storage =
+
+Interceptable = require('./interceptable')
+Hash          = require('../utils/hash')
+
+Storage =
 
   InstanceMethods:
     storage: ( ) ->
@@ -17,7 +21,7 @@ Tails.Mixins.Storage =
       _.defaults @attributes, @constructor.retrieve @id, hash
 
     included: ( ) ->
-      @concern Tails.Mixins.Interceptable
+      @concern Interceptable
 
       @after initialize: ->
         @on "sync", @store
@@ -40,7 +44,7 @@ Tails.Mixins.Storage =
       indexRoot = @indexRoot?() ? @indexRoot
       key = "#{indexRoot}/#{instance.id}"
       if data?
-        key += "/"+Tails.Utils.Hash @toJSON data
+        key += "/"+Hash @toJSON data
         json = @toJSON
           "instance" : instance
           "data" : data
@@ -57,7 +61,7 @@ Tails.Mixins.Storage =
         json = @storage().getItem key
         JSON.parse json if json?
       else
-        json = @storage().getItem Tails.Utils.Hash indexRoot
+        json = @storage().getItem Hash indexRoot
         ids = JSON.parse json
         @retrieve id for id in ids if json?
         return ids
@@ -79,3 +83,5 @@ Tails.Mixins.Storage =
             key = @indexRoot?() ? @indexRoot
             json = @toJSON @constructor.all().pluck("id")
             @constructor.storage().setItem key, json
+
+module.exports = Storage

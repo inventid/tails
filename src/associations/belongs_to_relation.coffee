@@ -1,4 +1,6 @@
-class Tails.Associations.BelongsToRelation extends Tails.Associations.Relation
+Relation = require('./relation')
+
+class BelongsToRelation extends Relation
 
   initialize: ( ) ->
     association = @get 'association'
@@ -19,3 +21,5 @@ class Tails.Associations.BelongsToRelation extends Tails.Associations.Relation
       owner.set foreignKey, model.id
 
     super
+
+module.exports = BelongsToRelation
