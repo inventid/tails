@@ -38,6 +38,7 @@
     "test": "grunt spec"
   },
   "dependencies": {
-    "coveralls": "~2.11.1"
+    "coveralls": "~2.11.1",
+    "sonic": "git://github.com/joostverdoorn/sonic#develop"
   }
 }
