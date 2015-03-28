@@ -21,4 +21,4 @@ class Template extends Model
   parse: ( response, options ) ->
     return html: response
 
-module.exports = Collectable
+module.exports = Template
