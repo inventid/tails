@@ -916,20 +916,20 @@
       }
       this.collection = collection;
       this.model = this.collection.model;
-      this.filter = options.filter;
-      this.assimilate = options.assimilate;
-      this.distantiate = options.distantiate;
+      this.filterFn = options.filter;
+      this.assimilateFn = options.assimilate;
+      this.distantiateFn = options.distantiate;
       Filtered.__super__.constructor.call(this, [], options);
       this.collection.each((function(_this) {
         return function(model) {
-          if (_this.filter(model)) {
+          if (_this.filterFn(model)) {
             return _this.add(model);
           }
         };
       })(this));
       this.listenTo(this.collection, 'add', (function(_this) {
         return function(model) {
-          if (_this.filter(model)) {
+          if (_this.filterFn(model)) {
             return _this.add(model);
           }
         };
@@ -941,7 +941,7 @@
       })(this));
       this.listenTo(this.collection, 'change', (function(_this) {
         return function(model) {
-          if (_this.filter(model)) {
+          if (_this.filterFn(model)) {
             return _this.add(model);
           } else {
             return _this.remove(model);
@@ -950,14 +950,14 @@
       })(this));
       this.on('add', (function(_this) {
         return function(model) {
-          if (_this.filter(model)) {
+          if (_this.filterFn(model)) {
             return;
           }
-          if (_this.assimilate == null) {
+          if (_this.assimilateFn == null) {
             _this.remove(model);
             throw Error("Cannot assimilate model.");
           }
-          _this.assimilate(model);
+          _this.assimilateFn(model);
           return _this.collection.add(model);
         };
       })(this));
@@ -966,14 +966,14 @@
           if (!_this.collection.contains(model)) {
             return;
           }
-          if (!_this.filter(model)) {
+          if (!_this.filterFn(model)) {
             return;
           }
-          if (_this.distantiate == null) {
+          if (_this.distantiateFn == null) {
             _this.add(model);
             throw Error("Cannot distantiate model.");
           }
-          return _this.distantiate(model);
+          return _this.distantiateFn(model);
         };
       })(this));
     }
