@@ -1167,7 +1167,7 @@
       this.setter({
         target: function(model) {
           if (model == null) {
-            this.set(foreignKey, null);
+            owner.set(foreignKey, null);
             return;
           }
           if (to.all().get(model.id) == null) {
@@ -1250,7 +1250,7 @@
     }
 
     HasManyRelation.prototype.initialize = function() {
-      var association, collection, foreignKey, name, owner, source, sourceAssociation, through, throughAssociation, to;
+      var association, createCollection, foreignKey, name, owner, source, sourceAssociation, store, through, throughAssociation, to;
       association = this.get('association');
       to = association.get('to');
       owner = this.get('owner');
@@ -1259,22 +1259,27 @@
       through = this.get('through');
       source = this.get('source');
       if (through == null) {
-        collection = to.all().where(foreignKey).is(owner.id);
-        collection.parent = owner;
+        store = {};
+        createCollection = function() {
+          store.collection = to.all().where(foreignKey).is(owner.id);
+          return store.collection.parent = owner;
+        };
+        createCollection();
+        owner.on('change:id', createCollection);
         this.getter({
           target: (function(_this) {
             return function() {
-              return collection;
+              return store.collection;
             };
           })(this)
         });
         return this.setter({
           target: (function(_this) {
             return function(models) {
-              collection.each(function(model) {
+              store.collection.each(function(model) {
                 return model.unset(foreignKey);
               });
-              return collection.add(models);
+              return store.collection.add(models);
             };
           })(this)
         });

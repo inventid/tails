@@ -12,7 +12,7 @@ class Tails.Associations.BelongsToRelation extends Tails.Associations.Relation
     @getter target: ( ) -> to.get(owner.get(foreignKey))
     @setter target: ( model ) ->
       unless model?
-        @set foreignKey, null
+        owner.set foreignKey, null
         return
       unless to.all().get(model.id)?
         to.all().add(model, parse: true)
