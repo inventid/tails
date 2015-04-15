@@ -184,40 +184,40 @@ class Tails.Collection.Filtered extends Tails.Collection
     @collection = collection
     @model = @collection.model
 
-    @filter = options.filter
-    @assimilate = options.assimilate
-    @distantiate = options.distantiate
+    @filterFn = options.filter
+    @assimilateFn = options.assimilate
+    @distantiateFn = options.distantiate
 
     super([], options)
 
     @collection.each ( model ) =>
-      @add(model) if @filter(model)
+      @add(model) if @filterFn(model)
 
     @listenTo @collection, 'add', ( model ) =>
-      @add(model) if @filter(model)
+      @add(model) if @filterFn(model)
 
     @listenTo @collection, 'remove', ( model ) =>
       @remove(model)
 
     @listenTo @collection, 'change', ( model ) =>
-      if @filter(model) then @add(model)
+      if @filterFn(model) then @add(model)
       else @remove(model)
 
     @on 'add', ( model ) =>
-      return if @filter(model)
-      unless @assimilate?
+      return if @filterFn(model)
+      unless @assimilateFn?
         @remove(model)
         throw Error("Cannot assimilate model.")
-      @assimilate(model)
+      @assimilateFn(model)
       @collection.add(model)
 
     @on 'remove', ( model ) =>
       return if not @collection.contains(model)
-      return if not @filter(model)
-      unless @distantiate?
+      return if not @filterFn(model)
+      unless @distantiateFn?
         @add(model)
         throw Error("Cannot distantiate model.")
-      @distantiate(model)
+      @distantiateFn(model)
 
 
 
