@@ -1279,7 +1279,7 @@
               store.collection.each(function(model) {
                 return model.unset(foreignKey);
               });
-              return store.collection.add(models);
+              return store.collection.set(models);
             };
           })(this)
         });

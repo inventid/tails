@@ -23,8 +23,8 @@ class Tails.Associations.HasManyRelation extends Tails.Associations.Relation
 
       @getter target: ( ) => store.collection
       @setter target: ( models ) =>
-        store.collection.each ( model ) -> model.unset foreignKey
-        store.collection.add(models)
+        store.collection.each (model) -> model.unset foreignKey
+        store.collection.set(models)
 
     # We're dealing with a through association. We have three kinds of hasMany through associations:
     # 1. The through association is a singular association (belongsTo, hasOne). In this case
