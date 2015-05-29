@@ -1,9 +1,7 @@
-Mixable = require('./mixable')
+{ LinkedList } = require('sonic')
 Model = require('./model')
-config = require('./config')
-Sonic  = require('sonic')
 
-class Collection
+class Collection extends LinkedList
 
   model: Model
 
@@ -15,10 +13,9 @@ class Collection
     @initialize?()
 
 
+  # @filter: (collection) ->
+    # LinkedList.flatMap
 
-
-Object.keys(Sonic.utilities).forEach ( key ) ->
-  Collection::[key] = -> Sonic.utilities[key].apply(@_models, arguments)
 
 
 
