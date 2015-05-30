@@ -1,0 +1,55 @@
+require('coffee-script').register();
+
+var gulp       = require('gulp');
+var coffee     = require('gulp-coffee')
+var rename     = require('gulp-rename');
+var uglify     = require('gulp-uglify');
+var jasmine    = require('gulp-jasmine');
+var benchmark  = require('gulp-bench');
+var browserify = require('browserify');
+var source     = require('vinyl-source-stream');
+var buffer     = require('vinyl-buffer');
+var merge      = require('merge2');
+
+gulp.task('coffee', function() {
+  return gulp
+    .src('src/**/*.coffee')
+    .pipe(coffee())
+    .pipe(gulp.dest('dist'))
+});
+
+gulp.task('browserify', ['coffee'], function() {
+  return browserify('dist/tails.js', {standalone: 'Tails'})
+    .bundle()
+    .pipe(source('tails.browser.js'))
+    .pipe(buffer())
+    .pipe(gulp.dest('dist'))
+});
+
+gulp.task('uglify', ['browserify'], function (){
+  return gulp
+    .src('dist/tails.browser.js')
+    .pipe(uglify())
+    .pipe(rename('tails.browser.min.js'))
+    .pipe(gulp.dest('dist'))
+})
+
+gulp.task('spec', function() {
+  return gulp
+    .src('spec/**/*.coffee')
+    .pipe(jasmine({
+      includeStackTrace: true
+    }))
+});
+
+gulp.task('perf', function () {
+  return gulp
+    .src('perf/**/*.coffee')
+    .pipe(benchmark({defer: true}))
+});
+
+gulp.task('dist', ['uglify']);
+
+gulp.task('watch', function() {
+  gulp.watch('src/*.ts', ['dist']);
+})
