@@ -10,15 +10,29 @@ var browserify = require('browserify');
 var source     = require('vinyl-source-stream');
 var buffer     = require('vinyl-buffer');
 var merge      = require('merge2');
+var typescript = require('gulp-typescript');
 
-gulp.task('coffee', function() {
-  return gulp
-    .src('src/**/*.coffee')
-    .pipe(coffee())
-    .pipe(gulp.dest('dist'))
+var typescriptProject = typescript.createProject('tsconfig.json', { typescript: require('typescript') });
+
+
+// gulp.task('coffee', function() {
+//   return gulp
+//     .src('src/**/*.coffee')
+//     .pipe(coffee())
+//     .pipe(gulp.dest('dist'))
+// });
+
+gulp.task('typescript', function() {
+  var result = gulp
+    .src('src/**/*.ts')
+    .pipe(typescript(typescriptProject))
+
+  return merge([
+    // result.dts.pipe(gulp.dest('dist')),
+    result.js.pipe(gulp.dest('dist'))
+  ]);
 });
-
-gulp.task('browserify', ['coffee'], function() {
+gulp.task('browserify', ['typescript'], function() {
   return browserify('dist/tails.js', {standalone: 'Tails'})
     .bundle()
     .pipe(source('tails.browser.js'))

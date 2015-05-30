@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "module": "commonjs",
+        "noImplicitAny": true
+    },
+    "filesGlob": [
+        "src/**/*.ts"
+    ],
+    "rootDir": "src/",
+    "files": [
+        "src/model.ts",
+        "src/mutable_record.ts",
+        "src/observable_record.ts",
+        "src/record.ts",
+        "src/simple_record.ts",
+        "src/tails.ts",
+        "src/utils.ts"
+    ]
+}
