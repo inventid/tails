@@ -3,7 +3,7 @@ import LinkedList from '../node_modules/sonic/dist/linked_list';
 import { IObservableList, ObservableList } from '../node_modules/sonic/dist/observable_list';
 import Utils from './utils';
 
-import SimpleRecord from './simple_record';
+import SimpleRecord from '../node_modules/knuckles/dist/simple_record';
 
 class Model extends SimpleRecord<any> {
   private static _collection: LinkedList<Model>;
