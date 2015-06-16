@@ -11,6 +11,7 @@ var source     = require('vinyl-source-stream');
 var buffer     = require('vinyl-buffer');
 var merge      = require('merge2');
 var typescript = require('gulp-typescript');
+var babel      = require('babelify');
 
 var typescriptProject = typescript.createProject('tsconfig.json', { typescript: require('typescript') });
 
@@ -34,9 +35,9 @@ gulp.task('typescript', function() {
 });
 gulp.task('browserify', ['typescript'], function() {
   return browserify('dist/tails.js', {standalone: 'Tails'})
+    .transform(babel)
     .bundle()
     .pipe(source('tails.browser.js'))
-    .pipe(buffer())
     .pipe(gulp.dest('dist'))
 });
 

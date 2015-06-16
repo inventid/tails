@@ -1,17 +1,49 @@
 {
     "compilerOptions": {
-        "target": "es5",
-        "module": "commonjs",
+        "outDir": "dist",
+        "target": "es6",
         "noImplicitAny": true,
         "declaration": true
     },
     "filesGlob": [
-        "src/**/*.ts"
+        "src/**/*.ts",
+        "node_modules/sonic/dist/**/*.ts",
+        "node_modules/knuckles/dist/**/*.ts"
     ],
     "rootDir": "src/",
     "files": [
+        "src/associations.ts",
+        "src/collection.ts",
         "src/model.ts",
         "src/tails.ts",
-        "src/utils.ts"
+        "src/utils.ts",
+        "node_modules/sonic/dist/array_list.d.ts",
+        "node_modules/sonic/dist/async_list.d.ts",
+        "node_modules/sonic/dist/cache.d.ts",
+        "node_modules/sonic/dist/compose.d.ts",
+        "node_modules/sonic/dist/factory.d.ts",
+        "node_modules/sonic/dist/index.d.ts",
+        "node_modules/sonic/dist/key.d.ts",
+        "node_modules/sonic/dist/key_by.d.ts",
+        "node_modules/sonic/dist/linked_list.d.ts",
+        "node_modules/sonic/dist/list.d.ts",
+        "node_modules/sonic/dist/mutable_list.d.ts",
+        "node_modules/sonic/dist/observable.d.ts",
+        "node_modules/sonic/dist/observable_cache.d.ts",
+        "node_modules/sonic/dist/observable_index.d.ts",
+        "node_modules/sonic/dist/observable_key_by.d.ts",
+        "node_modules/sonic/dist/observable_list.d.ts",
+        "node_modules/sonic/dist/sonic.d.ts",
+        "node_modules/sonic/dist/tree.d.ts",
+        "node_modules/sonic/dist/unit.d.ts",
+        "node_modules/knuckles/dist/collection.d.ts",
+        "node_modules/knuckles/dist/knuckle.d.ts",
+        "node_modules/knuckles/dist/knuckles.d.ts",
+        "node_modules/knuckles/dist/mutable_record.d.ts",
+        "node_modules/knuckles/dist/observable_record.d.ts",
+        "node_modules/knuckles/dist/record.d.ts",
+        "node_modules/knuckles/dist/remote_record.d.ts",
+        "node_modules/knuckles/dist/simple_record.d.ts",
+        "node_modules/knuckles/dist/xhr.d.ts"
     ]
 }
