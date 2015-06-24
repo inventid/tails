@@ -4,6 +4,113 @@
 Object.defineProperty(exports, '__esModule', {
     value: true
 });
+exports.Associable = Associable;
+
+var _collectable = require('./collectable');
+
+var _interceptable = require('./interceptable');
+
+function Associable(target) {
+    if (!(0, _collectable.isCollectable)(target)) (0, _collectable.Collectable)(target);
+    if (!(0, _interceptable.isInterceptable)(target)) (0, _interceptable.Interceptable)(target);
+    target.extend(Associable);
+}
+
+var Associable;
+exports.Associable = Associable;
+(function (Associable) {
+    var ClassMethods;
+    (function (ClassMethods) {
+        function belongsTo(klass, options) {
+            throw new Error('Not implemented.');
+            // var name: string = <string>this['name'];
+            // var foreignKey = Utils.underscore(name) + "_id";
+            //
+            // console.log(name, foreignKey, klass);
+            // return model.zoom(foreignKey).flatMap( (id: number) => {
+            //   return Model.where(this.all(), "id", id);
+            // });
+        }
+        ClassMethods.belongsTo = belongsTo;
+        function hasOne(klass, options) {
+            throw new Error('Not implemented.');
+            // return hasMany(klass, options);
+        }
+        ClassMethods.hasOne = hasOne;
+        function hasMany(klass, options) {
+            throw new Error('Not implemented.');
+            // var name: string = <string>klass['name'];
+            // var foreignKey = Utils.underscore(name) + "_id";
+            //
+            // console.log(name, foreignKey, klass);
+            //
+            // return model.zoom('id').flatMap((id: number) => {
+            //   return Model.where((<T>target).all(), foreignKey, id);
+            // });
+        }
+        ClassMethods.hasMany = hasMany;
+    })(ClassMethods = Associable.ClassMethods || (Associable.ClassMethods = {}));
+})(Associable || (exports.Associable = exports.Associable = Associable = {}));
+exports['default'] = Associable;
+
+//
+
+},{"./collectable":2,"./interceptable":5}],2:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+    value: true
+});
+exports.Collectable = Collectable;
+exports.isCollectable = isCollectable;
+
+function _interopRequireDefault(obj) {
+    return obj && obj.__esModule ? obj : { 'default': obj };
+}
+
+var _mixable = require('./mixable');
+
+var _collection = require('./collection');
+
+var _collection2 = _interopRequireDefault(_collection);
+
+function Collectable(target) {
+    if (!(0, _mixable.isMixable)(target)) (0, _mixable.Mixable)(target);
+    target.extend(Collectable);
+}
+
+var Collectable;
+exports.Collectable = Collectable;
+(function (Collectable) {
+    var ClassMethods;
+    (function (ClassMethods) {
+        ClassMethods._collection = undefined;
+        function _keyFn(model) {
+            return model.id || null;
+        }
+        ClassMethods._keyFn = _keyFn;
+        ;
+        function all() {
+            return this._collection = this._collection ? this._collection : new _collection2['default']([], { keyFn: _keyFn });
+        }
+        ClassMethods.all = all;
+    })(ClassMethods = Collectable.ClassMethods || (Collectable.ClassMethods = {}));
+})(Collectable || (exports.Collectable = exports.Collectable = Collectable = {}));
+
+function isCollectable(obj) {
+    return Object.keys(Collectable.ClassMethods).reduce(function (memo, key) {
+        return memo && !(obj[key] == null);
+    }, true);
+}
+
+exports['default'] = Collectable;
+
+},{"./collection":3,"./mixable":6}],3:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+    value: true
+});
 
 var _createClass = (function () {
     function defineProperties(target, props) {
@@ -19,7 +126,7 @@ var _get = function get(_x, _x2, _x3) {
     var _again = true;_function: while (_again) {
         var object = _x,
             property = _x2,
-            receiver = _x3;desc = parent = getter = undefined;_again = false;var desc = Object.getOwnPropertyDescriptor(object, property);if (desc === undefined) {
+            receiver = _x3;desc = parent = getter = undefined;_again = false;if (object === null) object = Function.prototype;var desc = Object.getOwnPropertyDescriptor(object, property);if (desc === undefined) {
             var parent = Object.getPrototypeOf(object);if (parent === null) {
                 return undefined;
             } else {
@@ -39,28 +146,6 @@ function _interopRequireDefault(obj) {
     return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
-function _slicedToArray(arr, i) {
-    if (Array.isArray(arr)) {
-        return arr;
-    } else if (Symbol.iterator in Object(arr)) {
-        var _arr = [];var _n = true;var _d = false;var _e = undefined;try {
-            for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
-                _arr.push(_s.value);if (i && _arr.length === i) break;
-            }
-        } catch (err) {
-            _d = true;_e = err;
-        } finally {
-            try {
-                if (!_n && _i['return']) _i['return']();
-            } finally {
-                if (_d) throw _e;
-            }
-        }return _arr;
-    } else {
-        throw new TypeError('Invalid attempt to destructure non-iterable instance');
-    }
-}
-
 function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
         throw new TypeError('Cannot call a class as a function');
@@ -73,85 +158,469 @@ function _inherits(subClass, superClass) {
     }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) subClass.__proto__ = superClass;
 }
 
-var _node_modulesSonicDistLinked_list = require('../node_modules/sonic/dist/linked_list');
+var _node_modulesKnucklesDistCollection = require('../node_modules/knuckles/dist/collection');
 
-var _node_modulesSonicDistLinked_list2 = _interopRequireDefault(_node_modulesSonicDistLinked_list);
+var _node_modulesKnucklesDistCollection2 = _interopRequireDefault(_node_modulesKnucklesDistCollection);
 
-var _node_modulesKnucklesDistSimple_record = require('../node_modules/knuckles/dist/simple_record');
+var _node_modulesSonicDistMutable_list = require('../node_modules/sonic/dist/mutable_list');
 
-var _node_modulesKnucklesDistSimple_record2 = _interopRequireDefault(_node_modulesKnucklesDistSimple_record);
+var _node_modulesSonicDistArray_list = require('../node_modules/sonic/dist/array_list');
 
-var Model = (function (_SimpleRecord) {
-    function Model(object) {
-        _classCallCheck(this, Model);
+var _node_modulesSonicDistArray_list2 = _interopRequireDefault(_node_modulesSonicDistArray_list);
 
-        _get(Object.getPrototypeOf(Model.prototype), 'constructor', this).call(this, object);
-        this.constructor.all().push(this);
+var _utils = require('./utils');
+
+var _utils2 = _interopRequireDefault(_utils);
+
+var _node_modulesSonicDistObservable_cache = require('../node_modules/sonic/dist/observable_cache');
+
+var _node_modulesSonicDistObservable_cache2 = _interopRequireDefault(_node_modulesSonicDistObservable_cache);
+
+var Collection = (function (_MutableList) {
+    function Collection(models, options) {
+        var _this = this;
+
+        if (models === undefined) models = [];
+
+        _classCallCheck(this, Collection);
+
+        _get(Object.getPrototypeOf(Collection.prototype), 'constructor', this).call(this);
+        this.has = function (key) {
+            return _this._cache.has(key);
+        };
+        this.get = function (key) {
+            if (!_this.has(key)) _this._record.get(key);
+            return _this._cache.get(key);
+        };
+        this._models = new _node_modulesSonicDistArray_list2['default'](models);
+        this._record = new _node_modulesKnucklesDistCollection2['default'](this.url(), []);
+        this._cache = new _node_modulesSonicDistObservable_cache2['default'](this._models);
+        // this._record.observe({
+        //   onInvalidate: (key: Key) => {
+        //     this._models.set(key)
+        //   }
+        // })
     }
 
-    _inherits(Model, _SimpleRecord);
+    _inherits(Collection, _MutableList);
 
-    _createClass(Model, null, [{
-        key: '_keyFn',
-        value: function _keyFn(model) {
-            return model.id || null;
-        }
-    }, {
-        key: 'all',
-        value: function all() {
-            if (this._collection == null) this._collection = new _node_modulesSonicDistLinked_list2['default']([], this._keyFn);
-            return this._collection;
-        }
-    }, {
-        key: 'where',
-        value: function where(models, key, value) {
-            return Model.pluck(models, key).filter(function (tuple) {
-                var _tuple = _slicedToArray(tuple, 2);
-
-                var model = _tuple[0];
-                var _value = _tuple[1];
-
-                return _value === value;
-            }).map(function (tuple) {
-                return tuple[0];
-            });
-        }
-    }, {
-        key: 'pluck',
-        value: function pluck(models, key) {
-            return models.flatMap(function (model) {
-                return model.zoom(key).map(function (value) {
-                    return [model, value];
-                });
-            });
+    _createClass(Collection, [{
+        key: 'url',
+        value: function url() {
+            return _utils2['default'].underscore(this.constructor.name);
         }
     }]);
 
-    return Model;
-})(_node_modulesKnucklesDistSimple_record2['default']);
+    return Collection;
+})(_node_modulesSonicDistMutable_list.MutableList);
 
-Model.belongsTo = function (target) {};
-exports['default'] = Model;
-module.exports = exports['default'];
+exports.Collection = Collection;
+exports['default'] = Collection;
 
-},{"../node_modules/knuckles/dist/simple_record":6,"../node_modules/sonic/dist/linked_list":28}],2:[function(require,module,exports){
+},{"../node_modules/knuckles/dist/collection":10,"../node_modules/sonic/dist/array_list":32,"../node_modules/sonic/dist/mutable_list":39,"../node_modules/sonic/dist/observable_cache":41,"./utils":9}],4:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+    value: true
+});
+exports.Debug = Debug;
+exports.isDebug = isDebug;
+
+function _defineProperty(obj, key, value) {
+    return Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });
+}
+
+var _mixable = require('./mixable');
+
+var _interceptable = require('./interceptable');
+
+function Debug(target) {
+    if (!(0, _mixable.isMixable)(target)) (0, _mixable.Mixable)(target);
+    if (!(0, _interceptable.isInterceptable)(target)) (0, _interceptable.Interceptable)(target);
+    target.extend(Debug);
+}
+
+var Debug;
+exports.Debug = Debug;
+(function (Debug) {
+    var ClassMethods;
+    (function (ClassMethods) {
+        function debug() {
+            var _this = this;
+
+            for (var _len = arguments.length, keys = Array(_len), _key = 0; _key < _len; _key++) {
+                keys[_key] = arguments[_key];
+            }
+
+            keys.forEach(function (key) {
+                if (_this[key] instanceof Function) {
+                    var debugFn = function debugFn(context, fn, args) {
+                        console.log('Intercept', context, key, fn, args);
+                        debugger;
+                    };
+                    _this.intercept(_defineProperty({}, key, debugFn));
+                }
+            });
+        }
+        ClassMethods.debug = debug;
+    })(ClassMethods = Debug.ClassMethods || (Debug.ClassMethods = {}));
+})(Debug || (exports.Debug = exports.Debug = Debug = {}));
+
+function isDebug(obj) {
+    return Object.keys(Debug.ClassMethods).reduce(function (memo, key) {
+        return memo && !(obj[key] == null);
+    }, true);
+}
+
+exports['default'] = Debug;
+
+},{"./interceptable":5,"./mixable":6}],5:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+    value: true
+});
+exports.Interceptable = Interceptable;
+exports.isInterceptable = isInterceptable;
+
+var _mixable = require('./mixable');
+
+function Interceptable(target) {
+    if (!(0, _mixable.isMixable)(target)) (0, _mixable.Mixable)(target);
+    target.extend(Interceptable);
+}
+
+var Interceptable;
+exports.Interceptable = Interceptable;
+(function (Interceptable) {
+    var ClassMethods;
+    (function (ClassMethods) {
+        function intercept(obj) {
+            var _this = this;
+
+            Object.keys(obj).forEach(function (key) {
+                var _fn = obj[key].bind(_this),
+                    fn = _this[key].bind(_this);
+                _this[key] = function () {
+                    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+                        args[_key] = arguments[_key];
+                    }
+
+                    _fn(_this, fn, args);
+                };
+            });
+        }
+        ClassMethods.intercept = intercept;
+        function before(obj) {
+            var _this2 = this;
+
+            Object.keys(obj).forEach(function (key) {
+                var _fn = obj[key].bind(_this2),
+                    fn = _this2[key].bind(_this2);
+                _this2[key] = function () {
+                    _fn.apply(undefined, arguments);
+                    fn.apply(undefined, arguments);
+                };
+            });
+        }
+        ClassMethods.before = before;
+        function after(obj) {
+            var _this3 = this;
+
+            Object.keys(obj).forEach(function (key) {
+                var _fn = obj[key].bind(_this3),
+                    fn = _this3[key].bind(_this3);
+                _this3[key] = function () {
+                    fn.apply(undefined, arguments);
+                    _fn.apply(undefined, arguments);
+                };
+            });
+        }
+        ClassMethods.after = after;
+    })(ClassMethods = Interceptable.ClassMethods || (Interceptable.ClassMethods = {}));
+})(Interceptable || (exports.Interceptable = exports.Interceptable = Interceptable = {}));
+
+function isInterceptable(obj) {
+    return Object.keys(Interceptable.ClassMethods).reduce(function (memo, key) {
+        return memo && !(obj[key] == null);
+    }, true);
+}
+
+exports['default'] = Interceptable;
+
+},{"./mixable":6}],6:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.Mixable = Mixable;
+exports.isMixable = isMixable;
+
+function Mixable(target) {
+    if (!isMixable(target)) Mixable.ClassMethods.extend.call(target, Mixable);
+}
+
+var Mixable;
+exports.Mixable = Mixable;
+(function (Mixable) {
+    var ClassMethods;
+    (function (ClassMethods) {
+        ClassMethods._includedMixins = undefined;
+        ClassMethods._extendedMixins = undefined;
+        function extend() {
+            var _this = this;
+
+            for (var _len = arguments.length, mixins = Array(_len), _key = 0; _key < _len; _key++) {
+                mixins[_key] = arguments[_key];
+            }
+
+            mixins.forEach(function (mixin) {
+                // This becomes a non-enumerable property in the next part so it doesn't mess up with CoffeeScript extends
+                _this._extendedMixins = _this._extendedMixins ? _this._extendedMixins : [];
+                if (mixin.ClassMethods == null || _this._extendedMixins.indexOf(mixin) != -1) return;
+                Object.keys(mixin.ClassMethods).forEach(function (key) {
+                    console.log(key);
+                    var _value = mixin.ClassMethods[key];
+                    _value = _value != null ? _value : _this[key];
+                    var desc = {
+                        get: function get() {
+                            return _value;
+                        },
+                        set: function set(value) {
+                            return _value = value;
+                        },
+                        // This hides non-functions from derived classes
+                        enumerable: _value instanceof Function
+                    };
+                    Object.defineProperty(_this, key, desc);
+                });
+                _this._extendedMixins.push(mixin);
+            });
+        }
+        ClassMethods.extend = extend;
+        function include() {
+            var _this2 = this;
+
+            for (var _len2 = arguments.length, mixins = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+                mixins[_key2] = arguments[_key2];
+            }
+
+            mixins.forEach(function (mixin) {
+                _this2._includedMixins = _this2._includedMixins ? _this2._includedMixins : [];
+                if (mixin.InstanceMethods == null || _this2._includedMixins.indexOf(mixin) != -1) return;
+                Object.keys(mixin.InstanceMethods).forEach(function (key) {
+                    _this2.prototype[key] = mixin.InstanceMethods[key];
+                });
+                _this2._includedMixins.push(mixin);
+            });
+        }
+        ClassMethods.include = include;
+        function concern() {
+            extend.apply(undefined, arguments);
+            concern.apply(undefined, arguments);
+        }
+        ClassMethods.concern = concern;
+    })(ClassMethods = Mixable.ClassMethods || (Mixable.ClassMethods = {}));
+})(Mixable || (exports.Mixable = exports.Mixable = Mixable = {}));
+
+function isMixable(obj) {
+    return Object.keys(Mixable).reduce(function (memo, key) {
+        return memo && !(obj[key] == null);
+    }, true);
+}
+
+exports["default"] = Mixable;
+
+},{}],7:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = (function () {
+    function defineProperties(target, props) {
+        for (var i = 0; i < props.length; i++) {
+            var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+        }
+    }return function (Constructor, protoProps, staticProps) {
+        if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+})();
+
+var _get = function get(_x, _x2, _x3) {
+    var _again = true;_function: while (_again) {
+        var object = _x,
+            property = _x2,
+            receiver = _x3;desc = parent = getter = undefined;_again = false;if (object === null) object = Function.prototype;var desc = Object.getOwnPropertyDescriptor(object, property);if (desc === undefined) {
+            var parent = Object.getPrototypeOf(object);if (parent === null) {
+                return undefined;
+            } else {
+                _x = parent;_x2 = property;_x3 = receiver;_again = true;continue _function;
+            }
+        } else if ("value" in desc) {
+            return desc.value;
+        } else {
+            var getter = desc.get;if (getter === undefined) {
+                return undefined;
+            }return getter.call(receiver);
+        }
+    }
+};
+
+function _interopRequireDefault(obj) {
+    return obj && obj.__esModule ? obj : { "default": obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+        throw new TypeError("Cannot call a class as a function");
+    }
+}
+
+function _inherits(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+        throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+    }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) subClass.__proto__ = superClass;
+}
+
+var _mixable = require("./mixable");
+
+var _mixable2 = _interopRequireDefault(_mixable);
+
+var _collectable = require("./collectable");
+
+var _collectable2 = _interopRequireDefault(_collectable);
+
+var _associable = require("./associable");
+
+var _associable2 = _interopRequireDefault(_associable);
+
+var _interceptable = require("./interceptable");
+
+var _interceptable2 = _interopRequireDefault(_interceptable);
+
+var _debug = require("./debug");
+
+var _debug2 = _interopRequireDefault(_debug);
+
+var _node_modulesKnucklesDistSimple_record = require("../node_modules/knuckles/dist/simple_record");
+
+var _node_modulesKnucklesDistSimple_record2 = _interopRequireDefault(_node_modulesKnucklesDistSimple_record);
+
+var __decorate = undefined && undefined.__decorate || function (decorators, target, key, desc) {
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") return Reflect.decorate(decorators, target, key, desc);
+    switch (arguments.length) {
+        case 2:
+            return decorators.reduceRight(function (o, d) {
+                return d && d(o) || o;
+            }, target);
+        case 3:
+            return decorators.reduceRight(function (o, d) {
+                return (d && d(target, key), void 0);
+            }, void 0);
+        case 4:
+            return decorators.reduceRight(function (o, d) {
+                return d && d(target, key, o) || o;
+            }, desc);
+    }
+};
+var Model = (function (_SimpleRecord) {
+    var _class = function Model(object) {
+        _classCallCheck(this, _class);
+
+        _get(Object.getPrototypeOf(_class.prototype), "constructor", this).call(this, object);
+        this.constructor.all().push(this);
+        this.initialize();
+    };
+
+    _inherits(_class, _SimpleRecord);
+
+    _createClass(_class, [{
+        key: "initialize",
+        value: function initialize() {}
+    }]);
+
+    return _class;
+})(_node_modulesKnucklesDistSimple_record2["default"]);
+exports.Model = Model;
+exports.Model = Model = __decorate([_mixable2["default"], _interceptable2["default"], _collectable2["default"], _associable2["default"], _debug2["default"]], Model);
+exports["default"] = Model;
+
+},{"../node_modules/knuckles/dist/simple_record":14,"./associable":1,"./collectable":2,"./debug":4,"./interceptable":5,"./mixable":6}],8:[function(require,module,exports){
 'use strict';
 
 function _interopRequireDefault(obj) {
     return obj && obj.__esModule ? obj : { 'default': obj };
 }
 
+var _mixable = require('./mixable');
+
+var _mixable2 = _interopRequireDefault(_mixable);
+
+var _collectable = require('./collectable');
+
+var _collectable2 = _interopRequireDefault(_collectable);
+
+var _associable = require('./associable');
+
+var _associable2 = _interopRequireDefault(_associable);
+
+var _interceptable = require('./interceptable');
+
+var _interceptable2 = _interopRequireDefault(_interceptable);
+
+var _debug = require('./debug');
+
+var _debug2 = _interopRequireDefault(_debug);
+
 var _model = require('./model');
 
 var _model2 = _interopRequireDefault(_model);
 
+var _collection = require('./collection');
+
+var _collection2 = _interopRequireDefault(_collection);
+
+var _utils = require('./utils');
+
+var _utils2 = _interopRequireDefault(_utils);
+
 var Tails;
 (function (Tails) {
+    var Mixins;
+    (function (Mixins) {
+        Mixins.Mixable = _mixable2['default'];
+        Mixins.Collectable = _collectable2['default'];
+        Mixins.Associable = _associable2['default'];
+        Mixins.Interceptable = _interceptable2['default'];
+        Mixins.Debug = _debug2['default'];
+    })(Mixins = Tails.Mixins || (Tails.Mixins = {}));
     Tails.Model = _model2['default'];
+    // export var View             = _View;
+    Tails.Collection = _collection2['default'];
+    Tails.Utils = _utils2['default'];
 })(Tails || (Tails = {}));
 module.exports = Tails;
 
-},{"./model":1}],3:[function(require,module,exports){
+},{"./associable":1,"./collectable":2,"./collection":3,"./debug":4,"./interceptable":5,"./mixable":6,"./model":7,"./utils":9}],9:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+var Utils;
+exports.Utils = Utils;
+(function (Utils) {
+    function underscore(string) {
+        return string.replace(/((!?[^|\s])[A-Z][a-z0-9])/, "_$1").toLowerCase();
+    }
+    Utils.underscore = underscore;
+})(Utils || (exports.Utils = Utils = {}));
+exports["default"] = Utils;
+
+},{}],10:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -160,7 +629,107 @@ Object.defineProperty(exports, '__esModule', {
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+var _simple_record = require('./simple_record');
+
+var _xhr = require('./xhr');
+
+var Collection = (function (_SimpleRecord) {
+    function Collection(urlRoot, models) {
+        _classCallCheck(this, Collection);
+
+        _get(Object.getPrototypeOf(Collection.prototype), 'constructor', this).call(this, {});
+        this._urlRoot = urlRoot;
+    }
+
+    _inherits(Collection, _SimpleRecord);
+
+    _createClass(Collection, [{
+        key: 'all',
+        value: function all() {
+            var _this = this;
+
+            return _xhr.XHR.get(this._urlRoot).then(function (res) {
+                var arr = JSON.parse(res.responseText);
+                arr.forEach(function (value) {
+                    _get(Object.getPrototypeOf(Collection.prototype), 'set', _this).call(_this, value.id, value);
+                });
+                return arr;
+            });
+        }
+    }, {
+        key: 'has',
+        value: function has(key) {
+            var _this2 = this;
+
+            return _get(Object.getPrototypeOf(Collection.prototype), 'has', this).call(this, key).then(function (has) {
+                return has || _xhr.XHR.head(_this2._urlRoot + '/' + key).then(function () {
+                    return true;
+                })['catch'](function () {
+                    return false;
+                });
+            });
+        }
+    }, {
+        key: 'get',
+        value: function get(key) {
+            var _this3 = this;
+
+            return key in this._object ? _get(Object.getPrototypeOf(Collection.prototype), 'get', this).call(this, key) : _xhr.XHR.get(this._urlRoot + '/' + key).then(function (res) {
+                var value = JSON.parse(res.responseText);
+                _get(Object.getPrototypeOf(Collection.prototype), 'set', _this3).call(_this3, key, value);
+                return value;
+            });
+        }
+    }, {
+        key: 'set',
+        value: function set(key, value) {
+            var _this4 = this;
+
+            if (key in this._object) return _xhr.XHR.put(this._urlRoot + '/' + key, value).then(function (res) {
+                return _get(Object.getPrototypeOf(Collection.prototype), 'set', _this4).call(_this4, key, JSON.parse(res.responseText));
+            });else return _xhr.XHR.post(this._urlRoot, value).then(function (res) {
+                var value = JSON.parse(res.responseText);
+                return _get(Object.getPrototypeOf(Collection.prototype), 'set', _this4).call(_this4, value.id, value);
+            });
+        }
+    }, {
+        key: 'observe',
+        value: function observe(observer) {
+            return this._subject.observe(observer);
+        }
+    }, {
+        key: 'delete',
+        value: function _delete(key) {
+            var _this5 = this;
+
+            return _xhr.XHR['delete'](this._urlRoot + '/' + key).then(function (res) {
+                return _get(Object.getPrototypeOf(Collection.prototype), 'delete', _this5).call(_this5, key);
+            });
+        }
+    }]);
+
+    return Collection;
+})(_simple_record.SimpleRecord);
+
+exports.Collection = Collection;
+exports['default'] = Collection;
+
+},{"./simple_record":14,"./xhr":15}],11:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+    value: true
+});
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
@@ -241,7 +810,7 @@ var MutableRecord = (function (_ObservableRecord) {
 exports.MutableRecord = MutableRecord;
 exports['default'] = MutableRecord;
 
-},{"../node_modules/sonic/dist/mutable_list":15,"./observable_record":4}],4:[function(require,module,exports){
+},{"../node_modules/sonic/dist/mutable_list":24,"./observable_record":12}],12:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -250,7 +819,7 @@ Object.defineProperty(exports, '__esModule', {
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -320,7 +889,7 @@ var ObservableRecord = (function (_Record) {
 exports.ObservableRecord = ObservableRecord;
 exports['default'] = ObservableRecord;
 
-},{"../node_modules/sonic/dist/observable_list":20,"../node_modules/sonic/dist/unit":22,"./record":5}],5:[function(require,module,exports){
+},{"../node_modules/sonic/dist/observable_list":29,"../node_modules/sonic/dist/unit":31,"./record":13}],13:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -384,7 +953,7 @@ var Record = (function () {
 exports.Record = Record;
 exports['default'] = Record;
 
-},{"../node_modules/sonic/dist/factory":10,"../node_modules/sonic/dist/list":14}],6:[function(require,module,exports){
+},{"../node_modules/sonic/dist/factory":19,"../node_modules/sonic/dist/list":23}],14:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -393,7 +962,7 @@ Object.defineProperty(exports, '__esModule', {
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
@@ -473,14 +1042,124 @@ var SimpleRecord = (function (_MutableRecord) {
 exports.SimpleRecord = SimpleRecord;
 exports['default'] = SimpleRecord;
 
-},{"../node_modules/sonic/dist/observable":16,"./mutable_record":3}],7:[function(require,module,exports){
+},{"../node_modules/sonic/dist/observable":25,"./mutable_record":11}],15:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+    value: true
+});
+var XHR = {
+    create: function create(key, options) {
+        return new Promise(function (resolve, reject) {
+            var xhr = new XMLHttpRequest();var url = key.toString();var method = options.method;
+            var body = options.body;
+
+            xhr.onload = function () {
+                if (xhr.status >= 200 && xhr.status < 400) {
+                    resolve(xhr);
+                } else {
+                    reject(xhr);
+                }
+            };
+            xhr.onerror = function () {
+                reject(xhr);
+            };
+            xhr.open(method, url, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            // xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
+            xhr.send(JSON.stringify(body));
+        });
+    },
+    head: function head(url) {
+        return XHR.create(url, { method: 'HEAD' });
+    },
+    get: function get(url) {
+        return XHR.create(url, { method: 'GET' });
+    },
+    put: function put(url, body) {
+        return XHR.create(url, { method: 'PUT', body: body });
+    },
+    post: function post(url, body) {
+        return XHR.create(url, { method: 'POST', body: body });
+    },
+    'delete': function _delete(url) {
+        return XHR.create(url, { method: 'DELETE' });
+    }
+};
+// export class XHRRecord<V> implements IMutableRecord<V> {
+//   protected _subject: Subject<IRecordObserver>;
+//
+//   constructor() {
+//     this._subject = XHRRecord._subject;
+//   }
+//
+//   has(key: Key): boolean {
+//      return XHRRecord.has(key);
+//    }
+//
+//   get(key: Key): V {
+//      return <V>XHRRecord.get(key);
+//    }
+//
+//   set(key: Key, value: V): void {
+//      return XHRRecord.set(key, value);
+//    }
+//
+//   observe(observer: IRecordObserver): ISubscription {
+//      return XHRRecord.observe(observer);
+//    }
+//
+//   delete(key: Key): void {
+//      return XHRRecord.delete(key);
+//    }
+//
+//   static _subject = new Subject<IRecordObserver>();
+//
+//   static invalidate = (key: Key): void => {
+//     XHRRecord._subject.notify(function(observer: IRecordObserver) {
+//       observer.onInvalidate(key);
+//     });
+//   }
+//
+//   static has = (key: string): Promise<boolean> => {
+//     return XHR.head(key)
+//               .then(function() { return true; })
+//               .catch(function() { return false; });
+//   }
+//
+//   static get = <V>(key: string): Promise<V> => {
+//     return XHR.get(key)
+//               .then(function(xhr) { return JSON.parse(xhr.responseText); })
+//   }
+//
+//   // static set = <V>(key: string, value: V): Promise<V> => {
+//   //   return XHR.
+//   // }
+//
+//   static observe = (observer: IRecordObserver): ISubscription => {
+//     return XHRRecord._subject.observe(observer);
+//   }
+//
+//   static delete = (key: Key): void => {
+//     var xhr = XHR["delete"](key);
+//     XHRRecord.invalidate(key);
+//
+//     return null;
+//   }
+//
+// }
+//
+// export default XHRRecord;
+exports.XHR = XHR;
+
+},{}],16:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
     value: true
 });
 
-var _get = function get(_x2, _x3, _x4) { var _again = true; _function: while (_again) { var object = _x2, property = _x3, receiver = _x4; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x2 = parent; _x3 = property; _x4 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x2, _x3, _x4) { var _again = true; _function: while (_again) { var object = _x2, property = _x3, receiver = _x4; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x2 = parent; _x3 = property; _x4 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
@@ -555,7 +1234,7 @@ var ArrayList = (function (_MutableList) {
 exports['default'] = ArrayList;
 module.exports = exports['default'];
 
-},{"./mutable_list":15,"./observable":16}],8:[function(require,module,exports){
+},{"./mutable_list":24,"./observable":25}],17:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -633,7 +1312,7 @@ var AsyncList = (function () {
 exports.AsyncList = AsyncList;
 exports["default"] = AsyncList;
 
-},{}],9:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -680,7 +1359,7 @@ var Cache = function Cache(list) {
 exports.Cache = Cache;
 exports["default"] = Cache;
 
-},{}],10:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -740,7 +1419,7 @@ function fromIterator(iterator) {
     return list;
 }
 
-},{"./array_list":7,"./list":14,"./mutable_list":15,"./observable_list":20,"./unit":22}],11:[function(require,module,exports){
+},{"./array_list":16,"./list":23,"./mutable_list":24,"./observable_list":29,"./unit":31}],20:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -786,7 +1465,7 @@ var Index = function Index(list) {
 exports.Index = Index;
 exports["default"] = Index;
 
-},{}],12:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -807,7 +1486,7 @@ var Key;
 exports["default"] = Key;
 module.exports = exports["default"];
 
-},{}],13:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -864,7 +1543,7 @@ var KeyBy = function KeyBy(list, keyFn) {
 exports.KeyBy = KeyBy;
 exports["default"] = KeyBy;
 
-},{}],14:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1266,7 +1945,7 @@ var List = (function () {
 exports.List = List;
 exports['default'] = List;
 
-},{"./async_list":8,"./cache":9,"./index":11,"./key_by":13,"./tree":21}],15:[function(require,module,exports){
+},{"./async_list":17,"./cache":18,"./index":20,"./key_by":22,"./tree":30}],24:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1275,7 +1954,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } }
 
@@ -1296,10 +1975,6 @@ var MutableList = (function (_ObservableList) {
             throw new Error("Not implemented");
         };
         this.splice = function (prev, next) {
-            for (var _len = arguments.length, values = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
-                values[_key - 2] = arguments[_key];
-            }
-
             throw new Error("Not implemented");
         };
         this.addBefore = function (key, value) {
@@ -1429,8 +2104,8 @@ var MutableList = (function (_ObservableList) {
                 list.set(key, lens.set(list.get(key), value));
             }
             function splice(prev, next) {
-                for (var _len2 = arguments.length, values = Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
-                    values[_key2 - 2] = arguments[_key2];
+                for (var _len = arguments.length, values = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+                    values[_key - 2] = arguments[_key];
                 }
 
                 list.splice.apply(list, [prev, next].concat(_toConsumableArray(values.map(function (val) {
@@ -1455,7 +2130,7 @@ var MutableList = (function (_ObservableList) {
 exports.MutableList = MutableList;
 exports["default"] = MutableList;
 
-},{"./observable_list":20}],16:[function(require,module,exports){
+},{"./observable_list":29}],25:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1492,14 +2167,14 @@ var Subject = function Subject() {
 
 exports.Subject = Subject;
 
-},{"./key":12}],17:[function(require,module,exports){
+},{"./key":21}],26:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
     value: true
 });
 
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -1548,14 +2223,14 @@ var ObservableCache = (function (_Cache) {
 exports.ObservableCache = ObservableCache;
 exports['default'] = ObservableCache;
 
-},{"./cache":9}],18:[function(require,module,exports){
+},{"./cache":18}],27:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
     value: true
 });
 
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -1614,14 +2289,14 @@ var ObservableIndex = (function (_Index) {
 exports.ObservableIndex = ObservableIndex;
 exports['default'] = ObservableIndex;
 
-},{"./index":11,"./observable":16}],19:[function(require,module,exports){
+},{"./index":20,"./observable":25}],28:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
     value: true
 });
 
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -1662,7 +2337,7 @@ var ObservableKeyBy = (function (_KeyBy) {
 exports.ObservableKeyBy = ObservableKeyBy;
 exports['default'] = ObservableKeyBy;
 
-},{"./key_by":13,"./observable":16}],20:[function(require,module,exports){
+},{"./key_by":22,"./observable":25}],29:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1671,7 +2346,7 @@ Object.defineProperty(exports, '__esModule', {
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -1985,7 +2660,7 @@ var ObservableList = (function (_List) {
 exports.ObservableList = ObservableList;
 exports['default'] = ObservableList;
 
-},{"./list":14,"./observable":16,"./observable_cache":17,"./observable_index":18,"./observable_key_by":19,"./tree":21}],21:[function(require,module,exports){
+},{"./list":23,"./observable":25,"./observable_cache":26,"./observable_index":27,"./observable_key_by":28,"./tree":30}],30:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -2090,14 +2765,14 @@ exports.Tree = Tree;
 })(Tree || (exports.Tree = Tree = {}));
 exports['default'] = Tree;
 
-},{"./list":14}],22:[function(require,module,exports){
+},{"./list":23}],31:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
     value: true
 });
 
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -2169,7 +2844,89 @@ var Unit = (function (_MutableList) {
 exports['default'] = Unit;
 module.exports = exports['default'];
 
-},{"./key":12,"./mutable_list":15,"./observable":16}],23:[function(require,module,exports){
+},{"./key":21,"./mutable_list":24,"./observable":25}],32:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+    value: true
+});
+
+var _get = function get(_x2, _x3, _x4) { var _again = true; _function: while (_again) { var object = _x2, property = _x3, receiver = _x4; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x2 = parent; _x3 = property; _x4 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+var _observable = require('./observable');
+
+var _mutable_list = require('./mutable_list');
+
+var ArrayList = (function (_MutableList) {
+    function ArrayList() {
+        var _this = this;
+
+        var array = arguments[0] === undefined ? [] : arguments[0];
+
+        _classCallCheck(this, ArrayList);
+
+        _get(Object.getPrototypeOf(ArrayList.prototype), 'constructor', this).call(this);
+        this.has = function (key) {
+            return key != null && -1 < key && key < _this._array.length;
+        };
+        this.get = function (key) {
+            if (_this.has(key)) return _this._array[key];
+            return;
+        };
+        this.prev = function (key) {
+            if (key == null && _this._array.length) return _this._array.length - 1;
+            if (_this._array.length > 0 && key != null && _this.has(key) && _this.has(key - 1)) return key - 1;
+            return null;
+        };
+        this.next = function (key) {
+            if (key == null && _this._array.length) return 0;
+            if (_this._array.length > 0 && key != null && _this.has(key) && _this.has(key + 1)) return key + 1;
+            return null;
+        };
+        this.set = function (key, value) {
+            if (!_this.has(key)) return null;
+            _this._array[key] = value;
+            return key;
+        };
+        this.splice = function (prev, next) {
+            for (var _len = arguments.length, values = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+                values[_key - 2] = arguments[_key];
+            }
+
+            var _array;
+
+            if (prev == null) prev = -1;else if (!_this.has(prev)) return;
+            if (next == null) next = _this._array.length;else if (!_this.has(next)) return;
+            (_array = _this._array).splice.apply(_array, [prev + 1, next - (prev + 1)].concat(values));
+            _this._invalidate(prev, null);
+        };
+        this.observe = function (observer) {
+            return _this._subject.observe(observer);
+        };
+        this._invalidate = function (prev, next) {
+            if (!_this.has(prev)) prev = null;
+            if (!_this.has(next)) next = null;
+            _this._subject.notify(function (observer) {
+                observer.onInvalidate(prev, next);
+            });
+        };
+        this._subject = new _observable.Subject();
+        this._array = array;
+    }
+
+    _inherits(ArrayList, _MutableList);
+
+    return ArrayList;
+})(_mutable_list.MutableList);
+
+exports['default'] = ArrayList;
+module.exports = exports['default'];
+
+},{"./mutable_list":39,"./observable":40}],33:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2247,7 +3004,7 @@ var AsyncList = (function () {
 exports.AsyncList = AsyncList;
 exports["default"] = AsyncList;
 
-},{}],24:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2294,7 +3051,7 @@ var Cache = function Cache(list) {
 exports.Cache = Cache;
 exports["default"] = Cache;
 
-},{}],25:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2340,7 +3097,7 @@ var Index = function Index(list) {
 exports.Index = Index;
 exports["default"] = Index;
 
-},{}],26:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2361,7 +3118,7 @@ var Key;
 exports["default"] = Key;
 module.exports = exports["default"];
 
-},{}],27:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2418,149 +3175,7 @@ var KeyBy = function KeyBy(list, keyFn) {
 exports.KeyBy = KeyBy;
 exports["default"] = KeyBy;
 
-},{}],28:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, '__esModule', {
-    value: true
-});
-
-var _get = function get(_x5, _x6, _x7) { var _again = true; _function: while (_again) { var object = _x5, property = _x6, receiver = _x7; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x5 = parent; _x6 = property; _x7 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
-var _key3 = require('./key');
-
-var _key4 = _interopRequireDefault(_key3);
-
-var _observable = require('./observable');
-
-var _mutable_list = require('./mutable_list');
-
-var LinkedList = (function (_MutableList) {
-    function LinkedList(values, keyFn) {
-        var _this = this;
-
-        _classCallCheck(this, LinkedList);
-
-        _get(Object.getPrototypeOf(LinkedList.prototype), 'constructor', this).call(this);
-        this._keyFn = _key4['default'].create;
-        this.has = function (key) {
-            return key in _this._byKey;
-        };
-        this.get = function (key) {
-            return _this._byKey[key];
-        };
-        this.prev = function () {
-            var key = arguments[0] === undefined ? null : arguments[0];
-
-            var prev = _this._prev[key];
-            return prev == null ? null : prev;
-        };
-        this.next = function () {
-            var key = arguments[0] === undefined ? null : arguments[0];
-
-            var next = _this._next[key];
-            return next == null ? null : next;
-        };
-        this.set = function (key, value) {
-            if (!_this.has(key)) return null;
-            _this._byKey[key] = value;
-            _this._invalidate(_this._prev[key], _this._next[key]);
-            return key;
-        };
-        this.splice = function () {
-            for (var _len = arguments.length, values = Array(_len > 2 ? _len - 2 : 0), _key2 = 2; _key2 < _len; _key2++) {
-                values[_key2 - 2] = arguments[_key2];
-            }
-
-            var prev = arguments[0] === undefined ? null : arguments[0];
-            var next = arguments[1] === undefined ? null : arguments[1];
-
-            var key, value;
-            key = prev;
-            while ((key = _this._next[key]) != null) {
-                delete _this._next[_this._prev[key]];
-                delete _this._prev[key];
-                if (key == next) break;
-                delete _this._byKey[key];
-            }
-            key = next;
-            while ((key = _this._prev[key]) != null) {
-                delete _this._prev[_this._next[key]];
-                delete _this._next[key];
-                if (key == prev) break;
-                delete _this._byKey[key];
-            }
-            var _key = prev;
-            var _iteratorNormalCompletion = true;
-            var _didIteratorError = false;
-            var _iteratorError = undefined;
-
-            try {
-                for (var _iterator = values[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                    value = _step.value;
-
-                    key = _this._keyFn(value);
-                    _this._byKey[key] = value;
-                    _this._prev[key] = _key;
-                    _this._next[_key] = key;
-                    _key = key;
-                }
-            } catch (err) {
-                _didIteratorError = true;
-                _iteratorError = err;
-            } finally {
-                try {
-                    if (!_iteratorNormalCompletion && _iterator['return']) {
-                        _iterator['return']();
-                    }
-                } finally {
-                    if (_didIteratorError) {
-                        throw _iteratorError;
-                    }
-                }
-            }
-
-            _this._prev[next] = _key;
-            _this._next[_key] = next;
-            _this._invalidate(prev, next);
-        };
-        this.observe = function (observer) {
-            return _this._subject.observe(observer);
-        };
-        this._invalidate = function (prev, next) {
-            if (!_this.has(prev)) prev = null;
-            if (!_this.has(next)) next = null;
-            _this._subject.notify(function (observer) {
-                observer.onInvalidate(prev, next);
-            });
-        };
-        if (keyFn) this._keyFn = keyFn;
-        this._subject = new _observable.Subject();
-        this._byKey = Object.create(null);
-        this._prev = Object.create(null);
-        this._next = Object.create(null);
-        this._prev[null] = null;
-        this._next[null] = null;
-        this.splice.apply(this, [null, null].concat(_toConsumableArray(values)));
-    }
-
-    _inherits(LinkedList, _MutableList);
-
-    return LinkedList;
-})(_mutable_list.MutableList);
-
-exports['default'] = LinkedList;
-module.exports = exports['default'];
-
-},{"./key":26,"./mutable_list":30,"./observable":31}],29:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -2962,7 +3577,7 @@ var List = (function () {
 exports.List = List;
 exports['default'] = List;
 
-},{"./async_list":23,"./cache":24,"./index":25,"./key_by":27,"./tree":36}],30:[function(require,module,exports){
+},{"./async_list":33,"./cache":34,"./index":35,"./key_by":37,"./tree":45}],39:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2971,7 +3586,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } }
 
@@ -2992,10 +3607,6 @@ var MutableList = (function (_ObservableList) {
             throw new Error("Not implemented");
         };
         this.splice = function (prev, next) {
-            for (var _len = arguments.length, values = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
-                values[_key - 2] = arguments[_key];
-            }
-
             throw new Error("Not implemented");
         };
         this.addBefore = function (key, value) {
@@ -3125,8 +3736,8 @@ var MutableList = (function (_ObservableList) {
                 list.set(key, lens.set(list.get(key), value));
             }
             function splice(prev, next) {
-                for (var _len2 = arguments.length, values = Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
-                    values[_key2 - 2] = arguments[_key2];
+                for (var _len = arguments.length, values = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+                    values[_key - 2] = arguments[_key];
                 }
 
                 list.splice.apply(list, [prev, next].concat(_toConsumableArray(values.map(function (val) {
@@ -3151,7 +3762,7 @@ var MutableList = (function (_ObservableList) {
 exports.MutableList = MutableList;
 exports["default"] = MutableList;
 
-},{"./observable_list":35}],31:[function(require,module,exports){
+},{"./observable_list":44}],40:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3188,14 +3799,14 @@ var Subject = function Subject() {
 
 exports.Subject = Subject;
 
-},{"./key":26}],32:[function(require,module,exports){
+},{"./key":36}],41:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
     value: true
 });
 
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -3244,14 +3855,14 @@ var ObservableCache = (function (_Cache) {
 exports.ObservableCache = ObservableCache;
 exports['default'] = ObservableCache;
 
-},{"./cache":24}],33:[function(require,module,exports){
+},{"./cache":34}],42:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
     value: true
 });
 
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -3310,14 +3921,14 @@ var ObservableIndex = (function (_Index) {
 exports.ObservableIndex = ObservableIndex;
 exports['default'] = ObservableIndex;
 
-},{"./index":25,"./observable":31}],34:[function(require,module,exports){
+},{"./index":35,"./observable":40}],43:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
     value: true
 });
 
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -3358,7 +3969,7 @@ var ObservableKeyBy = (function (_KeyBy) {
 exports.ObservableKeyBy = ObservableKeyBy;
 exports['default'] = ObservableKeyBy;
 
-},{"./key_by":27,"./observable":31}],35:[function(require,module,exports){
+},{"./key_by":37,"./observable":40}],44:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3367,7 +3978,7 @@ Object.defineProperty(exports, '__esModule', {
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -3681,7 +4292,7 @@ var ObservableList = (function (_List) {
 exports.ObservableList = ObservableList;
 exports['default'] = ObservableList;
 
-},{"./list":29,"./observable":31,"./observable_cache":32,"./observable_index":33,"./observable_key_by":34,"./tree":36}],36:[function(require,module,exports){
+},{"./list":38,"./observable":40,"./observable_cache":41,"./observable_index":42,"./observable_key_by":43,"./tree":45}],45:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3786,5 +4397,5 @@ exports.Tree = Tree;
 })(Tree || (exports.Tree = Tree = {}));
 exports['default'] = Tree;
 
-},{"./list":29}]},{},[2])(2)
+},{"./list":38}]},{},[8])(8)
 });

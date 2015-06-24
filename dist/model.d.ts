@@ -1,16 +1,16 @@
 import Key from '../node_modules/sonic/dist/key';
-import LinkedList from '../node_modules/sonic/dist/linked_list';
-import { ObservableList } from '../node_modules/sonic/dist/observable_list';
 import SimpleRecord from '../node_modules/knuckles/dist/simple_record';
-declare class Model extends SimpleRecord<any> {
+export interface ModelConstructor {
+    prototype: Model;
+    new (object: {
+        [key: string]: any;
+    }): Model;
+}
+export declare class Model extends SimpleRecord<any> {
     id: Key;
-    private static _collection;
-    private static _keyFn(model);
-    static all(): LinkedList<Model>;
     constructor(object: {
         [key: string]: any;
     });
-    static where<T extends Model>(models: ObservableList<T>, key: Key, value: any): ObservableList<T>;
-    static pluck<T extends Model>(models: ObservableList<T>, key: Key): ObservableList<[T, any]>;
+    initialize(): void;
 }
 export default Model;

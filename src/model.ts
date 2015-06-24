@@ -3,7 +3,9 @@ import { IObservableList, ObservableList } from '../node_modules/sonic/dist/obse
 import Utils from './utils';
 import Mixable from './mixable';
 import Collectable from './collectable';
-import Associations from './associations';
+import Associable from './associable';
+import Interceptable from './interceptable';
+import Debug from './debug';
 
 import SimpleRecord from '../node_modules/knuckles/dist/simple_record';
 
@@ -13,15 +15,20 @@ export interface ModelConstructor {
 }
 
 @Mixable
+@Interceptable
 @Collectable
-@Associations
+@Associable
+@Debug
 export class Model extends SimpleRecord<any> {
   public id: Key;
 
   constructor(object: {[key: string]: any}) {
     super(object);
     (<any>this.constructor).all().push(this);
+    this.initialize();
   }
+
+  public initialize(): void {}
 
   // static where<T extends Model>(models: ObservableList<T>, key: Key, value: any): ObservableList<T> {
   //   return Model.pluck(models, key).filter((tuple: [T, any]): boolean => {

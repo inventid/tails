@@ -14,52 +14,61 @@ export interface Mixable extends ModelConstructor {
   corcern: (...mixins: Mixin[]) => void;
 }
 
-export function Mixable(target: typeof Model): void {
-  // Mixable.ClassMethods.extend(<any>target, Mixable)
-  if (isMixable(target)) return;
-
-  Object.keys(Mixable).forEach( (key) => {
-    if (Mixable[key] instanceof Function) {
-      target[key] = (...args: any[]) => Mixable[key](target, ...args);
-    }
-    else target[key] = Mixable[key];
-  });
-
-  (<any>target)._extendedMixins.push(Mixable);
+export function Mixable<T extends typeof Model>(target: T): void {
+  if (!isMixable(target)) Mixable.ClassMethods.extend.call(target, Mixable);
 }
 
 export module Mixable {
-  // export module ClassMethods {
-    export var _includedMixins: Mixin[] = [];
-    export var _extendedMixins: Mixin[] = [];
+  export module ClassMethods {
+    export var _includedMixins: Mixin[] = undefined;
+    export var _extendedMixins: Mixin[] = undefined;
 
-    export var extend = (target: Mixable, ...mixins: Mixin[]) => {
+    export function extend(...mixins: Mixin[]) {
       mixins.forEach((mixin) => {
-        if (mixin.ClassMethods == null || _extendedMixins.indexOf(mixin) != -1) return;
+        // This becomes a non-enumerable property in the next part so it doesn't mess up with CoffeeScript extends
+        this._extendedMixins = this._extendedMixins ? this._extendedMixins : [];
+
+        if (mixin.ClassMethods == null || this._extendedMixins.indexOf(mixin) != -1) return;
         Object.keys(mixin.ClassMethods).forEach( (key) => {
-          target[key] = mixin.ClassMethods[key];
+          console.log(key);
+          var _value: any = mixin.ClassMethods[key];
+          _value = _value != null ? _value : this[key];
+
+          var desc = {
+            get: () => _value,
+            set: (value: any) => _value = value,
+
+            // This hides non-functions from derived classes
+            enumerable: _value instanceof Function
+          };
+          Object.defineProperty(this, key, desc)
         })
-        target._extendedMixins.push(mixin);
+
+        this._extendedMixins.push(mixin);
+
       })
 
     }
 
-    export var include = (target: Mixable, ...mixins: Mixin[]) => {
+    export function include(...mixins: Mixin[]) {
       mixins.forEach((mixin) => {
-        if (mixin.InstanceMethods == null || _includedMixins.indexOf(mixin) != -1) return;
+        this._includedMixins = this._includedMixins ? this._includedMixins : [];
+
+        if (mixin.InstanceMethods == null || this._includedMixins.indexOf(mixin) != -1) return;
         Object.keys(mixin.InstanceMethods).forEach( (key) => {
-          target.prototype[key] = mixin.InstanceMethods[key];
+          this.prototype[key] = mixin.InstanceMethods[key];
         })
-        target._includedMixins.push(mixin);
+
+        this._includedMixins.push(mixin);
       })
 
     }
 
-    export var concern = (target: Mixable, ...mixins: Mixin[]) => {
-      extend(target, ...mixins);
-      concern(target, ...mixins);
+    export function concern(...mixins: Mixin[]) {
+      extend(...mixins);
+      concern(...mixins);
     }
-  // }
+  }
 }
 
 export function isMixable(obj: any): obj is Mixable {

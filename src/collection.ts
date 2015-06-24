@@ -11,7 +11,7 @@ export class Collection<V extends Model> extends MutableList<V> {
   protected _record: _Collection<V>;
   protected _cache: ObservableCache<V>;
 
-  constructor(models: V[] = []) {
+  constructor(models: V[] = [], options?: any) {
     super();
 
     this._models = new ArrayList(models);

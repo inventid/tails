@@ -1,32 +1,29 @@
 import { Model } from './model';
-import LinkedList from '../node_modules/sonic/dist/linked_list';
+// import Collection from '../node_modules/sonic/dist/linked_list';
 import Key from '../node_modules/sonic/dist/key';
 import { Mixable, isMixable } from './mixable';
+import Collection from './collection';
 
 export interface Collectable extends Mixable {
-  _collection: LinkedList<Model>;
+  _collection: Collection<Model>;
   _keyFn: (model: Model) => Key;
-  all: () => LinkedList<Model>;
+  all: () => Collection<Model>;
 }
 
-export function Collectable(target: typeof Model): void {
+export function Collectable<T extends typeof Model, Mixable>(target: T): void {
   if (!isMixable(target)) Mixable(target);
   (<any>target).extend(Collectable);
-  // Object.keys(Collectable).forEach( (key) => {
-  //   target[key] = (...args: any[]) => Collectable[key](target, ...args);
-  // })
 }
 
 export module Collectable {
   export module ClassMethods {
-    export var _collection: LinkedList<Model>;
+    export var _collection: Collection<Model> = undefined;
     export function _keyFn(model: Model): Key {
       return model.id || null;
     };
 
-    export function all(): LinkedList<Model> {
-      if (_collection == null) _collection = new LinkedList<Model>([], _keyFn);
-      return _collection;
+    export function all(): Collection<Model> {
+      return this._collection = this._collection ? this._collection : new Collection<Model>([], {keyFn: _keyFn});
     }
   }
 }
