@@ -9,7 +9,7 @@ export function Debug<T extends typeof Model, Mixable, Interceptable>(target: T)
   if (!isMixable(target)) Mixable(target);
   if (!isInterceptable(target)) Interceptable(target);
 
-  (<any>target).extend(Debug);
+  (<any>target).concern(Debug);
 }
 
 export module Debug {
@@ -25,6 +25,10 @@ export module Debug {
           this.intercept({[key]: debugFn});
         }
       })
+    }
+
+    export function extended() {
+      this.after({extend: (...args: any[]) => console.log("Extended", this ,...args)})
     }
   }
 }

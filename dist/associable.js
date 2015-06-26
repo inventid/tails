@@ -5,7 +5,7 @@ export function Associable(target) {
         Collectable(target);
     if (!isInterceptable(target))
         Interceptable(target);
-    target.extend(Associable);
+    target.concern(Associable);
 }
 export var Associable;
 (function (Associable) {

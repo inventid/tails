@@ -6,6 +6,7 @@ export declare function Debug<T extends typeof Model, Mixable, Interceptable>(ta
 export declare module Debug {
     module ClassMethods {
         function debug(...keys: string[]): void;
+        function extended(): void;
     }
 }
 export declare function isDebug(obj: any): ;

@@ -11,7 +11,7 @@ export interface Associable extends Collectable, Interceptable {
 export function Associable<T extends typeof Model, Collectable, Interceptable>(target: T): void {
   if (!isCollectable(target)) Collectable(target);
   if (!isInterceptable(target)) Interceptable(target);
-  (<any>target).extend(Associable);
+  (<any>target).concern(Associable);
 }
 
 export module Associable {

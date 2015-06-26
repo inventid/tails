@@ -2,7 +2,7 @@ import { Mixable, isMixable } from './mixable';
 export function Interceptable(target) {
     if (!isMixable(target))
         Mixable(target);
-    target.extend(Interceptable);
+    target.concern(Interceptable);
 }
 export var Interceptable;
 (function (Interceptable) {

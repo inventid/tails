@@ -10,7 +10,7 @@ export interface Interceptable extends Mixable {
 
 export function Interceptable<T extends typeof Model, Mixable>(target: T): void {
   if (!isMixable(target)) Mixable(target);
-  (<any>target).extend(Interceptable);
+  (<any>target).concern(Interceptable);
 }
 
 export module Interceptable {

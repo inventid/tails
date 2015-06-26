@@ -5,7 +5,7 @@ export function Debug(target) {
         Mixable(target);
     if (!isInterceptable(target))
         Interceptable(target);
-    target.extend(Debug);
+    target.concern(Debug);
 }
 export var Debug;
 (function (Debug) {
@@ -23,6 +23,10 @@ export var Debug;
             });
         }
         ClassMethods.debug = debug;
+        function extended() {
+            this.after({ extend: (...args) => console.log("Extended", this, ...args) });
+        }
+        ClassMethods.extended = extended;
     })(ClassMethods = Debug.ClassMethods || (Debug.ClassMethods = {}));
 })(Debug || (Debug = {}));
 export function isDebug(obj) {

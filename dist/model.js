@@ -6,25 +6,23 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         case 4: return decorators.reduceRight(function(o, d) { return (d && d(target, key, o)) || o; }, desc);
     }
 };
-import Mixable from './mixable';
-import Collectable from './collectable';
 import Associable from './associable';
-import Interceptable from './interceptable';
+import Syncable from './syncable';
 import Debug from './debug';
 import SimpleRecord from '../node_modules/knuckles/dist/simple_record';
+// @Mixable
+// @Interceptable
+// @Collectable
 export let Model = class extends SimpleRecord {
     constructor(object) {
         super(object);
-        this.constructor.all().push(this);
         this.initialize();
     }
     initialize() { }
 };
 Model = __decorate([
-    Mixable,
-    Interceptable,
-    Collectable,
+    Debug,
     Associable,
-    Debug
+    Syncable
 ], Model);
 export default Model;

@@ -13,7 +13,7 @@ var _interceptable = require('./interceptable');
 function Associable(target) {
     if (!(0, _collectable.isCollectable)(target)) (0, _collectable.Collectable)(target);
     if (!(0, _interceptable.isInterceptable)(target)) (0, _interceptable.Interceptable)(target);
-    target.extend(Associable);
+    target.concern(Associable);
 }
 
 var Associable;
@@ -64,19 +64,14 @@ Object.defineProperty(exports, '__esModule', {
 exports.Collectable = Collectable;
 exports.isCollectable = isCollectable;
 
-function _interopRequireDefault(obj) {
-    return obj && obj.__esModule ? obj : { 'default': obj };
-}
-
 var _mixable = require('./mixable');
 
-var _collection = require('./collection');
-
-var _collection2 = _interopRequireDefault(_collection);
+var _interceptable = require('./interceptable');
 
 function Collectable(target) {
     if (!(0, _mixable.isMixable)(target)) (0, _mixable.Mixable)(target);
-    target.extend(Collectable);
+    if (!(0, _interceptable.isInterceptable)(target)) (0, _interceptable.Interceptable)(target);
+    target.concern(Collectable);
 }
 
 var Collectable;
@@ -84,16 +79,15 @@ exports.Collectable = Collectable;
 (function (Collectable) {
     var ClassMethods;
     (function (ClassMethods) {
-        ClassMethods._collection = undefined;
-        function _keyFn(model) {
-            return model.id || null;
-        }
-        ClassMethods._keyFn = _keyFn;
-        ;
-        function all() {
-            return this._collection = this._collection ? this._collection : new _collection2['default']([], { keyFn: _keyFn });
-        }
-        ClassMethods.all = all;
+        // export var _collection: Collection<Model> = undefined;
+        // export function _keyFn(model: Model): Key {
+        //   return model.id || null;
+        // };
+        // export function all(): Collection<Model> {
+        //   return this._collection = this._collection ? this._collection : new Collection<Model>([], {keyFn: _keyFn});
+        // }
+        function extended() {}
+        ClassMethods.extended = extended;
     })(ClassMethods = Collectable.ClassMethods || (Collectable.ClassMethods = {}));
 })(Collectable || (exports.Collectable = exports.Collectable = Collectable = {}));
 
@@ -105,7 +99,21 @@ function isCollectable(obj) {
 
 exports['default'] = Collectable;
 
-},{"./collection":3,"./mixable":6}],3:[function(require,module,exports){
+// var _collection = new Collection<Model>([]);
+// Object.defineProperty(this, "all", {
+//   get: () => _collection,
+//   set: (collection) => _collection = collection,
+//   enumerable: false
+// })
+//
+// var _fn = () => {
+//   console.log("Adding new instance ")
+//   _collection.push(this);
+// }
+//
+// this.after({initialize: _fn})
+
+},{"./interceptable":5,"./mixable":6}],3:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -217,7 +225,7 @@ var Collection = (function (_MutableList) {
 exports.Collection = Collection;
 exports['default'] = Collection;
 
-},{"../node_modules/knuckles/dist/collection":10,"../node_modules/sonic/dist/array_list":32,"../node_modules/sonic/dist/mutable_list":39,"../node_modules/sonic/dist/observable_cache":41,"./utils":9}],4:[function(require,module,exports){
+},{"../node_modules/knuckles/dist/collection":11,"../node_modules/sonic/dist/array_list":33,"../node_modules/sonic/dist/mutable_list":40,"../node_modules/sonic/dist/observable_cache":42,"./utils":10}],4:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -237,7 +245,7 @@ var _interceptable = require('./interceptable');
 function Debug(target) {
     if (!(0, _mixable.isMixable)(target)) (0, _mixable.Mixable)(target);
     if (!(0, _interceptable.isInterceptable)(target)) (0, _interceptable.Interceptable)(target);
-    target.extend(Debug);
+    target.concern(Debug);
 }
 
 var Debug;
@@ -263,6 +271,18 @@ exports.Debug = Debug;
             });
         }
         ClassMethods.debug = debug;
+        function extended() {
+            var _this2 = this;
+
+            this.after({ extend: function extend() {
+                    for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+                        args[_key2] = arguments[_key2];
+                    }
+
+                    return console.log.apply(console, ['Extended', _this2].concat(args));
+                } });
+        }
+        ClassMethods.extended = extended;
     })(ClassMethods = Debug.ClassMethods || (Debug.ClassMethods = {}));
 })(Debug || (exports.Debug = exports.Debug = Debug = {}));
 
@@ -287,7 +307,7 @@ var _mixable = require('./mixable');
 
 function Interceptable(target) {
     if (!(0, _mixable.isMixable)(target)) (0, _mixable.Mixable)(target);
-    target.extend(Interceptable);
+    target.concern(Interceptable);
 }
 
 var Interceptable;
@@ -349,13 +369,18 @@ function isInterceptable(obj) {
 exports['default'] = Interceptable;
 
 },{"./mixable":6}],6:[function(require,module,exports){
-"use strict";
+'use strict';
 
-Object.defineProperty(exports, "__esModule", {
+Object.defineProperty(exports, '__esModule', {
     value: true
 });
+exports.isClassMixin = isClassMixin;
 exports.Mixable = Mixable;
 exports.isMixable = isMixable;
+
+function isClassMixin(obj) {
+    return obj.ClassMethods != null || obj.InstanceMethods != null;
+}
 
 function Mixable(target) {
     if (!isMixable(target)) Mixable.ClassMethods.extend.call(target, Mixable);
@@ -364,6 +389,15 @@ function Mixable(target) {
 var Mixable;
 exports.Mixable = Mixable;
 (function (Mixable) {
+    (function (MixableKeywords) {
+        MixableKeywords[MixableKeywords['included'] = 0] = 'included';
+        MixableKeywords[MixableKeywords['extended'] = 1] = 'extended';
+        MixableKeywords[MixableKeywords['constructor'] = 2] = 'constructor';
+        MixableKeywords[MixableKeywords['InstanceMethods'] = 3] = 'InstanceMethods';
+        MixableKeywords[MixableKeywords['ClassMethods'] = 4] = 'ClassMethods';
+    })(Mixable.MixableKeywords || (Mixable.MixableKeywords = {}));
+    var MixableKeywords = Mixable.MixableKeywords;
+    ;
     var ClassMethods;
     (function (ClassMethods) {
         ClassMethods._includedMixins = undefined;
@@ -371,17 +405,20 @@ exports.Mixable = Mixable;
         function extend() {
             var _this = this;
 
+            // This becomes a non-enumerable property in the next part so it doesn't mess up with CoffeeScript extends
+            this._extendedMixins = this._extendedMixins ? this._extendedMixins : [];
+
             for (var _len = arguments.length, mixins = Array(_len), _key = 0; _key < _len; _key++) {
                 mixins[_key] = arguments[_key];
             }
 
             mixins.forEach(function (mixin) {
-                // This becomes a non-enumerable property in the next part so it doesn't mess up with CoffeeScript extends
-                _this._extendedMixins = _this._extendedMixins ? _this._extendedMixins : [];
-                if (mixin.ClassMethods == null || _this._extendedMixins.indexOf(mixin) != -1) return;
-                Object.keys(mixin.ClassMethods).forEach(function (key) {
-                    console.log(key);
-                    var _value = mixin.ClassMethods[key];
+                if (_this._extendedMixins.indexOf(mixin) != -1) return;
+                _this._extendedMixins.push(mixin);
+                var props = isClassMixin(mixin) ? mixin.ClassMethods : mixin;
+                Object.keys(props).forEach(function (key) {
+                    if (MixableKeywords[key] != null) return;
+                    var _value = props[key];
                     _value = _value != null ? _value : _this[key];
                     var desc = {
                         get: function get() {
@@ -395,30 +432,38 @@ exports.Mixable = Mixable;
                     };
                     Object.defineProperty(_this, key, desc);
                 });
-                _this._extendedMixins.push(mixin);
+                if (props.extended instanceof Function) props.extended.apply(_this);
             });
         }
         ClassMethods.extend = extend;
         function include() {
             var _this2 = this;
 
+            this._includedMixins = this._includedMixins ? this._includedMixins : [];
+
             for (var _len2 = arguments.length, mixins = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
                 mixins[_key2] = arguments[_key2];
             }
 
             mixins.forEach(function (mixin) {
-                _this2._includedMixins = _this2._includedMixins ? _this2._includedMixins : [];
-                if (mixin.InstanceMethods == null || _this2._includedMixins.indexOf(mixin) != -1) return;
-                Object.keys(mixin.InstanceMethods).forEach(function (key) {
-                    _this2.prototype[key] = mixin.InstanceMethods[key];
-                });
+                if (_this2._includedMixins.indexOf(mixin) != -1) return;
                 _this2._includedMixins.push(mixin);
+                var props = isClassMixin(mixin) ? mixin.ClassMethods : mixin;
+                Object.keys(props).forEach(function (key) {
+                    if (MixableKeywords[key] != null) return;
+                    _this2.prototype[key] = props[key];
+                });
+                if (props.included instanceof Function) props.included.apply(_this2);
             });
         }
         ClassMethods.include = include;
         function concern() {
-            extend.apply(undefined, arguments);
-            concern.apply(undefined, arguments);
+            for (var _len3 = arguments.length, mixins = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+                mixins[_key3] = arguments[_key3];
+            }
+
+            extend.apply(this, mixins);
+            include.apply(this, mixins);
         }
         ClassMethods.concern = concern;
     })(ClassMethods = Mixable.ClassMethods || (Mixable.ClassMethods = {}));
@@ -430,7 +475,7 @@ function isMixable(obj) {
     }, true);
 }
 
-exports["default"] = Mixable;
+exports['default'] = Mixable;
 
 },{}],7:[function(require,module,exports){
 "use strict";
@@ -485,21 +530,13 @@ function _inherits(subClass, superClass) {
     }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) subClass.__proto__ = superClass;
 }
 
-var _mixable = require("./mixable");
-
-var _mixable2 = _interopRequireDefault(_mixable);
-
-var _collectable = require("./collectable");
-
-var _collectable2 = _interopRequireDefault(_collectable);
-
 var _associable = require("./associable");
 
 var _associable2 = _interopRequireDefault(_associable);
 
-var _interceptable = require("./interceptable");
+var _syncable = require("./syncable");
 
-var _interceptable2 = _interopRequireDefault(_interceptable);
+var _syncable2 = _interopRequireDefault(_syncable);
 
 var _debug = require("./debug");
 
@@ -526,12 +563,15 @@ var __decorate = undefined && undefined.__decorate || function (decorators, targ
             }, desc);
     }
 };
+
+// @Mixable
+// @Interceptable
+// @Collectable
 var Model = (function (_SimpleRecord) {
     var _class = function Model(object) {
         _classCallCheck(this, _class);
 
         _get(Object.getPrototypeOf(_class.prototype), "constructor", this).call(this, object);
-        this.constructor.all().push(this);
         this.initialize();
     };
 
@@ -545,10 +585,68 @@ var Model = (function (_SimpleRecord) {
     return _class;
 })(_node_modulesKnucklesDistSimple_record2["default"]);
 exports.Model = Model;
-exports.Model = Model = __decorate([_mixable2["default"], _interceptable2["default"], _collectable2["default"], _associable2["default"], _debug2["default"]], Model);
+exports.Model = Model = __decorate([_debug2["default"], _associable2["default"], _syncable2["default"]], Model);
 exports["default"] = Model;
 
-},{"../node_modules/knuckles/dist/simple_record":14,"./associable":1,"./collectable":2,"./debug":4,"./interceptable":5,"./mixable":6}],8:[function(require,module,exports){
+},{"../node_modules/knuckles/dist/simple_record":15,"./associable":1,"./debug":4,"./syncable":8}],8:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.Syncable = Syncable;
+exports.isSyncable = isSyncable;
+
+var _mixable = require("./mixable");
+
+function Syncable(target) {
+    if (!(0, _mixable.isMixable)(target)) (0, _mixable.Mixable)(target);
+    target.concern(Syncable);
+}
+
+var Syncable;
+exports.Syncable = Syncable;
+(function (Syncable) {
+    (function (SYNC_STATES) {
+        SYNC_STATES[SYNC_STATES["new"] = 0] = "new";
+        SYNC_STATES[SYNC_STATES["destroyed"] = 1] = "destroyed";
+        SYNC_STATES[SYNC_STATES["synced"] = 2] = "synced";
+    })(Syncable.SYNC_STATES || (Syncable.SYNC_STATES = {}));
+    var SYNC_STATES = Syncable.SYNC_STATES;
+    var ClassMethods;
+    (function (ClassMethods) {
+        function syncWith() {}
+        ClassMethods.syncWith = syncWith;
+    })(ClassMethods = Syncable.ClassMethods || (Syncable.ClassMethods = {}));
+    var InstanceMethods;
+    (function (InstanceMethods) {
+        InstanceMethods._syncState = undefined;
+        function save() {
+            if (this._syncState == SYNC_STATES.synced) return;
+            console.log("Saving", this);
+            throw new Error("Not implemented.");
+            this._syncState = SYNC_STATES.synced;
+        }
+        InstanceMethods.save = save;
+        function destroy() {
+            if (this._syncState == SYNC_STATES.destroyed) return;
+            console.log("Destroying", this);
+            throw new Error("Not implemented.");
+            this._syncState = SYNC_STATES.destroyed;
+        }
+        InstanceMethods.destroy = destroy;
+    })(InstanceMethods = Syncable.InstanceMethods || (Syncable.InstanceMethods = {}));
+})(Syncable || (exports.Syncable = exports.Syncable = Syncable = {}));
+
+function isSyncable(obj) {
+    return Object.keys(Syncable.ClassMethods).reduce(function (memo, key) {
+        return memo && !(obj[key] == null);
+    }, true);
+}
+
+exports["default"] = Syncable;
+
+},{"./mixable":6}],9:[function(require,module,exports){
 'use strict';
 
 function _interopRequireDefault(obj) {
@@ -604,7 +702,7 @@ var Tails;
 })(Tails || (Tails = {}));
 module.exports = Tails;
 
-},{"./associable":1,"./collectable":2,"./collection":3,"./debug":4,"./interceptable":5,"./mixable":6,"./model":7,"./utils":9}],9:[function(require,module,exports){
+},{"./associable":1,"./collectable":2,"./collection":3,"./debug":4,"./interceptable":5,"./mixable":6,"./model":7,"./utils":10}],10:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -620,7 +718,7 @@ exports.Utils = Utils;
 })(Utils || (exports.Utils = Utils = {}));
 exports["default"] = Utils;
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -720,7 +818,7 @@ var Collection = (function (_SimpleRecord) {
 exports.Collection = Collection;
 exports['default'] = Collection;
 
-},{"./simple_record":14,"./xhr":15}],11:[function(require,module,exports){
+},{"./simple_record":15,"./xhr":16}],12:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -810,7 +908,7 @@ var MutableRecord = (function (_ObservableRecord) {
 exports.MutableRecord = MutableRecord;
 exports['default'] = MutableRecord;
 
-},{"../node_modules/sonic/dist/mutable_list":24,"./observable_record":12}],12:[function(require,module,exports){
+},{"../node_modules/sonic/dist/mutable_list":25,"./observable_record":13}],13:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -889,7 +987,7 @@ var ObservableRecord = (function (_Record) {
 exports.ObservableRecord = ObservableRecord;
 exports['default'] = ObservableRecord;
 
-},{"../node_modules/sonic/dist/observable_list":29,"../node_modules/sonic/dist/unit":31,"./record":13}],13:[function(require,module,exports){
+},{"../node_modules/sonic/dist/observable_list":30,"../node_modules/sonic/dist/unit":32,"./record":14}],14:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -953,7 +1051,7 @@ var Record = (function () {
 exports.Record = Record;
 exports['default'] = Record;
 
-},{"../node_modules/sonic/dist/factory":19,"../node_modules/sonic/dist/list":23}],14:[function(require,module,exports){
+},{"../node_modules/sonic/dist/factory":20,"../node_modules/sonic/dist/list":24}],15:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1042,7 +1140,7 @@ var SimpleRecord = (function (_MutableRecord) {
 exports.SimpleRecord = SimpleRecord;
 exports['default'] = SimpleRecord;
 
-},{"../node_modules/sonic/dist/observable":25,"./mutable_record":11}],15:[function(require,module,exports){
+},{"../node_modules/sonic/dist/observable":26,"./mutable_record":12}],16:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1152,7 +1250,7 @@ var XHR = {
 // export default XHRRecord;
 exports.XHR = XHR;
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1234,7 +1332,7 @@ var ArrayList = (function (_MutableList) {
 exports['default'] = ArrayList;
 module.exports = exports['default'];
 
-},{"./mutable_list":24,"./observable":25}],17:[function(require,module,exports){
+},{"./mutable_list":25,"./observable":26}],18:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1312,7 +1410,7 @@ var AsyncList = (function () {
 exports.AsyncList = AsyncList;
 exports["default"] = AsyncList;
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1359,7 +1457,7 @@ var Cache = function Cache(list) {
 exports.Cache = Cache;
 exports["default"] = Cache;
 
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1419,7 +1517,7 @@ function fromIterator(iterator) {
     return list;
 }
 
-},{"./array_list":16,"./list":23,"./mutable_list":24,"./observable_list":29,"./unit":31}],20:[function(require,module,exports){
+},{"./array_list":17,"./list":24,"./mutable_list":25,"./observable_list":30,"./unit":32}],21:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1465,7 +1563,7 @@ var Index = function Index(list) {
 exports.Index = Index;
 exports["default"] = Index;
 
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1486,7 +1584,7 @@ var Key;
 exports["default"] = Key;
 module.exports = exports["default"];
 
-},{}],22:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1543,7 +1641,7 @@ var KeyBy = function KeyBy(list, keyFn) {
 exports.KeyBy = KeyBy;
 exports["default"] = KeyBy;
 
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1945,7 +2043,7 @@ var List = (function () {
 exports.List = List;
 exports['default'] = List;
 
-},{"./async_list":17,"./cache":18,"./index":20,"./key_by":22,"./tree":30}],24:[function(require,module,exports){
+},{"./async_list":18,"./cache":19,"./index":21,"./key_by":23,"./tree":31}],25:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2130,7 +2228,7 @@ var MutableList = (function (_ObservableList) {
 exports.MutableList = MutableList;
 exports["default"] = MutableList;
 
-},{"./observable_list":29}],25:[function(require,module,exports){
+},{"./observable_list":30}],26:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -2167,7 +2265,7 @@ var Subject = function Subject() {
 
 exports.Subject = Subject;
 
-},{"./key":21}],26:[function(require,module,exports){
+},{"./key":22}],27:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -2223,7 +2321,7 @@ var ObservableCache = (function (_Cache) {
 exports.ObservableCache = ObservableCache;
 exports['default'] = ObservableCache;
 
-},{"./cache":18}],27:[function(require,module,exports){
+},{"./cache":19}],28:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -2289,7 +2387,7 @@ var ObservableIndex = (function (_Index) {
 exports.ObservableIndex = ObservableIndex;
 exports['default'] = ObservableIndex;
 
-},{"./index":20,"./observable":25}],28:[function(require,module,exports){
+},{"./index":21,"./observable":26}],29:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -2337,7 +2435,7 @@ var ObservableKeyBy = (function (_KeyBy) {
 exports.ObservableKeyBy = ObservableKeyBy;
 exports['default'] = ObservableKeyBy;
 
-},{"./key_by":22,"./observable":25}],29:[function(require,module,exports){
+},{"./key_by":23,"./observable":26}],30:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -2660,7 +2758,7 @@ var ObservableList = (function (_List) {
 exports.ObservableList = ObservableList;
 exports['default'] = ObservableList;
 
-},{"./list":23,"./observable":25,"./observable_cache":26,"./observable_index":27,"./observable_key_by":28,"./tree":30}],30:[function(require,module,exports){
+},{"./list":24,"./observable":26,"./observable_cache":27,"./observable_index":28,"./observable_key_by":29,"./tree":31}],31:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -2765,7 +2863,7 @@ exports.Tree = Tree;
 })(Tree || (exports.Tree = Tree = {}));
 exports['default'] = Tree;
 
-},{"./list":23}],31:[function(require,module,exports){
+},{"./list":24}],32:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -2844,7 +2942,7 @@ var Unit = (function (_MutableList) {
 exports['default'] = Unit;
 module.exports = exports['default'];
 
-},{"./key":21,"./mutable_list":24,"./observable":25}],32:[function(require,module,exports){
+},{"./key":22,"./mutable_list":25,"./observable":26}],33:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -2926,7 +3024,7 @@ var ArrayList = (function (_MutableList) {
 exports['default'] = ArrayList;
 module.exports = exports['default'];
 
-},{"./mutable_list":39,"./observable":40}],33:[function(require,module,exports){
+},{"./mutable_list":40,"./observable":41}],34:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3004,7 +3102,7 @@ var AsyncList = (function () {
 exports.AsyncList = AsyncList;
 exports["default"] = AsyncList;
 
-},{}],34:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3051,7 +3149,7 @@ var Cache = function Cache(list) {
 exports.Cache = Cache;
 exports["default"] = Cache;
 
-},{}],35:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3097,7 +3195,7 @@ var Index = function Index(list) {
 exports.Index = Index;
 exports["default"] = Index;
 
-},{}],36:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3118,7 +3216,7 @@ var Key;
 exports["default"] = Key;
 module.exports = exports["default"];
 
-},{}],37:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3175,7 +3273,7 @@ var KeyBy = function KeyBy(list, keyFn) {
 exports.KeyBy = KeyBy;
 exports["default"] = KeyBy;
 
-},{}],38:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3577,7 +3675,7 @@ var List = (function () {
 exports.List = List;
 exports['default'] = List;
 
-},{"./async_list":33,"./cache":34,"./index":35,"./key_by":37,"./tree":45}],39:[function(require,module,exports){
+},{"./async_list":34,"./cache":35,"./index":36,"./key_by":38,"./tree":46}],40:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3762,7 +3860,7 @@ var MutableList = (function (_ObservableList) {
 exports.MutableList = MutableList;
 exports["default"] = MutableList;
 
-},{"./observable_list":44}],40:[function(require,module,exports){
+},{"./observable_list":45}],41:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3799,7 +3897,7 @@ var Subject = function Subject() {
 
 exports.Subject = Subject;
 
-},{"./key":36}],41:[function(require,module,exports){
+},{"./key":37}],42:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3855,7 +3953,7 @@ var ObservableCache = (function (_Cache) {
 exports.ObservableCache = ObservableCache;
 exports['default'] = ObservableCache;
 
-},{"./cache":34}],42:[function(require,module,exports){
+},{"./cache":35}],43:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3921,7 +4019,7 @@ var ObservableIndex = (function (_Index) {
 exports.ObservableIndex = ObservableIndex;
 exports['default'] = ObservableIndex;
 
-},{"./index":35,"./observable":40}],43:[function(require,module,exports){
+},{"./index":36,"./observable":41}],44:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3969,7 +4067,7 @@ var ObservableKeyBy = (function (_KeyBy) {
 exports.ObservableKeyBy = ObservableKeyBy;
 exports['default'] = ObservableKeyBy;
 
-},{"./key_by":37,"./observable":40}],44:[function(require,module,exports){
+},{"./key_by":38,"./observable":41}],45:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -4292,7 +4390,7 @@ var ObservableList = (function (_List) {
 exports.ObservableList = ObservableList;
 exports['default'] = ObservableList;
 
-},{"./list":38,"./observable":40,"./observable_cache":41,"./observable_index":42,"./observable_key_by":43,"./tree":45}],45:[function(require,module,exports){
+},{"./list":39,"./observable":41,"./observable_cache":42,"./observable_index":43,"./observable_key_by":44,"./tree":46}],46:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -4397,5 +4495,5 @@ exports.Tree = Tree;
 })(Tree || (exports.Tree = Tree = {}));
 exports['default'] = Tree;
 
-},{"./list":38}]},{},[8])(8)
+},{"./list":39}]},{},[9])(9)
 });
