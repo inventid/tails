@@ -3,6 +3,7 @@ class Tails.Model extends Backbone.Deferred.Model
   @concern Tails.Mixins.Associable
 
   syncedAt: 0
+  acceptFormat: 'application/json'
 
   initialize: ( attrs = {}, options = {} ) ->
     @parent = options.parent or @parent or @collection?.parent
@@ -39,6 +40,8 @@ class Tails.Model extends Backbone.Deferred.Model
         return deferred.promise
 
     options.dataType ||= @format
+    options.headers ||= {}
+    options.headers['Accept'] = @acceptFormat
     fetchPromise = super options
 
     @synced  = false

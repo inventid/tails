@@ -6,6 +6,7 @@ class Tails.Template extends Tails.Model
 
   urlRoot: 'assets'
   format:  'html'
+  acceptFormat: 'text/html'
 
   # Binds an object to the template using rivets.js.
   bind: ( view ) ->

@@ -594,6 +594,8 @@
 
     Collection.prototype.syncedAt = 0;
 
+    Collection.prototype.acceptFormat = 'application/json';
+
     function Collection(models, options) {
       if (models == null) {
         models = [];
@@ -646,6 +648,8 @@
         }
       }
       options.dataType || (options.dataType = this.format);
+      options.headers || (options.headers = {});
+      options.headers['Accept'] = this.acceptFormat;
       fetchPromise = Collection.__super__.fetch.call(this, options);
       this.synced = false;
       this.syncing = true;
@@ -1707,6 +1711,8 @@
 
     Model.prototype.syncedAt = 0;
 
+    Model.prototype.acceptFormat = 'application/json';
+
     Model.prototype.initialize = function(attrs, options) {
       var _ref;
       if (attrs == null) {
@@ -1760,6 +1766,8 @@
         }
       }
       options.dataType || (options.dataType = this.format);
+      options.headers || (options.headers = {});
+      options.headers['Accept'] = this.acceptFormat;
       fetchPromise = Model.__super__.fetch.call(this, options);
       this.synced = false;
       this.syncing = true;
@@ -1828,6 +1836,8 @@
     Template.prototype.urlRoot = 'assets';
 
     Template.prototype.format = 'html';
+
+    Template.prototype.acceptFormat = 'text/html';
 
     Template.prototype.bind = function(view) {
       return this.fetch({
