@@ -1,8 +1,8 @@
 class Tails.Collection extends Backbone.Deferred.Collection
   _.extend @, Tails.Mixable
 
-  # format: 'json'
   syncedAt: 0
+  acceptFormat: 'application/json'
 
   constructor: ( models = [], options = {} ) ->
     @model  = options.model  or @model or Tails.Model
@@ -39,6 +39,8 @@ class Tails.Collection extends Backbone.Deferred.Collection
         return deferred.promise
 
     options.dataType ||= @format
+    options.headers ||= {}
+    options.headers['Accept'] = @acceptFormat
     fetchPromise = super options
 
     @synced  = false
