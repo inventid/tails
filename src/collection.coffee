@@ -1,7 +1,6 @@
 class Tails.Collection extends Backbone.Deferred.Collection
   _.extend @, Tails.Mixable
 
-  # format: 'json'
   syncedAt: 0
 
   constructor: ( models = [], options = {} ) ->
@@ -24,9 +23,8 @@ class Tails.Collection extends Backbone.Deferred.Collection
   url: ( ) ->
     base = @parent?.url?() or @parent?.url or Tails.config.url
     root = @urlRoot?() or @urlRoot
-    format = if @format? then '.' + (@format?() or @format) else ''
 
-    url = "#{base}/#{root}#{format}"
+    url = "#{base}/#{root}"
     return url
 
   fetch: ( options = {} ) ->

@@ -623,11 +623,10 @@
     };
 
     Collection.prototype.url = function() {
-      var base, format, root, url, _ref, _ref1;
+      var base, root, url, _ref, _ref1;
       base = ((_ref = this.parent) != null ? typeof _ref.url === "function" ? _ref.url() : void 0 : void 0) || ((_ref1 = this.parent) != null ? _ref1.url : void 0) || Tails.config.url;
       root = (typeof this.urlRoot === "function" ? this.urlRoot() : void 0) || this.urlRoot;
-      format = this.format != null ? '.' + ((typeof this.format === "function" ? this.format() : void 0) || this.format) : '';
-      url = "" + base + "/" + root + format;
+      url = "" + base + "/" + root;
       return url;
     };
 
@@ -1736,12 +1735,11 @@
     };
 
     Model.prototype.url = function() {
-      var base, format, id, root, url, _ref, _ref1;
+      var base, id, root, url, _ref, _ref1;
       base = ((_ref = this.parent) != null ? typeof _ref.url === "function" ? _ref.url() : void 0 : void 0) || ((_ref1 = this.parent) != null ? _ref1.url : void 0) || Tails.config.url;
       root = (typeof this.urlRoot === "function" ? this.urlRoot() : void 0) || this.urlRoot;
       id = this.id ? "/" + this.id : '';
-      format = this.format != null ? '.' + ((typeof this.format === "function" ? this.format() : void 0) || this.format) : '';
-      url = "" + base + "/" + root + id + format;
+      url = "" + base + "/" + root + id;
       return url;
     };
 

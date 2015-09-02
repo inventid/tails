@@ -24,9 +24,8 @@ class Tails.Model extends Backbone.Deferred.Model
     base = @parent?.url?() or @parent?.url or Tails.config.url
     root = @urlRoot?() or @urlRoot
     id = if @id then "/#{@id}" else ''
-    format = if @format? then '.' + (@format?() or @format) else ''
 
-    url = "#{base}/#{root}#{id}#{format}"
+    url = "#{base}/#{root}#{id}"
     return url
 
   fetch: ( options = {} ) ->
