@@ -8,7 +8,7 @@ class Tails.Collection extends Backbone.Deferred.Collection
     @model  = options.model  or @model or Tails.Model
     @parent = options.parent or @parent
     @synced = options.synced or false
-    @alternativeUrl = options.url or null
+    @url    = options.url    or @url
 
     @on 'change', ( model ) =>
       @synced = false
@@ -23,10 +23,6 @@ class Tails.Collection extends Backbone.Deferred.Collection
     return inflection.transform(@model.name or @model.toString().match(/^function\s*([^\s(]+)/)[1], ['underscore', 'pluralize'])
 
   url: ( ) ->
-    # If the collection overrides the URL, use that URL
-    if @alternativeUrl?
-      return @alternativeUrl
-
     base = @parent?.url?() or @parent?.url or Tails.config.url
     root = @urlRoot?() or @urlRoot
     format = if @format? then '.' + (@format?() or @format) else ''
