@@ -8,6 +8,7 @@ class Tails.Collection extends Backbone.Deferred.Collection
     @model  = options.model  or @model or Tails.Model
     @parent = options.parent or @parent
     @synced = options.synced or false
+    @url    = options.url    or @url
 
     @on 'change', ( model ) =>
       @synced = false

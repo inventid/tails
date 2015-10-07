@@ -606,6 +606,7 @@
       this.model = options.model || this.model || Tails.Model;
       this.parent = options.parent || this.parent;
       this.synced = options.synced || false;
+      this.url = options.url || this.url;
       this.on('change', (function(_this) {
         return function(model) {
           return _this.synced = false;
