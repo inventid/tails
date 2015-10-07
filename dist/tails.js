@@ -606,7 +606,7 @@
       this.model = options.model || this.model || Tails.Model;
       this.parent = options.parent || this.parent;
       this.synced = options.synced || false;
-      this.alternativeUrl = options.url || null;
+      this.url = options.url || this.url;
       this.on('change', (function(_this) {
         return function(model) {
           return _this.synced = false;
@@ -627,9 +627,6 @@
 
     Collection.prototype.url = function() {
       var base, format, root, url, _ref, _ref1;
-      if (this.alternativeUrl != null) {
-        return this.alternativeUrl;
-      }
       base = ((_ref = this.parent) != null ? typeof _ref.url === "function" ? _ref.url() : void 0 : void 0) || ((_ref1 = this.parent) != null ? _ref1.url : void 0) || Tails.config.url;
       root = (typeof this.urlRoot === "function" ? this.urlRoot() : void 0) || this.urlRoot;
       format = this.format != null ? '.' + ((typeof this.format === "function" ? this.format() : void 0) || this.format) : '';
